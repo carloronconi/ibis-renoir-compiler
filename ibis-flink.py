@@ -91,6 +91,8 @@ def ibis_flink_tutorial():
         ),
     )
 
+    print(connection.list_tables())
+
     # Create transformations
 
     user_trans_amt_last_360m_agg = source_table[
@@ -202,6 +204,10 @@ def ibis_flink_tutorial():
     )
     for _, msg in zip(range(10), consumer):
         print(msg)
+
+
+    ibis.options.interactive = True;
+    print(source_table.head())
 
 
 if __name__ == '__main__':
