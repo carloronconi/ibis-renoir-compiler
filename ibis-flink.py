@@ -6,26 +6,22 @@ import ibis.expr.datatypes as dt
 import ibis.expr.schema as sch
 
 """
-https://nightlies.apache.org/flink/flink-docs-release-1.18/docs/try-flink/datastream/
-base apache flink tutorial: Java
+# Resources:
+- https://nightlies.apache.org/flink/flink-docs-release-1.18/docs/try-flink/datastream/ base apache flink tutorial (Java)
+- https://ibis-project.org/tutorials/open-source-software/apache-flink/1_single_feature tutorial webpage for using apache flink with ibis
+- https://github.com/ibis-project/ibis-flink-tutorial tutorial repo hosting the tutorial to be cloned: contains jupyter 
+notebook with more complete guide and docker compose to create Kafka topics, generate sample data, and launch a Flink cluster in the background
 
-https://ibis-project.org/tutorials/open-source-software/apache-flink/1_single_feature
-tutorial for using apache flink with ibis
-
-https://github.com/ibis-project/ibis-flink-tutorial
-github repo hosting the tutorial to be cloned: contains jupyter notebook with more complete guide
-and docker compose to create Kafka topics, generate sample data, and launch a Flink cluster in the background.
-
-So to make the following work:
+# Running this tutorial
 1. ensure you have a .venv (if not: bottom-right corner / add new interpreter / local / virtualenv / new and add with 
 defaults)
 2. let PyCharm install imports by clicking on red underlined imports
 3. PyCharm installed the wrong kafka! Do: `pip uninstall kafka` and `pip install kafka-python`
-4. start the docker desktop application
+4. start docker (desktop application)
 5. cd to the [cloned notebook](https://github.com/ibis-project/ibis-flink-tutorial) and do `docker compose up -d`
-6. run this script and ensure that it prints kafka topic contents
-7. do `wget -N https://repo.maven.apache.org/maven2/org/apache/flink/flink-sql-connector-kafka/3.0.2-1.18/flink-sql-conn
-ector-kafka-3.0.2-1.18.jar`
+6. if you don't have a flink-sql-connector-kafka jar in the root dir of this project do 
+`wget -N https://repo.maven.apache.org/maven2/org/apache/flink/flink-sql-connector-kafka/3.0.2-1.18/flink-sql-connector-kafka-3.0.2-1.18.jar`
+7. run this script
 """
 
 
@@ -48,6 +44,8 @@ def ibis_flink_tutorial():
     table_env.get_config().set("parallelism.default", "1")
     connection = ibis.flink.connect(table_env)
 
+    # Pass raw SQL command to flink database to let it read/write onto the kafka topic
+    # see https://nightlies.apache.org/flink/flink-docs-release-1.18/docs/dev/table/sql/jar/
     connection.raw_sql("ADD JAR './flink-sql-connector-kafka-3.0.2-1.18.jar'")
 
     # Connect to data source
