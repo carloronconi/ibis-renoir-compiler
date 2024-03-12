@@ -95,7 +95,7 @@ def ibis_flink_tutorial():
 
     # Create transformations
 
-    user_trans_amt_last_360m_agg = source_table[
+    user_trans_amt_last_360m_agg = source_table[  # .select( # pandas syntax is equivalent to select
         source_table.user_id,
             # Calculate the average transaction amount over the past six hours
         source_table.amt.mean()
@@ -118,7 +118,7 @@ def ibis_flink_tutorial():
         )
         .name("user_trans_count_last_360min"),
         source_table.trans_date_trans_time,
-    ]
+    ]  # )
 
     windowed_stream = source_table.window_by(
         time_col=source_table.trans_date_trans_time,
