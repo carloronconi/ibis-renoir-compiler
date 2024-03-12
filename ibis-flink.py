@@ -206,9 +206,5 @@ def ibis_flink_tutorial():
         print(msg)
 
 
-    ibis.options.interactive = True;
-    print(source_table.head())
-
-
 if __name__ == '__main__':
     ibis_flink_tutorial()
