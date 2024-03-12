@@ -15,10 +15,10 @@ notebook with more complete guide and docker compose to create Kafka topics, gen
 # Running this tutorial
 1. ensure you have a .venv (if not: bottom-right corner / add new interpreter / local / virtualenv / new and add with 
 defaults)
-2. let PyCharm install imports by clicking on red underlined imports
-3. PyCharm installed the wrong kafka! Do: `pip uninstall kafka` and `pip install kafka-python`
+2. do `pip install ibis-framework apache-flink kafka-python`
+3. in case PyCharm installed the wrong kafka, do: `pip uninstall kafka` and `pip install kafka-python`
 4. start docker (desktop application)
-5. cd to the [cloned notebook](https://github.com/ibis-project/ibis-flink-tutorial) and do `docker compose up -d`
+5. [clone this jupyter notebook](https://github.com/ibis-project/ibis-flink-tutorial), cd to it and do `docker compose up -d`
 6. if you don't have a flink-sql-connector-kafka jar in the root dir of this project do 
 `wget -N https://repo.maven.apache.org/maven2/org/apache/flink/flink-sql-connector-kafka/3.0.2-1.18/flink-sql-connector-kafka-3.0.2-1.18.jar`
 7. run this script
