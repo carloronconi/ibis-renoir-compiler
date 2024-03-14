@@ -39,9 +39,9 @@ def run():
     for op in reversed(operators):
         match op:
             case ("select", name):
-                print("NOT IMPL")
+                print("NOT IMPL")  # TODO: use a .map(|(x, y, _)| (x, y) to exclude 3rd column and select 1st and 2nd
             case ("filter", name):
-                mid += ".filter(|x| x.0 == " + name + ")"
+                mid += ".filter(|x| x.0 == " + name + ")"  # TODO: handle col numbers (here x.0 is fixed) also here
 
     with open('noir-template/src/main.rs', 'w') as f:
         f.write(top)
