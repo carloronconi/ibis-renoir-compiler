@@ -53,5 +53,6 @@ def run():
     # cargo run
     subprocess.run("cd noir-template && cargo-fmt && cargo run", shell=True)
 
+
 if __name__ == '__main__':
     run()
