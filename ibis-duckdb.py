@@ -1,11 +1,17 @@
 import ibis
 import ibis.selectors as sel
 
+from ibis import _
+from ibis.expr.visualize import to_graph
+from ibis.common.graph import Graph
+import ibis.expr.operations as ops
 
 """
 https://ibis-project.org/tutorials/getting_started
 basic frontend tutorial using default duckdb backend
 """
+
+
 def ibis_visualize():
     con = ibis.connect("duckdb://penguins.ddb")
     con.create_table("penguins", ibis.examples.penguins.fetch().to_pyarrow(), overwrite=True)
@@ -83,5 +89,34 @@ frontend tutorial for pandas users: describes similarities between the APIs
 """
 
 
+# Exploration of IR of query in ibis
+def ibis_backends():
+    con = ibis.connect("duckdb://penguins.ddb")
+    con.create_table("penguins", ibis.examples.penguins.fetch().to_pyarrow(), overwrite=True)
+
+    penguins = con.table("penguins")
+
+    expr = (penguins
+            .filter(penguins.sex == "male")
+            .group_by(["island", "year"])
+            .aggregate(penguins.body_mass_g.max().name("max_body_mass"))
+            .order_by(["year", "max_body_mass"]))
+    # expr.visualize()
+
+    to_graph(expr).render("query-graph")
+
+    operations = expr.op()
+
+    graph = Graph.from_dfs(operations, filter=ops.Node)
+
+    items = graph.items()
+
+    print(operations)
+
+    res = ibis.get_backend().compile(expr)
+    print(res)
+
+
 if __name__ == '__main__':
-    ibis_visualize()
+    ibis_backends()
+    # ibis_visualize()
