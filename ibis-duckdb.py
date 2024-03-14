@@ -107,9 +107,21 @@ def ibis_backends():
 
     operations = expr.op()
 
-    graph = Graph.from_dfs(operations, filter=ops.Node)
+    graph = Graph.from_bfs(operations, filter=ops.Node)
 
-    items = graph.items()
+    graph.toposort()
+
+    for node in graph.nodes():
+        print(type(node).__name__ + ":\t" + str(node.__args__) + " | ")
+
+    # shouldn't be needed as .items() returns key-value tuples for dict
+    # for v in graph.values():
+    #     print(v)
+    # for k in graph.keys():
+    #     print(k)
+
+    for k, v in graph.items():
+        print(str(k) + " |\t" + type(k).__name__ + ":\t" + str(v))
 
     print(operations)
 
