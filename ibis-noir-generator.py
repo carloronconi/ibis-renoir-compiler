@@ -13,7 +13,8 @@ def run():
 
     query = (table
              .filter(table.int1 == 123)
-             #.select("string1", "int1"))
+             # .filter(123 == table.int1)
+             # .select("string1", "int1"))
              .select("string1"))
 
     to_graph(query).render("query3")
@@ -51,8 +52,9 @@ def run():
     for op in reversed(operators):
         match op:
             case ("filter", left, right):
-                index = table.columns.index(left.name)
-                mid += ".filter(|x| x." + str(index) + " == " + right.name + ")"  # TODO: handle other binary ops and check Literals vs (treat as right.name) vs TableColumns (treat as index)
+                left = filter_bin_arg_stringify(left, table)
+                right = filter_bin_arg_stringify(right, table)
+                mid += ".filter(|x| x." + left + " == " + right + ")"  # TODO: handle other binary ops
             case ("map", col_list):
                 mid += ".map(|x| "
                 if len(col_list) == 1:
@@ -74,6 +76,17 @@ def run():
     # cargo-fmt
     # cargo run
     subprocess.run("cd noir-template && cargo-fmt && cargo run", shell=True)
+
+
+# if operand is literal, return its value
+# if operand is table column, return its index in the original table
+def filter_bin_arg_stringify(operand, table) -> str:
+    if isinstance(operand, ibis.expr.operations.generic.TableColumn):
+        index = table.columns.index(operand.name)
+        return str(index)
+    elif isinstance(operand, ibis.expr.operations.generic.Literal):
+        return operand.name
+    raise Exception("Unsupported operand type")
 
 
 if __name__ == '__main__':
