@@ -15,6 +15,7 @@ def run():
 
     query = (table
              .filter(table.string1 == "unduetre")
+             # .group_by("string1").aggregate()  # this makes it so there's only one Selection and the other is Aggregation!
              # .filter(table.int1 == 2).filter(table.string1 == "unduetre")
              # .filter(table.string1 == "unduetre")
              # .filter(table.int1 <= 125)
@@ -27,23 +28,21 @@ def run():
     graph = Graph.from_bfs(query.op(), filter=ops.Node)  # filtering ops.Selection doesn't work
 
     operators = []
-    # ibis calls 'Selection' both selections and projections: disambiguate by considering "filter" (selections)
-    # operations with logical operand, because "map" (projections) only have TableColumn (and other Selection)
-    # operands
-    selectors = filter(lambda tup: isinstance(tup[0], ibis.expr.operations.relations.Selection), graph.items())
+    # find maps (aka column projection)
+    # need to filter out redundant selections in tree inserted just above filters by ibis
+    selectors = filter(is_selection_and_no_logical_operand, graph.items())
     for selector, operands in selectors:
         print(str(selector) + " |\t" + type(selector).__name__ + ":\t" + str(operands))
-        for operand in operands:
-            if getattr(operand, '__module__', None) == ibis.expr.operations.logical.__name__:
-                # "filter", left.name="int1", left.dtype="Int64", right.name="123", right.dtype"Int8"
-                # how do I use col name in rust instead of ordering
-                operators.append(("filter", type(operand).__name__, operand.left, operand.right))
-                continue
         selected_columns = []
         for operand in filter(lambda o: isinstance(o, ibis.expr.operations.TableColumn), operands):
             selected_columns.append(operand)
         if selected_columns:
             operators.append(("map", selected_columns))
+
+    # find filters (aka row selection)
+    filters = filter(is_logical_operand, graph.items())
+    for fil, operands in filters:
+        operators.append(("filter", type(fil).__name__, fil.left, fil.right))
 
     print("done")
     # all nodes have a 'name' attribute and a 'dtype' and 'shape' attributes: use those to get info!
@@ -96,6 +95,21 @@ def filter_bin_arg_stringify(operand, table) -> str:
             return "\"" + ''.join(filter(str.isalnum, operand.name)) + "\""
         return operand.name
     raise Exception("Unsupported operand type")
+
+
+def is_selection_and_no_logical_operand(tup) -> bool:
+    if not isinstance(tup[0], ibis.expr.operations.relations.Selection):
+        return False
+    for operand in tup[1]:
+        if getattr(operand, '__module__', None) == ibis.expr.operations.logical.__name__:
+            return False
+    return True
+
+
+def is_logical_operand(tup) -> bool:
+    if getattr(tup[0], '__module__', None) == ibis.expr.operations.logical.__name__:
+        return True
+    return False
 
 
 if __name__ == '__main__':
