@@ -13,15 +13,15 @@ def run():
 
     query = (table
              .filter(table.int1 == 123)
-             # .select("string1", "int1")
+             #.select("string1", "int1"))
              .select("string1"))
 
     to_graph(query).render("query3")
     graph = Graph.from_bfs(query.op(), filter=ops.Node)  # filtering ops.Selection doesn't work
 
     operators = []
-    # ibis calls 'Selection' both selections and projections: disambiguate by considering "filter" (projection)
-    # operations with logical operand, because "select" (selections) only have TableColumn (and other Selection)
+    # ibis calls 'Selection' both selections and projections: disambiguate by considering "filter" (selections)
+    # operations with logical operand, because "map" (projections) only have TableColumn (and other Selection)
     # operands
     selectors = filter(lambda tup: isinstance(tup[0], ibis.expr.operations.relations.Selection), graph.items())
     for selector, operands in selectors:
@@ -36,7 +36,7 @@ def run():
         for operand in filter(lambda o: isinstance(o, ibis.expr.operations.TableColumn), operands):
             selected_columns.append(operand)
         if selected_columns:
-            operators.append(("select", selected_columns))
+            operators.append(("map", selected_columns))
 
     print("done")
     # all nodes have a 'name' attribute and a 'dtype' and 'shape' attributes: use those to get info!
@@ -51,9 +51,19 @@ def run():
     for op in reversed(operators):
         match op:
             case ("filter", left, right):
-                mid += ".filter(|x| x.0 == " + right.name + ")"  # TODO: handle col numbers (here x.0 is fixed) also here
-            case ("select", name):
-                print("NOT IMPL")  # TODO: use a .map(|(x, y, _)| (x, y) to exclude 3rd column and select 1st and 2nd
+                index = table.columns.index(left.name)
+                mid += ".filter(|x| x." + str(index) + " == " + right.name + ")"  # TODO: handle other binary ops and check Literals vs (treat as right.name) vs TableColumns (treat as index)
+            case ("map", col_list):
+                mid += ".map(|x| "
+                if len(col_list) == 1:
+                    index = table.columns.index(col_list[0].name)
+                    mid += "x." + str(index) + ")"
+                else:
+                    mid += "("
+                    for col in col_list:
+                        index = table.columns.index(col.name)
+                        mid += "x." + str(index) + ", "
+                    mid += "))"
 
     with open('noir-template/src/main.rs', 'w') as f:
         f.write(top)
