@@ -8,13 +8,15 @@ from ibis.expr.visualize import to_graph
 
 bin_ops = {"Equals": "==", "Greater": ">", "GreaterEqual": ">=", "Less": "<", "LessEqual": "<="}
 
+
 def run():
     print("Generating...")
     table = ibis.read_csv("int-1-string-1.csv")
 
     query = (table
-             .filter(table.int1 <= 125)
-             # .filter(123 == table.int1)
+             .filter(table.string1 == "unduetre")
+             # .filter(table.int1 <= 125)
+             # .filter(125 >= table.int1)
              # .select("string1", "int1"))
              .select("string1"))
 
@@ -87,6 +89,8 @@ def filter_bin_arg_stringify(operand, table) -> str:
         index = table.columns.index(operand.name)
         return str(index)
     elif isinstance(operand, ibis.expr.operations.generic.Literal):
+        if operand.dtype.name == "String":
+            return "\"" + ''.join(filter(str.isalnum, operand.name)) + "\""
         return operand.name
     raise Exception("Unsupported operand type")
 
