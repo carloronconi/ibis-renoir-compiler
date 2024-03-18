@@ -6,13 +6,14 @@ from ibis.common.graph import Graph
 import ibis.expr.operations as ops
 from ibis.expr.visualize import to_graph
 
+bin_ops = {"Equals": "==", "Greater": ">", "GreaterEqual": ">=", "Less": "<", "LessEqual": "<="}
 
 def run():
     print("Generating...")
     table = ibis.read_csv("int-1-string-1.csv")
 
     query = (table
-             .filter(table.int1 == 123)
+             .filter(table.int1 <= 125)
              # .filter(123 == table.int1)
              # .select("string1", "int1"))
              .select("string1"))
@@ -31,7 +32,7 @@ def run():
             if getattr(operand, '__module__', None) == ibis.expr.operations.logical.__name__:
                 # "filter", left.name="int1", left.dtype="Int64", right.name="123", right.dtype"Int8"
                 # how do I use col name in rust instead of ordering
-                operators.append(("filter", operand.left, operand.right))
+                operators.append(("filter", type(operand).__name__, operand.left, operand.right))
                 continue
         selected_columns = []
         for operand in filter(lambda o: isinstance(o, ibis.expr.operations.TableColumn), operands):
@@ -51,10 +52,11 @@ def run():
     mid = ""
     for op in reversed(operators):
         match op:
-            case ("filter", left, right):
+            case ("filter", op, left, right):
+                op = bin_ops[op]
                 left = filter_bin_arg_stringify(left, table)
                 right = filter_bin_arg_stringify(right, table)
-                mid += ".filter(|x| x." + left + " == " + right + ")"  # TODO: handle other binary ops
+                mid += ".filter(|x| x." + left + " " + op + " " + right + ")"
             case ("map", col_list):
                 mid += ".map(|x| "
                 if len(col_list) == 1:
