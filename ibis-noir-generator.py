@@ -15,9 +15,12 @@ def run():
 
     query = (table
              .filter(table.string1 == "unduetre")
+             # .filter(table.int1 == 2).filter(table.string1 == "unduetre")
+             # .filter(table.string1 == "unduetre")
              # .filter(table.int1 <= 125)
              # .filter(125 >= table.int1)
              # .select("string1", "int1"))
+             # .select("int1", "string1").select("string1"))
              .select("string1"))
 
     to_graph(query).render("query3")
