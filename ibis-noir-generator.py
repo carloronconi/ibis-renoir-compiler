@@ -2,18 +2,28 @@ import subprocess
 
 import ibis
 
+from ibis.common.graph import Graph
+import ibis.expr.operations as ops
+from ibis.expr.visualize import to_graph
 
 def run():
     print("Generating...")
     table = ibis.read_csv("int-1-string-1.csv")
 
-    transform = (table
+    query = (table
                  .filter(table.int1 == 123)
                  .select("string1"))
 
+    to_graph(query).render("query3")
+    graph = Graph.from_bfs(query.op(), filter=ops.Node)
+    for k, v in graph.items():
+        print(str(k) + " |\t" + type(k).__name__ + ":\t" + str(v))
+
+    # TableColumn ops have a 'name' attribute and a 'dtype' and 'shape' attributes: use those to get info!
+
     operators = list()
 
-    op = transform.op()
+    op = query.op()
     while isinstance(op, ibis.expr.operations.relations.Selection):
         if op.args[1]:
             name = op.selections[0].name
@@ -27,7 +37,7 @@ def run():
 
     print(operators)
 
-    #print(transform.head().to_pandas())
+    #print(query.head().to_pandas())
 
     with open("noir-template/main_top.rs") as f:
         top = f.read()
