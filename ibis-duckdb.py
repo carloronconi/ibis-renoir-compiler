@@ -1,7 +1,6 @@
 import ibis
 import ibis.selectors as sel
 
-from ibis import _
 from ibis.expr.visualize import to_graph
 from ibis.common.graph import Graph
 import ibis.expr.operations as ops
@@ -105,10 +104,13 @@ def ibis_backends():
 
     to_graph(expr).render("query-graph")
 
+    to_graph(penguins.filter(penguins.sex == "male").select("island", "year")).render("query2")
+
     operations = expr.op()
 
     graph = Graph.from_bfs(operations, filter=ops.Node)
 
+    # graph.source()
     graph.toposort()
 
     for node in graph.nodes():
@@ -120,6 +122,8 @@ def ibis_backends():
     # for k in graph.keys():
     #     print(k)
 
+    nodes = graph.values()
+    its = graph.items()
     for k, v in graph.items():
         print(str(k) + " |\t" + type(k).__name__ + ":\t" + str(v))
 
