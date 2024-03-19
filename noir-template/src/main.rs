@@ -3,8 +3,7 @@ use noir_compute::prelude::*;
 fn logic(ctx: &StreamContext) {
     ctx.stream_csv::<(i32, String)>("../int-1-string-1.csv")
         .filter(|x| x.1 == "unduetre")
-        .filter(|x| x.0 == 2)
-        .map(|x| (x.0, x.1))
+        .group_by(|x| x.1.clone())
         .map(|x| x.1)
         .for_each(|x| println!("{x:?}"));
 }

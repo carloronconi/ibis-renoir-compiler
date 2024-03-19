@@ -15,7 +15,7 @@ def run():
 
     query = (table
              .filter(table.string1 == "unduetre")
-             # .group_by("string1").aggregate()  # this makes it so there's only one Selection and the other is Aggregation!
+             .group_by("string1").aggregate()
              # .filter(table.int1 == 2).filter(table.string1 == "unduetre")
              # .filter(table.string1 == "unduetre")
              # .filter(table.int1 <= 125)
@@ -39,6 +39,11 @@ def run():
         if selected_columns:
             operators.append(("map", selected_columns))
 
+    # find groupers (aka group by)
+    groupers = filter(lambda tup: isinstance(tup[0], ibis.expr.operations.relations.Aggregation), graph.items())
+    for grouper, operands in groupers:
+        operators.append(("group", grouper.by))  # by contains list of all group by columns
+
     # find filters (aka row selection)
     filters = filter(is_logical_operand, graph.items())
     for fil, operands in filters:
@@ -58,9 +63,13 @@ def run():
         match op:
             case ("filter", op, left, right):
                 op = bin_ops[op]
-                left = filter_bin_arg_stringify(left, table)
-                right = filter_bin_arg_stringify(right, table)
+                left = operator_arg_stringify(left, table)
+                right = operator_arg_stringify(right, table)
                 mid += ".filter(|x| x." + left + " " + op + " " + right + ")"
+            case ("group", by_list):
+                for by in by_list:  # test if multiple consecutive group_by's have same effect (noir only supports one arg)
+                    by = operator_arg_stringify(by, table)
+                    mid += ".group_by(|x| x." + by + ".clone())"
             case ("map", col_list):
                 mid += ".map(|x| "
                 if len(col_list) == 1:
@@ -86,7 +95,7 @@ def run():
 
 # if operand is literal, return its value
 # if operand is table column, return its index in the original table
-def filter_bin_arg_stringify(operand, table) -> str:
+def operator_arg_stringify(operand, table) -> str:
     if isinstance(operand, ibis.expr.operations.generic.TableColumn):
         index = table.columns.index(operand.name)
         return str(index)
