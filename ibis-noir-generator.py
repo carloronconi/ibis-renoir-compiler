@@ -9,6 +9,7 @@ from ibis.expr.visualize import to_graph
 bin_ops = {"Equals": "==", "Greater": ">", "GreaterEqual": ">=", "Less": "<", "LessEqual": "<="}
 math_ops = {"Multiply": "*", "Add": "+", "Subtract": "-"}
 
+
 def run():
     print("Generating...")
     table = ibis.read_csv("int-1-string-1.csv")
@@ -146,6 +147,7 @@ def is_alias_and_one_numeric_operand(tup) -> bool:
     if getattr(tup[1][0], '__module__', None) != ibis.expr.operations.numeric.__name__:
         return False
     return True
+
 
 if __name__ == '__main__':
     run()
