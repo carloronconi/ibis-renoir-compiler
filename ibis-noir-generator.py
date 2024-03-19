@@ -7,7 +7,7 @@ import ibis.expr.operations as ops
 from ibis.expr.visualize import to_graph
 
 bin_ops = {"Equals": "==", "Greater": ">", "GreaterEqual": ">=", "Less": "<", "LessEqual": "<="}
-
+math_ops = {"Multiply": "*", "Add": "+", "Subtract": "-"}
 
 def run():
     print("Generating...")
@@ -15,14 +15,17 @@ def run():
 
     query = (table
              .filter(table.string1 == "unduetre")
-             .group_by("string1").aggregate()
              # .filter(table.int1 == 2).filter(table.string1 == "unduetre")
              # .filter(table.string1 == "unduetre")
              # .filter(table.int1 <= 125)
              # .filter(125 >= table.int1)
+             .group_by("string1").aggregate()   # careful: group_by "loses" other cols if you don't pass aggregation
+                                                # funct into aggregate (e.g. table.int1.max()) - or maybe just duckdb?
+                                                # because query graph actually looks correct
+             .mutate(int1=table.int1 * 20))     # mutate always results in alias preceded by Multiply (or other bin op)
              # .select("string1", "int1"))
              # .select("int1", "string1").select("string1"))
-             .select("string1"))
+             #.select("string1"))
 
     to_graph(query).render("query3")
     graph = Graph.from_bfs(query.op(), filter=ops.Node)  # filtering ops.Selection doesn't work
@@ -37,7 +40,13 @@ def run():
         for operand in filter(lambda o: isinstance(o, ibis.expr.operations.TableColumn), operands):
             selected_columns.append(operand)
         if selected_columns:
-            operators.append(("map", selected_columns))
+            operators.append(("select", selected_columns))
+
+    # find mappers (aka map)
+    mappers = filter(is_alias_and_one_numeric_operand, graph.items())
+    for mapper, operands in mappers:
+        operand = operands[0]  # maps have a single operand
+        operators.append(("map", type(operand).__name__, operand.left, operand.right))
 
     # find groupers (aka group by)
     groupers = filter(lambda tup: isinstance(tup[0], ibis.expr.operations.relations.Aggregation), graph.items())
@@ -70,7 +79,15 @@ def run():
                 for by in by_list:  # test if multiple consecutive group_by's have same effect (noir only supports one arg)
                     by = operator_arg_stringify(by, table)
                     mid += ".group_by(|x| x." + by + ".clone())"
-            case ("map", col_list):
+            case ("map", op, left, right):
+                op = math_ops[op]
+                left = operator_arg_stringify(left, table)
+                right = operator_arg_stringify(right, table)
+                mid += ".map(|x| x."
+                if "group" in map(lambda tup: tup[0], operators):  # brutally adding because of noir implementation
+                    mid += "1."
+                mid += left + " " + op + " " + right + ")"
+            case ("select", col_list):
                 mid += ".map(|x| "
                 if len(col_list) == 1:
                     index = table.columns.index(col_list[0].name)
@@ -120,6 +137,15 @@ def is_logical_operand(tup) -> bool:
         return True
     return False
 
+
+def is_alias_and_one_numeric_operand(tup) -> bool:
+    if not isinstance(tup[0], ibis.expr.operations.core.Alias):
+        return False
+    if len(tup[1]) != 1:
+        return False
+    if getattr(tup[1][0], '__module__', None) != ibis.expr.operations.numeric.__name__:
+        return False
+    return True
 
 if __name__ == '__main__':
     run()

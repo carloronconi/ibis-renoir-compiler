@@ -4,7 +4,7 @@ fn logic(ctx: &StreamContext) {
     ctx.stream_csv::<(i32, String)>("../int-1-string-1.csv")
         .filter(|x| x.1 == "unduetre")
         .group_by(|x| x.1.clone())
-        .map(|x| x.1)
+        .map(|x| x.1 .0 * 20)
         .for_each(|x| println!("{x:?}"));
 }
 

@@ -92,11 +92,13 @@ def ibis_noir_generator_query():
              # .filter(table.string1 == "unduetre")
              # .filter(table.int1 <= 125)
              # .filter(125 >= table.int1)
+             # .mutate(new_int1=table.int1)
              .group_by("string1").aggregate()
-             # .mutate(new_col_name=table.int1 * 20)
+             #.rename(int1="Max(int1)")
+             .mutate(new_col_name=table.int1 * 20))
              # .select("string1", "int1"))
              # .select("int1", "string1").select("string1"))
-             .select("string1"))
+             # .select("string1"))
     print(query)
 
 
