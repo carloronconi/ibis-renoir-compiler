@@ -11,22 +11,46 @@ bin_ops = {"Equals": "==", "Greater": ">", "GreaterEqual": ">=", "Less": "<", "L
 math_ops = {"Multiply": "*", "Add": "+", "Subtract": "-"}
 
 
-def run_q1():
+def run_q_map_group_filter():
     table = ibis.read_csv("int-1-string-1.csv")
 
     query = (table
              .filter(table.string1 == "unduetre")
-             # .filter(table.int1 == 2).filter(table.string1 == "unduetre")
-             # .filter(table.string1 == "unduetre")
-             # .filter(table.int1 <= 125)
-             # .filter(125 >= table.int1)
-             .group_by("string1").aggregate()  # careful: group_by "loses" other cols if you don't pass aggregation
-             # funct into aggregate (e.g. table.int1.max()) - or maybe just duckdb?
-             # because query graph actually looks correct
+             .group_by("string1").aggregate()   # careful: group_by "loses" other cols if you don't pass aggregation
+                                                # funct into aggregate (e.g. table.int1.max()) - or maybe just duckdb?
+                                                # because query graph actually looks correct
              .mutate(int1=table.int1 * 20))  # mutate always results in alias preceded by Multiply (or other bin op)
-    # .select("string1", "int1"))
-    # .select("int1", "string1").select("string1"))
-    # .select("string1"))
+
+    run_noir_query_on_table(table, query)
+
+
+def run_q_select_project():
+    table = ibis.read_csv("int-1-string-1.csv")
+
+    query = (table
+             .filter(table.string1 == "unduetre")
+             .select("int1"))
+
+    run_noir_query_on_table(table, query)
+
+
+def run_q_multi_select_multi_project():
+    table = ibis.read_csv("int-1-string-1.csv")
+
+    query = (table
+             .filter(table.int1 == 123).filter(table.string1 == "unduetre")
+             .select("int1", "string1").select("string1"))
+
+    run_noir_query_on_table(table, query)
+
+
+def run_q_select_group_filter():
+    table = ibis.read_csv("int-1-string-1.csv")
+
+    query = (table
+             .filter(table.string1 == "unduetre")
+             .group_by("string1").aggregate()
+             .select("string1"))
 
     run_noir_query_on_table(table, query)
 
@@ -168,4 +192,7 @@ def is_alias_and_one_numeric_operand(tup) -> bool:
 
 
 if __name__ == '__main__':
-    run_q1()
+    # run_q_select_project()
+    # run_q_multi_select_multi_project()
+    # run_q_select_group_filter()
+    run_q_map_group_filter()
