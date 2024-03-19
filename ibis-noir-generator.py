@@ -11,7 +11,7 @@ bin_ops = {"Equals": "==", "Greater": ">", "GreaterEqual": ">=", "Less": "<", "L
 math_ops = {"Multiply": "*", "Add": "+", "Subtract": "-"}
 
 
-def run():
+def run_q1():
     table = ibis.read_csv("int-1-string-1.csv")
 
     query = (table
@@ -28,6 +28,10 @@ def run():
     # .select("int1", "string1").select("string1"))
     # .select("string1"))
 
+    run_noir_query_on_table(table, query)
+
+
+def run_noir_query_on_table(table: ibis.expr.types.relations.Table, query: ibis.expr.types.relations.Table):
     operators = create_operators(query)
     gen_noir_code(operators, table)
 
@@ -164,4 +168,4 @@ def is_alias_and_one_numeric_operand(tup) -> bool:
 
 
 if __name__ == '__main__':
-    run()
+    run_q1()
