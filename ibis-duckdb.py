@@ -82,6 +82,24 @@ def ibis_visualize():
      .order_by("sex"))
 
 
+def ibis_noir_generator_query():
+    # try same query as ibis-noir-generator on duckdb
+    ibis.options.interactive = True
+    table = ibis.read_csv("int-1-string-1.csv")
+    query = (table
+             .filter(table.string1 == "unduetre")
+             # .filter(table.int1 == 2).filter(table.string1 == "unduetre")
+             # .filter(table.string1 == "unduetre")
+             # .filter(table.int1 <= 125)
+             # .filter(125 >= table.int1)
+             .group_by("string1").aggregate()
+             # .mutate(new_col_name=table.int1 * 20)
+             # .select("string1", "int1"))
+             # .select("int1", "string1").select("string1"))
+             .select("string1"))
+    print(query)
+
+
 """
 https://ibis-project.org/tutorials/ibis-for-pandas-users
 frontend tutorial for pandas users: describes similarities between the APIs
@@ -134,5 +152,6 @@ def ibis_backends():
 
 
 if __name__ == '__main__':
-    ibis_backends()
+    # ibis_backends()
     # ibis_visualize()
+    ibis_noir_generator_query()
