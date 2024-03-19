@@ -5,13 +5,13 @@ import ibis
 from ibis.common.graph import Graph
 import ibis.expr.operations as ops
 from ibis.expr.visualize import to_graph
+from typing import List
 
 bin_ops = {"Equals": "==", "Greater": ">", "GreaterEqual": ">=", "Less": "<", "LessEqual": "<="}
 math_ops = {"Multiply": "*", "Add": "+", "Subtract": "-"}
 
 
 def run():
-    print("Generating...")
     table = ibis.read_csv("int-1-string-1.csv")
 
     query = (table
@@ -20,13 +20,25 @@ def run():
              # .filter(table.string1 == "unduetre")
              # .filter(table.int1 <= 125)
              # .filter(125 >= table.int1)
-             .group_by("string1").aggregate()   # careful: group_by "loses" other cols if you don't pass aggregation
-                                                # funct into aggregate (e.g. table.int1.max()) - or maybe just duckdb?
-                                                # because query graph actually looks correct
-             .mutate(int1=table.int1 * 20))     # mutate always results in alias preceded by Multiply (or other bin op)
-             # .select("string1", "int1"))
-             # .select("int1", "string1").select("string1"))
-             #.select("string1"))
+             .group_by("string1").aggregate()  # careful: group_by "loses" other cols if you don't pass aggregation
+             # funct into aggregate (e.g. table.int1.max()) - or maybe just duckdb?
+             # because query graph actually looks correct
+             .mutate(int1=table.int1 * 20))  # mutate always results in alias preceded by Multiply (or other bin op)
+    # .select("string1", "int1"))
+    # .select("int1", "string1").select("string1"))
+    # .select("string1"))
+
+    operators = create_operators(query)
+    gen_noir_code(operators, table)
+
+    # cd noir-template
+    # cargo-fmt
+    # cargo run
+    subprocess.run("cd noir-template && cargo-fmt && cargo run", shell=True)
+
+
+def create_operators(query: ibis.expr.types.relations.Table) -> List[tuple]:
+    print("parsing query...")
 
     to_graph(query).render("query3")
     graph = Graph.from_bfs(query.op(), filter=ops.Node)  # filtering ops.Selection doesn't work
@@ -59,8 +71,13 @@ def run():
     for fil, operands in filters:
         operators.append(("filter", type(fil).__name__, fil.left, fil.right))
 
-    print("done")
+    print("done parsing")
     # all nodes have a 'name' attribute and a 'dtype' and 'shape' attributes: use those to get info!
+    return operators
+
+
+def gen_noir_code(operators: List[tuple], table):
+    print("generating noir code...")
 
     with open("noir-template/main_top.rs") as f:
         top = f.read()
@@ -105,10 +122,7 @@ def run():
         f.write(mid)
         f.write(bot)
 
-    # cd noir-template
-    # cargo-fmt
-    # cargo run
-    subprocess.run("cd noir-template && cargo-fmt && cargo run", shell=True)
+    print("Done generating code")
 
 
 # if operand is literal, return its value
