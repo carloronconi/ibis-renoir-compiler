@@ -4,6 +4,7 @@ import ibis.selectors as sel
 from ibis.expr.visualize import to_graph
 from ibis.common.graph import Graph
 import ibis.expr.operations as ops
+from ibis import _
 
 """
 https://ibis-project.org/tutorials/getting_started
@@ -88,17 +89,11 @@ def ibis_noir_generator_query():
     table = ibis.read_csv("int-1-string-1.csv")
     query = (table
              .filter(table.string1 == "unduetre")
-             # .filter(table.int1 == 2).filter(table.string1 == "unduetre")
-             # .filter(table.string1 == "unduetre")
-             # .filter(table.int1 <= 125)
-             # .filter(125 >= table.int1)
-             # .mutate(new_int1=table.int1)
-             .group_by("string1").aggregate()
-             #.rename(int1="Max(int1)")
-             .mutate(new_col_name=table.int1 * 20))
-             # .select("string1", "int1"))
-             # .select("int1", "string1").select("string1"))
-             # .select("string1"))
+             .group_by("string1").aggregate(_.int1.max())
+             .rename(int1="Max(int1)")
+             .mutate(new_col_name=_.int1 * 20)
+             .aggregate(by=["string1"], bubu=_.new_col_name.max()))  # no way to pass custom reducer function!
+
     print(query)
 
 

@@ -9,6 +9,19 @@ from typing import List
 
 bin_ops = {"Equals": "==", "Greater": ">", "GreaterEqual": ">=", "Less": "<", "LessEqual": "<="}
 math_ops = {"Multiply": "*", "Add": "+", "Subtract": "-"}
+aggr_ops = {"Max": "max", "Min": "min", "Sum": "+"}
+
+
+def run_q_reduce_map_group_filter():
+    table = ibis.read_csv("int-1-string-1.csv")
+
+    query = (table
+             .filter(table.string1 == "unduetre")
+             .group_by("string1").aggregate()
+             .mutate(int1=table.int1 * 20)
+             .aggregate(by=["string1"], max=table.int1.max()))
+
+    run_noir_query_on_table(table, query)
 
 
 def run_q_map_group_filter():
@@ -85,13 +98,19 @@ def create_operators(query: ibis.expr.types.relations.Table) -> List[tuple]:
         if selected_columns:
             operators.append(("select", selected_columns))
 
+    # find reducers (aka reduce)
+    reducers = filter(is_alias_and_one_reduction_operand, graph.items())
+    for reducer, operands in reducers:
+        operand = operands[0]
+        operators.append(("reduce", type(operand).__name__, operand.args[0]))
+
     # find mappers (aka map)
     mappers = filter(is_alias_and_one_numeric_operand, graph.items())
     for mapper, operands in mappers:
         operand = operands[0]  # maps have a single operand
         operators.append(("map", type(operand).__name__, operand.left, operand.right))
 
-    # find groupers (aka group by)
+    # find groupers (aka group by) TODO: fix here, considering group by an aggregation again!
     groupers = filter(lambda tup: isinstance(tup[0], ibis.expr.operations.relations.Aggregation), graph.items())
     for grouper, operands in groupers:
         operators.append(("group", grouper.by))  # by contains list of all group by columns
@@ -127,6 +146,10 @@ def gen_noir_code(operators: List[tuple], table):
                 for by in by_list:  # test if multiple consecutive group_by's have same effect (noir only supports one arg)
                     by = operator_arg_stringify(by, table)
                     mid += ".group_by(|x| x." + by + ".clone())"
+            case ("reduce", op, arg):
+                op = aggr_ops[op]
+                # arg = operator_arg_stringify(arg, table)  # unused: noir doesn't require to specify column, aggregation depends on previous step
+                mid += ".reduce(|a, b| *a = (*a)." + op + "(b))"
             case ("map", op, left, right):
                 op = math_ops[op]
                 left = operator_arg_stringify(left, table)
@@ -193,8 +216,17 @@ def is_alias_and_one_numeric_operand(tup) -> bool:
     return True
 
 
+def is_alias_and_one_reduction_operand(tup) -> bool:
+    if not isinstance(tup[0], ibis.expr.operations.core.Alias):
+        return False
+    if len(tup[1]) != 1:
+        return False
+    return isinstance(tup[1][0], ibis.expr.operations.Reduction)
+
+
 if __name__ == '__main__':
     # run_q_select_project()
     # run_q_multi_select_multi_project()
     # run_q_select_group_filter()
-    run_q_map_group_filter()
+    # run_q_map_group_filter()
+    run_q_reduce_map_group_filter()
