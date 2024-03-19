@@ -69,6 +69,8 @@ def create_operators(query: ibis.expr.types.relations.Table) -> List[tuple]:
     print("parsing query...")
 
     to_graph(query).render("query3")
+    subprocess.run("open query3.pdf", shell=True)
+
     graph = Graph.from_bfs(query.op(), filter=ops.Node)  # filtering ops.Selection doesn't work
 
     operators = []
