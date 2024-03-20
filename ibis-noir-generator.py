@@ -122,6 +122,7 @@ def reorder_operators(operators, query_gen):
     while len(operators) > len(source):
         operators.pop()
 
+
 def gen_noir_code(operators: List[tuple], table):
     print("generating noir code...")
 
@@ -140,19 +141,23 @@ def gen_noir_code(operators: List[tuple], table):
                 right = operator_arg_stringify(right, table)
                 mid += ".filter(|x| x." + left + " " + op + " " + right + ")"
             case ("group", by_list):
-                for by in by_list:  # test if multiple consecutive group_by's have same effect (noir only supports one arg)
+                for by in by_list:
+                    # test if multiple consecutive group_by's have same effect (noir only supports one arg)
                     by = operator_arg_stringify(by, table)
                     mid += ".group_by(|x| x." + by + ".clone())"
             case ("reduce", op, arg):
                 op = aggr_ops[op]
-                # arg = operator_arg_stringify(arg, table)  # unused: noir doesn't require to specify column, aggregation depends on previous step
+                # arg = operator_arg_stringify(arg, table)  # unused: noir doesn't require to specify column,
+                # aggregation depends on previous step
                 mid += ".reduce(|a, b| *a = (*a)." + op + "(b))"
             case ("map", op, left, right):
                 op = math_ops[op]
                 left = operator_arg_stringify(left, table)
                 right = operator_arg_stringify(right, table)
                 mid += ".map(|x| x."
-                if operators[idx - 1][0] == "group":  # preceded by group_by: brutally adding because of noir implementation
+                if operators[idx - 1][0] == "group":
+                    # if map preceded by group_by trivially adding because of noir
+                    # implementation ("grouped" (old_tuple))
                     mid += "1."
                 mid += left + " " + op + " " + right + ")"
             case ("select", col_list):
