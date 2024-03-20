@@ -64,8 +64,8 @@ def run_noir_query_on_table(table: typ.relations.Table, query_gen):
 def create_operators(query: ibis.expr.types.relations.Table, table: typ.relations.Table) -> List[sop.Operator]:
     print("parsing query...")
 
-    to_graph(query).render("query3")
-    subprocess.run("open query3.pdf", shell=True)
+    to_graph(query).render("../out/query3")
+    subprocess.run("open out/query3.pdf", shell=True)
 
     graph = Graph.from_bfs(query.op(), filter=ops.Node)  # filtering ops.Selection doesn't work
 
@@ -154,7 +154,7 @@ def one_reduction_operand(operands: Sequence[Node]) -> bool:
 
 
 if __name__ == '__main__':
-    table = ibis.read_csv("int-1-string-1.csv")
+    table = ibis.read_csv("codegen/int-1-string-1.csv")
 
     # query_gen = q_filter_select
     # query_gen = q_filter_filter_select_select

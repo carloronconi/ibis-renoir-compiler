@@ -86,7 +86,7 @@ def ibis_visualize():
 def ibis_noir_generator_query():
     # try same query as ibis-noir-generator on duckdb
     ibis.options.interactive = True
-    table = ibis.read_csv("int-1-string-1.csv")
+    table = ibis.read_csv("codegen/int-1-string-1.csv")
     query = (table
              .filter(table.string1 == "unduetre")
              .group_by("string1").aggregate(_.int1.max())
