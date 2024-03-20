@@ -1,7 +1,6 @@
 import subprocess
 
 import inspect
-from enum import Enum
 
 import ibis
 
@@ -10,18 +9,7 @@ import ibis.expr.operations as ops
 import ibis.expr.types as typ
 from ibis.expr.visualize import to_graph
 from typing import List, Sequence
-
-bin_ops = {"Equals": "==", "Greater": ">", "GreaterEqual": ">=", "Less": "<", "LessEqual": "<="}
-math_ops = {"Multiply": "*", "Add": "+", "Subtract": "-"}
-aggr_ops = {"Max": "max", "Min": "min", "Sum": "+"}
-
-
-class OpType(Enum):
-    FILTER = "filter"
-    GROUP = "group_by"
-    REDUCE = "aggregate"
-    MAP = "mutate"
-    SELECT = "select"
+import operators as sop
 
 
 def q_filter_group_mutate_reduce(table: typ.relations.Table) -> typ.relations.Table:
@@ -63,9 +51,9 @@ def q_filter_group_select(table: typ.relations.Table) -> typ.relations.Table:
 def run_noir_query_on_table(table: typ.relations.Table, query_gen):
     query = query_gen(table)
 
-    operators = create_operators(query)
+    operators = create_operators(query, table)
     reorder_operators(operators, query_gen)
-    gen_noir_code(operators, table)
+    gen_noir_code(operators)
 
     # cd noir-template
     # cargo-fmt
@@ -73,7 +61,7 @@ def run_noir_query_on_table(table: typ.relations.Table, query_gen):
     subprocess.run("cd noir-template && cargo-fmt && cargo run", shell=True)
 
 
-def create_operators(query: ibis.expr.types.relations.Table) -> List[tuple]:
+def create_operators(query: ibis.expr.types.relations.Table, table: typ.relations.Table) -> List[sop.Operator]:
     print("parsing query...")
 
     to_graph(query).render("query3")
@@ -81,7 +69,7 @@ def create_operators(query: ibis.expr.types.relations.Table) -> List[tuple]:
 
     graph = Graph.from_bfs(query.op(), filter=ops.Node)  # filtering ops.Selection doesn't work
 
-    operators = []
+    operators: list[sop.Operator] = []
     for tup in graph.items():
         operator = tup[0]
         operands = tup[1]
@@ -90,24 +78,24 @@ def create_operators(query: ibis.expr.types.relations.Table) -> List[tuple]:
         match operator:
             case ops.core.Alias() if one_reduction_operand(operands):  # find reducers (aka reduce)
                 operand = operands[0]
-                operators.append((OpType.REDUCE, type(operand).__name__, operand.args[0]))
+                operators.append(sop.ReduceOperator(operand))
 
             case ops.core.Alias() if one_numeric_operand(operands):  # find mappers (aka map)
                 operand = operands[0]  # maps have a single operand
-                operators.append((OpType.MAP, type(operand).__name__, operand.left, operand.right))
+                operators.append(sop.MapOperator(table, operand, operators))
 
             case ops.relations.Aggregation():  # find groupers (aka group by)
-                operators.append((OpType.GROUP, operator.by))  # by contains list of all group by columns
+                operators.append(sop.GroupOperator(table, operator.by))  # by contains list of all group by columns
 
             case ops.logical.Comparison():  # find filters (aka row selection)
-                operators.append((OpType.FILTER, type(operator).__name__, operator.left, operator.right))
+                operators.append(sop.FilterOperator(table, operator))
 
             case ops.relations.Selection():  # find maps (aka column projection)
                 selected_columns = []
                 for operand in filter(lambda o: isinstance(o, ops.TableColumn), operands):
                     selected_columns.append(operand)
                 if selected_columns:
-                    operators.append((OpType.SELECT, selected_columns))
+                    operators.append(sop.SelectOperator(table, selected_columns))
 
     print("done parsing")
     # all nodes have a 'name' attribute and a 'dtype' and 'shape' attributes: use those to get info!
@@ -115,7 +103,7 @@ def create_operators(query: ibis.expr.types.relations.Table) -> List[tuple]:
     return operators
 
 
-def reorder_operators(operators, query_gen):
+def reorder_operators(operators: List[sop.Operator], query_gen):
     operators.reverse()
 
     source = inspect.getsource(query_gen).splitlines()
@@ -123,15 +111,14 @@ def reorder_operators(operators, query_gen):
 
     for i, line in enumerate(source):
         line_op = line.strip().split(".")[1].split("(")[0]
-        line_op = OpType(line_op)
-        if operators[i][0] != line_op:
+        if not isinstance(operators[i], sop.Operator.op_class_from_ibis(line_op)):
             operators[i], operators[i + 1] = operators[i + 1], operators[i]
 
     while len(operators) > len(source):
         operators.pop()
 
 
-def gen_noir_code(operators: List[tuple], table):
+def gen_noir_code(operators: List[sop.Operator]):
     print("generating noir code...")
 
     with open("noir-template/main_top.rs") as f:
@@ -141,44 +128,8 @@ def gen_noir_code(operators: List[tuple], table):
         bot = f.read()
 
     mid = ""
-    for idx, op in enumerate(operators):
-        match op:
-            case (OpType.FILTER, op, left, right):
-                op = bin_ops[op]
-                left = operator_arg_stringify(left, table)
-                right = operator_arg_stringify(right, table)
-                mid += ".filter(|x| x." + left + " " + op + " " + right + ")"
-            case (OpType.GROUP, by_list):
-                for by in by_list:
-                    # test if multiple consecutive group_by's have same effect (noir only supports one arg)
-                    by = operator_arg_stringify(by, table)
-                    mid += ".group_by(|x| x." + by + ".clone())"
-            case (OpType.REDUCE, op, arg):
-                op = aggr_ops[op]
-                # arg = operator_arg_stringify(arg, table)  # unused: noir doesn't require to specify column,
-                # aggregation depends on previous step
-                mid += ".reduce(|a, b| *a = (*a)." + op + "(b))"
-            case (OpType.MAP, op, left, right):
-                op = math_ops[op]
-                left = operator_arg_stringify(left, table)
-                right = operator_arg_stringify(right, table)
-                mid += ".map(|x| x."
-                if operators[idx - 1][0] == OpType.GROUP:
-                    # if map preceded by group_by trivially adding because of noir
-                    # implementation ("grouped" (old_tuple))
-                    mid += "1."
-                mid += left + " " + op + " " + right + ")"
-            case (OpType.SELECT, col_list):
-                mid += ".map(|x| "
-                if len(col_list) == 1:
-                    index = table.columns.index(col_list[0].name)
-                    mid += "x." + str(index) + ")"
-                else:
-                    mid += "("
-                    for col in col_list:
-                        index = table.columns.index(col.name)
-                        mid += "x." + str(index) + ", "
-                    mid += "))"
+    for op in operators:
+        mid = op.generate(mid)
 
     with open('noir-template/src/main.rs', 'w') as f:
         f.write(top)
@@ -186,19 +137,6 @@ def gen_noir_code(operators: List[tuple], table):
         f.write(bot)
 
     print("Done generating code")
-
-
-# if operand is literal, return its value
-# if operand is table column, return its index in the original table
-def operator_arg_stringify(operand, table) -> str:
-    if isinstance(operand, ibis.expr.operations.generic.TableColumn):
-        index = table.columns.index(operand.name)
-        return str(index)
-    elif isinstance(operand, ibis.expr.operations.generic.Literal):
-        if operand.dtype.name == "String":
-            return "\"" + ''.join(filter(str.isalnum, operand.name)) + "\""
-        return operand.name
-    raise Exception("Unsupported operand type")
 
 
 def one_numeric_operand(operands: Sequence[Node]) -> bool:
