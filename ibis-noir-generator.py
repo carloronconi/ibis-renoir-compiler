@@ -1,75 +1,62 @@
 import subprocess
 
+import inspect
+
 import ibis
 
-from ibis.common.graph import Graph
+from ibis.common.graph import Graph, Node
 import ibis.expr.operations as ops
+import ibis.expr.types as typ
 from ibis.expr.visualize import to_graph
-from typing import List
+from typing import List, Sequence
 
 bin_ops = {"Equals": "==", "Greater": ">", "GreaterEqual": ">=", "Less": "<", "LessEqual": "<="}
 math_ops = {"Multiply": "*", "Add": "+", "Subtract": "-"}
 aggr_ops = {"Max": "max", "Min": "min", "Sum": "+"}
+ibis_op_type = {"filter": "filter", "group_by": "group", "aggregate": "reduce", "mutate": "map", "select": "select"}
 
 
-def run_q_reduce_map_group_filter():
-    table = ibis.read_csv("int-1-string-1.csv")
-
-    query = (table
-             .filter(table.string1 == "unduetre")
-             .group_by("string1").aggregate()
-             .mutate(int1=table.int1 * 20)
-             .aggregate(by=["string1"], max=table.int1.max()))
-
-    run_noir_query_on_table(table, query)
+def q_filter_group_mutate_reduce(table: typ.relations.Table) -> typ.relations.Table:
+    return (table
+            .filter(table.string1 == "unduetre")
+            .group_by("string1").aggregate()
+            .mutate(int1=table.int1 * 20)
+            .aggregate(by=["string1"], max=table.int1.max()))
 
 
-def run_q_map_group_filter():
-    table = ibis.read_csv("int-1-string-1.csv")
-
-    query = (table
-             .filter(table.string1 == "unduetre")
-             .group_by("string1").aggregate()   # careful: group_by "loses" other cols if you don't pass aggregation
-                                                # funct into aggregate (e.g. table.int1.max()) - or maybe just duckdb?
-                                                # because query graph actually looks correct
-             .mutate(int1=table.int1 * 20))  # mutate always results in alias preceded by Multiply (or other bin op)
-
-    run_noir_query_on_table(table, query)
+def q_filter_group_mutate(table: typ.relations.Table) -> typ.relations.Table:
+    return (table
+            .filter(table.string1 == "unduetre")
+            .group_by("string1").aggregate()
+            .mutate(int1=table.int1 * 20))  # mutate always results in alias preceded by Multiply (or other bin op)
 
 
-def run_q_select_project():
-    table = ibis.read_csv("int-1-string-1.csv")
-
-    query = (table
-             .filter(table.string1 == "unduetre")
-             .select("int1"))
-
-    run_noir_query_on_table(table, query)
+def q_filter_select(table: typ.relations.Table) -> typ.relations.Table:
+    return (table
+            .filter(table.string1 == "unduetre")
+            .select("int1"))
 
 
-def run_q_multi_select_multi_project():
-    table = ibis.read_csv("int-1-string-1.csv")
-
-    query = (table
-             .filter(table.int1 == 123).filter(table.string1 == "unduetre")
-             .select("int1", "string1").select("string1"))
-
-    run_noir_query_on_table(table, query)
+def q_filter_filter_select_select(table: typ.relations.Table) -> typ.relations.Table:
+    return (table
+            .filter(table.int1 == 123)
+            .filter(table.string1 == "unduetre")
+            .select("int1", "string1")
+            .select("string1"))
 
 
-def run_q_select_group_filter():
-    table = ibis.read_csv("int-1-string-1.csv")
-
-    query = (table
-             .filter(table.string1 == "unduetre")
-             .group_by("string1").aggregate()
-             .select("string1"))
-
-    run_noir_query_on_table(table, query)
+def q_filter_group_select(table: typ.relations.Table) -> typ.relations.Table:
+    return (table
+            .filter(table.string1 == "unduetre")
+            .group_by("string1").aggregate()
+            .select("string1"))
 
 
-def run_noir_query_on_table(table: ibis.expr.types.relations.Table, query: ibis.expr.types.relations.Table):
+def run_noir_query_on_table(table: typ.relations.Table, query_gen):
+    query = query_gen(table)
+
     operators = create_operators(query)
+    reorder_operators(operators, query_gen)
     gen_noir_code(operators, table)
 
     # cd noir-template
@@ -87,43 +74,53 @@ def create_operators(query: ibis.expr.types.relations.Table) -> List[tuple]:
     graph = Graph.from_bfs(query.op(), filter=ops.Node)  # filtering ops.Selection doesn't work
 
     operators = []
-    # find maps (aka column projection)
-    # need to filter out redundant selections in tree inserted just above filters by ibis
-    selectors = filter(is_selection_and_no_logical_operand, graph.items())
-    for selector, operands in selectors:
-        print(str(selector) + " |\t" + type(selector).__name__ + ":\t" + str(operands))
-        selected_columns = []
-        for operand in filter(lambda o: isinstance(o, ibis.expr.operations.TableColumn), operands):
-            selected_columns.append(operand)
-        if selected_columns:
-            operators.append(("select", selected_columns))
+    for tup in graph.items():
+        operator = tup[0]
+        operands = tup[1]
+        print(str(operator) + " |\t" + type(operator).__name__ + ":\t" + str(operands))
 
-    # find reducers (aka reduce)
-    reducers = filter(is_alias_and_one_reduction_operand, graph.items())
-    for reducer, operands in reducers:
-        operand = operands[0]
-        operators.append(("reduce", type(operand).__name__, operand.args[0]))
+        match operator:
+            case ops.core.Alias() if one_reduction_operand(operands):  # find reducers (aka reduce)
+                operand = operands[0]
+                operators.append(("reduce", type(operand).__name__, operand.args[0]))
 
-    # find mappers (aka map)
-    mappers = filter(is_alias_and_one_numeric_operand, graph.items())
-    for mapper, operands in mappers:
-        operand = operands[0]  # maps have a single operand
-        operators.append(("map", type(operand).__name__, operand.left, operand.right))
+            case ops.core.Alias() if one_numeric_operand(operands):  # find mappers (aka map)
+                operand = operands[0]  # maps have a single operand
+                operators.append(("map", type(operand).__name__, operand.left, operand.right))
 
-    # find groupers (aka group by) TODO: fix here, considering group by an aggregation again!
-    groupers = filter(lambda tup: isinstance(tup[0], ibis.expr.operations.relations.Aggregation), graph.items())
-    for grouper, operands in groupers:
-        operators.append(("group", grouper.by))  # by contains list of all group by columns
+            case ops.relations.Aggregation():  # find groupers (aka group by)
+                operators.append(("group", operator.by))  # by contains list of all group by columns
 
-    # find filters (aka row selection)
-    filters = filter(is_logical_operand, graph.items())
-    for fil, operands in filters:
-        operators.append(("filter", type(fil).__name__, fil.left, fil.right))
+            case ops.logical.Comparison():  # find filters (aka row selection)
+                operators.append(("filter", type(operator).__name__, operator.left, operator.right))
+
+            case ops.relations.Selection():  # find maps (aka column projection)
+                selected_columns = []
+                for operand in filter(lambda o: isinstance(o, ops.TableColumn), operands):
+                    selected_columns.append(operand)
+                if selected_columns:
+                    operators.append(("select", selected_columns))
 
     print("done parsing")
     # all nodes have a 'name' attribute and a 'dtype' and 'shape' attributes: use those to get info!
+
     return operators
 
+
+def reorder_operators(operators, query_gen):
+    operators.reverse()
+
+    source = inspect.getsource(query_gen).splitlines()
+    source = source[2:]
+
+    for i, line in enumerate(source):
+        line_op = line.strip().split(".")[1].split("(")[0]
+        line_op = ibis_op_type[line_op]
+        if operators[i][0] != line_op:
+            operators[i], operators[i + 1] = operators[i + 1], operators[i]
+
+    while len(operators) > len(source):
+        operators.pop()
 
 def gen_noir_code(operators: List[tuple], table):
     print("generating noir code...")
@@ -135,7 +132,7 @@ def gen_noir_code(operators: List[tuple], table):
         bot = f.read()
 
     mid = ""
-    for op in reversed(operators):
+    for idx, op in enumerate(operators):
         match op:
             case ("filter", op, left, right):
                 op = bin_ops[op]
@@ -155,7 +152,7 @@ def gen_noir_code(operators: List[tuple], table):
                 left = operator_arg_stringify(left, table)
                 right = operator_arg_stringify(right, table)
                 mid += ".map(|x| x."
-                if "group" in map(lambda tup: tup[0], operators):  # brutally adding because of noir implementation
+                if operators[idx - 1][0] == "group":  # preceded by group_by: brutally adding because of noir implementation
                     mid += "1."
                 mid += left + " " + op + " " + right + ")"
             case ("select", col_list):
@@ -191,42 +188,27 @@ def operator_arg_stringify(operand, table) -> str:
     raise Exception("Unsupported operand type")
 
 
-def is_selection_and_no_logical_operand(tup) -> bool:
-    if not isinstance(tup[0], ibis.expr.operations.relations.Selection):
+def one_numeric_operand(operands: Sequence[Node]) -> bool:
+    if len(operands) != 1:
         return False
-    for operand in tup[1]:
-        if getattr(operand, '__module__', None) == ibis.expr.operations.logical.__name__:
-            return False
-    return True
-
-
-def is_logical_operand(tup) -> bool:
-    if getattr(tup[0], '__module__', None) == ibis.expr.operations.logical.__name__:
-        return True
-    return False
-
-
-def is_alias_and_one_numeric_operand(tup) -> bool:
-    if not isinstance(tup[0], ibis.expr.operations.core.Alias):
-        return False
-    if len(tup[1]) != 1:
-        return False
-    if getattr(tup[1][0], '__module__', None) != ibis.expr.operations.numeric.__name__:
+    if getattr(operands[0], '__module__', None) != ibis.expr.operations.numeric.__name__:
         return False
     return True
 
 
-def is_alias_and_one_reduction_operand(tup) -> bool:
-    if not isinstance(tup[0], ibis.expr.operations.core.Alias):
+def one_reduction_operand(operands: Sequence[Node]) -> bool:
+    if len(operands) != 1:
         return False
-    if len(tup[1]) != 1:
-        return False
-    return isinstance(tup[1][0], ibis.expr.operations.Reduction)
+    return isinstance(operands[0], ibis.expr.operations.Reduction)
 
 
 if __name__ == '__main__':
-    # run_q_select_project()
-    # run_q_multi_select_multi_project()
-    # run_q_select_group_filter()
-    # run_q_map_group_filter()
-    run_q_reduce_map_group_filter()
+    table = ibis.read_csv("int-1-string-1.csv")
+
+    # query_gen = q_filter_select
+    # query_gen = q_filter_filter_select_select
+    # query_gen = q_filter_group_select
+    # query_gen = q_filter_group_mutate
+    query_gen = q_filter_group_mutate_reduce
+
+    run_noir_query_on_table(table, query_gen)
