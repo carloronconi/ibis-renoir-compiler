@@ -1,6 +1,7 @@
 import subprocess
 
 import inspect
+from enum import Enum
 
 import ibis
 
@@ -13,7 +14,14 @@ from typing import List, Sequence
 bin_ops = {"Equals": "==", "Greater": ">", "GreaterEqual": ">=", "Less": "<", "LessEqual": "<="}
 math_ops = {"Multiply": "*", "Add": "+", "Subtract": "-"}
 aggr_ops = {"Max": "max", "Min": "min", "Sum": "+"}
-ibis_op_type = {"filter": "filter", "group_by": "group", "aggregate": "reduce", "mutate": "map", "select": "select"}
+
+
+class OpType(Enum):
+    FILTER = "filter"
+    GROUP = "group_by"
+    REDUCE = "aggregate"
+    MAP = "mutate"
+    SELECT = "select"
 
 
 def q_filter_group_mutate_reduce(table: typ.relations.Table) -> typ.relations.Table:
@@ -82,24 +90,24 @@ def create_operators(query: ibis.expr.types.relations.Table) -> List[tuple]:
         match operator:
             case ops.core.Alias() if one_reduction_operand(operands):  # find reducers (aka reduce)
                 operand = operands[0]
-                operators.append(("reduce", type(operand).__name__, operand.args[0]))
+                operators.append((OpType.REDUCE, type(operand).__name__, operand.args[0]))
 
             case ops.core.Alias() if one_numeric_operand(operands):  # find mappers (aka map)
                 operand = operands[0]  # maps have a single operand
-                operators.append(("map", type(operand).__name__, operand.left, operand.right))
+                operators.append((OpType.MAP, type(operand).__name__, operand.left, operand.right))
 
             case ops.relations.Aggregation():  # find groupers (aka group by)
-                operators.append(("group", operator.by))  # by contains list of all group by columns
+                operators.append((OpType.GROUP, operator.by))  # by contains list of all group by columns
 
             case ops.logical.Comparison():  # find filters (aka row selection)
-                operators.append(("filter", type(operator).__name__, operator.left, operator.right))
+                operators.append((OpType.FILTER, type(operator).__name__, operator.left, operator.right))
 
             case ops.relations.Selection():  # find maps (aka column projection)
                 selected_columns = []
                 for operand in filter(lambda o: isinstance(o, ops.TableColumn), operands):
                     selected_columns.append(operand)
                 if selected_columns:
-                    operators.append(("select", selected_columns))
+                    operators.append((OpType.SELECT, selected_columns))
 
     print("done parsing")
     # all nodes have a 'name' attribute and a 'dtype' and 'shape' attributes: use those to get info!
@@ -115,7 +123,7 @@ def reorder_operators(operators, query_gen):
 
     for i, line in enumerate(source):
         line_op = line.strip().split(".")[1].split("(")[0]
-        line_op = ibis_op_type[line_op]
+        line_op = OpType(line_op)
         if operators[i][0] != line_op:
             operators[i], operators[i + 1] = operators[i + 1], operators[i]
 
@@ -135,32 +143,32 @@ def gen_noir_code(operators: List[tuple], table):
     mid = ""
     for idx, op in enumerate(operators):
         match op:
-            case ("filter", op, left, right):
+            case (OpType.FILTER, op, left, right):
                 op = bin_ops[op]
                 left = operator_arg_stringify(left, table)
                 right = operator_arg_stringify(right, table)
                 mid += ".filter(|x| x." + left + " " + op + " " + right + ")"
-            case ("group", by_list):
+            case (OpType.GROUP, by_list):
                 for by in by_list:
                     # test if multiple consecutive group_by's have same effect (noir only supports one arg)
                     by = operator_arg_stringify(by, table)
                     mid += ".group_by(|x| x." + by + ".clone())"
-            case ("reduce", op, arg):
+            case (OpType.REDUCE, op, arg):
                 op = aggr_ops[op]
                 # arg = operator_arg_stringify(arg, table)  # unused: noir doesn't require to specify column,
                 # aggregation depends on previous step
                 mid += ".reduce(|a, b| *a = (*a)." + op + "(b))"
-            case ("map", op, left, right):
+            case (OpType.MAP, op, left, right):
                 op = math_ops[op]
                 left = operator_arg_stringify(left, table)
                 right = operator_arg_stringify(right, table)
                 mid += ".map(|x| x."
-                if operators[idx - 1][0] == "group":
+                if operators[idx - 1][0] == OpType.GROUP:
                     # if map preceded by group_by trivially adding because of noir
                     # implementation ("grouped" (old_tuple))
                     mid += "1."
                 mid += left + " " + op + " " + right + ")"
-            case ("select", col_list):
+            case (OpType.SELECT, col_list):
                 mid += ".map(|x| "
                 if len(col_list) == 1:
                     index = table.columns.index(col_list[0].name)
