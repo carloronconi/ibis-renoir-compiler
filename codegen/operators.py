@@ -142,8 +142,13 @@ class JoinOperator(Operator):
         self.table = table
 
     def generate(self, to_text: str) -> str:
-        mid = to_text + ".join("
-        pass
+        tab = self.join.left.name
+        other_tab = self.join.right.name
+        equals = self.join.predicates[0]
+        col = operator_arg_stringify(equals.left)
+        other_col = operator_arg_stringify(equals.right)
+        return to_text + f".join({other_tab}, |x| x.{col}, |y| y.{other_col})"
+
 
 
 # if operand is literal, return its value
