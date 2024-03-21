@@ -64,7 +64,7 @@ def run_noir_query_on_table(table: typ.relations.Table, query_gen):
 def create_operators(query: ibis.expr.types.relations.Table, table: typ.relations.Table) -> List[sop.Operator]:
     print("parsing query...")
 
-    to_graph(query).render("../out/query3")
+    to_graph(query).render("out/query3")
     subprocess.run("open out/query3.pdf", shell=True)
 
     graph = Graph.from_bfs(query.op(), filter=ops.Node)  # filtering ops.Selection doesn't work
@@ -107,7 +107,7 @@ def reorder_operators(operators: List[sop.Operator], query_gen):
     operators.reverse()
 
     source = inspect.getsource(query_gen).splitlines()
-    source = source[2:]
+    source = list(filter(lambda l: l.startswith("."), map(lambda l: l.strip(), source)))
 
     for i, line in enumerate(source):
         line_op = line.strip().split(".")[1].split("(")[0]
