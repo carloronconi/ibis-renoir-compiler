@@ -119,6 +119,21 @@ class ReduceOperator(Operator):
         return to_text + ".reduce(|a, b| *a = (*a)." + op + "(b))"
 
 
+class JoinOperator(Operator):
+    ibis_api_name = "join"
+    join_types = {"InnerJoin": "join", "OuterJoin": "outer_join", "LeftJoin": "left_join"}
+    join: ops.relations.Join
+    table: typ.relations.Table
+
+    def __init__(self, table: typ.relations.Table, join: ops.relations.Join):
+        self.join = join
+        self.table = table
+
+    def generate(self, to_text: str) -> str:
+        mid = to_text + ".join("
+        pass
+
+
 # if operand is literal, return its value
 # if operand is table column, return its index in the original table
 def operator_arg_stringify(operand, table) -> str:

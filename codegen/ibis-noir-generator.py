@@ -12,6 +12,13 @@ from typing import List, Sequence
 import operators as sop
 
 
+def q_inner_join(table: typ.relations.Table) -> typ.relations.Table:
+    join_table = ibis.read_csv("codegen/int-3.csv")
+    return (table
+            .join(join_table, "int1")
+            .select(["int2", "string1"]))
+
+
 def q_filter_group_mutate_reduce(table: typ.relations.Table) -> typ.relations.Table:
     return (table
             .filter(table.string1 == "unduetre")
@@ -76,6 +83,9 @@ def create_operators(query: ibis.expr.types.relations.Table, table: typ.relation
         print(str(operator) + " |\t" + type(operator).__name__ + ":\t" + str(operands))
 
         match operator:
+            case ops.relations.Join():
+                operators.append(sop.JoinOperator(table, operator))
+
             case ops.core.Alias() if one_reduction_operand(operands):  # find reducers (aka reduce)
                 operand = operands[0]
                 operators.append(sop.ReduceOperator(operand))
@@ -160,6 +170,7 @@ if __name__ == '__main__':
     # query_gen = q_filter_filter_select_select
     # query_gen = q_filter_group_select
     # query_gen = q_filter_group_mutate
-    query_gen = q_filter_group_mutate_reduce
+    # query_gen = q_filter_group_mutate_reduce
+    query_gen = q_inner_join
 
     run_noir_query_on_table(table, query_gen)
