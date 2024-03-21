@@ -22,21 +22,25 @@ class SelectOperator(Operator):
     ibis_api_name = "select"
     columns = []
     table: typ.relations.Table
+    other_operators: list[Operator]
 
-    def __init__(self, table: typ.relations.Table,  columns: list[Node]):
+    def __init__(self, table: typ.relations.Table,  columns: list[Node], other_operators: list[Operator]):
         self.columns = columns
         self.table = table
+        self.other_operators = other_operators
 
     def generate(self, to_text: str) -> str:
         mid = to_text + ".map(|x| "
         if len(self.columns) == 1:
-            index = self.table.columns.index(self.columns[0].name)
-            mid += "x." + str(index) + ")"
+            mid += "x."
+            mid = fix_prev_group_by(mid, self, self.other_operators)
+            mid += f"{self.columns[0].name})"
         else:
             mid += "("
             for col in self.columns:
-                index = self.table.columns.index(col.name)
-                mid += "x." + str(index) + ", "
+                mid += "x."
+                mid = fix_prev_group_by(mid, self, self.other_operators)
+                mid += f"{col.name}, "
             mid += "))"
         return mid
 
@@ -51,11 +55,10 @@ class FilterOperator(Operator):
         self.comparator = comparator
         self.table = table
 
-
     def generate(self, to_text: str) -> str:
         op = self.bin_ops[type(self.comparator).__name__]
-        left = operator_arg_stringify(self.comparator.left, self.table)
-        right = operator_arg_stringify(self.comparator.right, self.table)
+        left = operator_arg_stringify(self.comparator.left)
+        right = operator_arg_stringify(self.comparator.right)
         return to_text + ".filter(|x| x." + left + " " + op + " " + right + ")"
 
 
@@ -72,7 +75,7 @@ class GroupOperator(Operator):
         mid = to_text + ""
         for by in self.bys:
             # test if multiple consecutive group_by's have same effect (noir only supports one arg)
-            by = operator_arg_stringify(by, self.table)
+            by = operator_arg_stringify(by)
             mid += ".group_by(|x| x." + by + ".clone())"
         return mid
 
@@ -91,17 +94,26 @@ class MapOperator(Operator):
 
     def generate(self, to_text: str) -> str:
         op = self.math_ops[type(self.mapper).__name__]
-        left = operator_arg_stringify(self.mapper.left, self.table)
-        right = operator_arg_stringify(self.mapper.right, self.table)
+        left = operator_arg_stringify(self.mapper.left)
+        right = operator_arg_stringify(self.mapper.right)
         mid = to_text + ".map(|x| x."
 
-        idx = self.other_operators.index(self)
-        if isinstance(self.other_operators[idx - 1], GroupOperator):
-            # if map preceded by group_by trivially adding because of noir
-            # implementation ("grouped" (old_tuple))
-            mid += "1."
+        mid = fix_prev_group_by(mid, self, self.other_operators)
+
         mid += left + " " + op + " " + right + ")"
         return mid
+
+
+def fix_prev_group_by(text: str, self: Operator, others: list[Operator]) -> str:
+    # alternative: instead of this, could decide to follow every .group_by with a .map(|x| x.1) to make noir behave
+    # in the same way as ibis would
+
+    idx = others.index(self)
+    if isinstance(others[idx - 1], GroupOperator):
+        # if map preceded by group_by trivially adding because of noir
+        # implementation ("grouped" (old_tuple))
+        return text + "1."
+    return text
 
 
 class ReduceOperator(Operator):
@@ -136,10 +148,9 @@ class JoinOperator(Operator):
 
 # if operand is literal, return its value
 # if operand is table column, return its index in the original table
-def operator_arg_stringify(operand, table) -> str:
+def operator_arg_stringify(operand) -> str:
     if isinstance(operand, ibis.expr.operations.generic.TableColumn):
-        index = table.columns.index(operand.name)
-        return str(index)
+        return operand.name
     elif isinstance(operand, ibis.expr.operations.generic.Literal):
         if operand.dtype.name == "String":
             return "\"" + ''.join(filter(str.isalnum, operand.name)) + "\""

@@ -8,7 +8,7 @@ from ibis.common.graph import Graph, Node
 import ibis.expr.operations as ops
 import ibis.expr.types as typ
 from ibis.expr.visualize import to_graph
-from typing import List, Sequence
+from typing import List, Sequence, Tuple
 import operators as sop
 
 
@@ -40,12 +40,12 @@ def q_filter_select(table: typ.relations.Table) -> typ.relations.Table:
             .select("int1"))
 
 
-def q_filter_filter_select_select(table: typ.relations.Table) -> typ.relations.Table:
+def q_filter_filter_select(table: typ.relations.Table) -> typ.relations.Table:
     return (table
             .filter(table.int1 == 123)
             .filter(table.string1 == "unduetre")
-            .select("int1", "string1")
-            .select("string1"))
+            # .select("int1", "string1")    # double select is unsupported: select does Cols -> tuple so no way for
+            .select("string1"))             # second select to decide number to go in .map(|x| x.num) based on col name
 
 
 def q_filter_group_select(table: typ.relations.Table) -> typ.relations.Table:
@@ -55,12 +55,16 @@ def q_filter_group_select(table: typ.relations.Table) -> typ.relations.Table:
             .select("string1"))
 
 
-def run_noir_query_on_table(table: typ.relations.Table, query_gen):
-    query = query_gen(table)
+def run_noir_query_on_table(table_files: list[str], query_gen):
+    tables = []
+    for table_file in table_files:
+        tables.append((table_file, ibis.read_csv(table_file)))
 
-    operators = create_operators(query, table)
+    query = query_gen(tables[0][1])
+
+    operators = create_operators(query, tables[0][1])
     reorder_operators(operators, query_gen)
-    gen_noir_code(operators)
+    gen_noir_code(operators, tables)
 
     # cd noir-template
     # cargo-fmt
@@ -105,7 +109,7 @@ def create_operators(query: ibis.expr.types.relations.Table, table: typ.relation
                 for operand in filter(lambda o: isinstance(o, ops.TableColumn), operands):
                     selected_columns.append(operand)
                 if selected_columns:
-                    operators.append(sop.SelectOperator(table, selected_columns))
+                    operators.append(sop.SelectOperator(table, selected_columns, operators))
 
     print("done parsing")
     # all nodes have a 'name' attribute and a 'dtype' and 'shape' attributes: use those to get info!
@@ -128,11 +132,12 @@ def reorder_operators(operators: List[sop.Operator], query_gen):
         operators.pop()
 
 
-def gen_noir_code(operators: List[sop.Operator]):
+def gen_noir_code(operators: List[sop.Operator], tables: List[Tuple[str, typ.relations.Table]]):
     print("generating noir code...")
 
     with open("noir-template/main_top.rs") as f:
         top = f.read()
+    top = gen_noir_code_top(top, tables)
 
     with open("noir-template/main_bot.rs") as f:
         bot = f.read()
@@ -147,6 +152,36 @@ def gen_noir_code(operators: List[sop.Operator]):
         f.write(bot)
 
     print("Done generating code")
+
+
+def gen_noir_code_top(top: str, tables: List[Tuple[str, typ.relations.Table]]):
+    body = top + ""
+    names = []
+    for file, table in tables:
+        # define struct for table's columns
+        name = table.get_name()
+        columns = table.columns
+        body += f"#[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq)]\nstruct Cols_{name} {{"
+        for i, col in enumerate(columns):
+            body += f"{col}: {to_noir_type(table, i)},"
+        body += "}\n"
+
+    body += "\nfn logic(ctx: &StreamContext) {\n"
+
+    for file, table in tables:
+        # define table
+        name = table.get_name()
+        names.append(name)
+        body += f"let {name} = ctx.stream_csv::<Cols_{name}>(\".{file}\");\n"
+
+    body += names.pop(0)
+    return body
+
+
+def to_noir_type(table: typ.relations.Table, index: int) -> str:
+    ibis_to_noir_type = {"Int64": "i64", "String": "String"}  # TODO: add nullability with optionals
+    ibis_type = table.schema().types[index]
+    return ibis_to_noir_type[ibis_type.name]
 
 
 def one_numeric_operand(operands: Sequence[Node]) -> bool:
@@ -164,13 +199,13 @@ def one_reduction_operand(operands: Sequence[Node]) -> bool:
 
 
 if __name__ == '__main__':
-    table = ibis.read_csv("codegen/int-1-string-1.csv")
+    table_files = ["./data/int-1-string-1.csv"]
 
     # query_gen = q_filter_select
-    # query_gen = q_filter_filter_select_select
+    # query_gen = q_filter_filter_select
     # query_gen = q_filter_group_select
     # query_gen = q_filter_group_mutate
-    # query_gen = q_filter_group_mutate_reduce
-    query_gen = q_inner_join
+    query_gen = q_filter_group_mutate_reduce
+    # query_gen = q_inner_join
 
-    run_noir_query_on_table(table, query_gen)
+    run_noir_query_on_table(table_files, query_gen)
