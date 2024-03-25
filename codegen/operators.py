@@ -5,21 +5,14 @@ import ibis.expr.operations as ops
 
 
 class Operator:
-    ibis_api_name = None
-
     def generate(self, to_text: str) -> str:
-        pass
+        raise NotImplementedError
 
-    @staticmethod
-    def op_class_from_ibis(ibis_api: str):
-        for sub in Operator.__subclasses__():
-            if sub.ibis_api_name == ibis_api:
-                return sub
-        raise Exception(f"No subclass implementing the requested operator: {ibis_api}")
+    def ibis_api_name(self) -> str:
+        raise NotImplementedError
 
 
 class SelectOperator(Operator):
-    ibis_api_name = "select"
     columns = []
     table: typ.relations.Table
     other_operators: list[Operator]
@@ -44,9 +37,11 @@ class SelectOperator(Operator):
             mid += "))"
         return mid
 
+    def ibis_api_name(self) -> str:
+        return "select"
+
 
 class FilterOperator(Operator):
-    ibis_api_name = "filter"
     bin_ops = {"Equals": "==", "Greater": ">", "GreaterEqual": ">=", "Less": "<", "LessEqual": "<="}
     comparator: ops.logical.Comparison
     table: typ.relations.Table
@@ -61,9 +56,11 @@ class FilterOperator(Operator):
         right = operator_arg_stringify(self.comparator.right)
         return to_text + ".filter(|x| x." + left + " " + op + " " + right + ")"
 
+    def ibis_api_name(self) -> str:
+        return "filter"
+
 
 class GroupOperator(Operator):
-    ibis_api_name = "group_by"
     bys: list[Node]
     table: typ.relations.Table
 
@@ -79,9 +76,11 @@ class GroupOperator(Operator):
             mid += ".group_by(|x| x." + by + ".clone())"
         return mid
 
+    def ibis_api_name(self) -> str:
+        return "group_by"
+
 
 class MapOperator(Operator):
-    ibis_api_name = "mutate"
     math_ops = {"Multiply": "*", "Add": "+", "Subtract": "-"}
     table: typ.relations.Table
     mapper: Node
@@ -103,6 +102,9 @@ class MapOperator(Operator):
         mid += left + " " + op + " " + right + ")"
         return mid
 
+    def ibis_api_name(self) -> str:
+        return "mutate"
+
 
 def fix_prev_group_by(text: str, self: Operator, others: list[Operator]) -> str:
     # alternative: instead of this, could decide to follow every .group_by with a .map(|x| x.1) to make noir behave
@@ -117,7 +119,6 @@ def fix_prev_group_by(text: str, self: Operator, others: list[Operator]) -> str:
 
 
 class ReduceOperator(Operator):
-    ibis_api_name = "aggregate"
     aggr_ops = {"Max": "max", "Min": "min", "Sum": "+"}
     reducer: Node
 
@@ -130,10 +131,13 @@ class ReduceOperator(Operator):
         # aggregation depends on previous step
         return to_text + ".reduce(|a, b| *a = (*a)." + op + "(b))"
 
+    def ibis_api_name(self) -> str:
+        return "aggregate"
+
 
 class JoinOperator(Operator):
-    ibis_api_name = "join"
-    join_types = {"InnerJoin": "join", "OuterJoin": "outer_join", "LeftJoin": "left_join"}
+    noir_types = {"InnerJoin": "join", "OuterJoin": "outer_join", "LeftJoin": "left_join"}
+    ibis_types = {"InnerJoin": "join", "OuterJoin": "outer_join", "LeftJoin": "left_join"}
     join: ops.relations.Join
     table: typ.relations.Table
 
@@ -142,13 +146,15 @@ class JoinOperator(Operator):
         self.table = table
 
     def generate(self, to_text: str) -> str:
-        tab = self.join.left.name
         other_tab = self.join.right.name
         equals = self.join.predicates[0]
         col = operator_arg_stringify(equals.left)
         other_col = operator_arg_stringify(equals.right)
-        return to_text + f".join({other_tab}, |x| x.{col}, |y| y.{other_col})"
+        join_t = self.noir_types[type(self.join).__name__]
+        return to_text + f".{join_t}({other_tab}, |x| x.{col}, |y| y.{other_col})"
 
+    def ibis_api_name(self) -> str:
+        return self.ibis_types[type(self.join).__name__]
 
 
 # if operand is literal, return its value

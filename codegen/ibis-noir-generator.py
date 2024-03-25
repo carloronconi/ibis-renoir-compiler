@@ -17,6 +17,16 @@ def q_inner_join(tables: list[typ.relations.Table]) -> typ.relations.Table:
             .join(tables[1], "int1"))
 
 
+def q_outer_join(tables: list[typ.relations.Table]) -> typ.relations.Table:
+    return (tables[0]
+            .outer_join(tables[1], "int1"))
+
+
+def q_left_join(tables: list[typ.relations.Table]) -> typ.relations.Table:
+    return (tables[0]
+            .left_join(tables[1], "int1"))
+
+
 def q_filter_group_mutate_reduce(tables: list[typ.relations.Table]) -> typ.relations.Table:
     table = tables[0]
     return (table
@@ -73,9 +83,6 @@ def run_noir_query_on_table(table_files: list[str], query_gen):
 
     gen_noir_code(operators, tups)
 
-    # cd noir-template
-    # cargo-fmt
-    # cargo run
     subprocess.run("cd noir-template && cargo-fmt && cargo run", shell=True)
 
 
@@ -130,11 +137,16 @@ def reorder_operators(operators: List[sop.Operator], query_gen):
     source = inspect.getsource(query_gen).splitlines()
     source = list(filter(lambda l: l.startswith("."), map(lambda l: l.strip(), source)))
 
+    # swap-sort the operators according to the parsed ibis query
     for i, line in enumerate(source):
         line_op = line.strip().split(".")[1].split("(")[0]
-        if not isinstance(operators[i], sop.Operator.op_class_from_ibis(line_op)):
-            operators[i], operators[i + 1] = operators[i + 1], operators[i]
+        if not line_op == operators[i].ibis_api_name():
+            for j in range(i + 1, len(operators)):
+                if line_op == operators[j].ibis_api_name():
+                    operators[i], operators[j] = operators[j], operators[i]
+                    break
 
+    # filter out additional operators
     while len(operators) > len(source):
         operators.pop()
 
@@ -213,6 +225,8 @@ if __name__ == '__main__':
     # query_gen = q_filter_group_select
     # query_gen = q_filter_group_mutate
     # query_gen = q_filter_group_mutate_reduce
-    query_gen = q_inner_join
+    # query_gen = q_inner_join
+    # query_gen = q_outer_join
+    query_gen = q_left_join
 
     run_noir_query_on_table(table_files, query_gen)
