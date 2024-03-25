@@ -18,7 +18,7 @@ fn logic(ctx: &StreamContext) {
     let table1 =
         ctx.stream_csv::<Cols_table1>("/home/carlo/Projects/ibis-quickstart/data/int-3.csv");
     table0
-        .outer_join(table1, |x| x.int1, |y| y.int1)
+        .left_join(table1, |x| x.int1, |y| y.int1)
         .for_each(|x| println!("{x:?}"));
 }
 

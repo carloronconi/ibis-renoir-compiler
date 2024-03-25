@@ -10,63 +10,8 @@ import ibis.expr.types as typ
 from ibis.expr.visualize import to_graph
 from typing import List, Sequence, Tuple, Callable
 import codegen.operators as sop
+import codegen.utils
 from codegen.utils import ROOT_DIR
-
-
-def q_inner_join(tables: list[typ.relations.Table]) -> typ.relations.Table:
-    return (tables[0]
-            .join(tables[1], "int1"))
-
-
-def q_outer_join(tables: list[typ.relations.Table]) -> typ.relations.Table:
-    return (tables[0]
-            .outer_join(tables[1], "int1"))
-
-
-def q_left_join(tables: list[typ.relations.Table]) -> typ.relations.Table:
-    return (tables[0]
-            .left_join(tables[1], "int1"))
-
-
-def q_filter_group_mutate_reduce(tables: list[typ.relations.Table]) -> typ.relations.Table:
-    table = tables[0]
-    return (table
-            .filter(table.string1 == "unduetre")
-            .group_by("string1").aggregate()
-            .mutate(int1=table.int1 * 20)
-            .aggregate(by=["string1"], max=table.int1.max()))
-
-
-def q_filter_group_mutate(tables: list[typ.relations.Table]) -> typ.relations.Table:
-    table = tables[0]
-    return (table
-            .filter(table.string1 == "unduetre")
-            .group_by("string1").aggregate()
-            .mutate(int1=table.int1 * 20))  # mutate always results in alias preceded by Multiply (or other bin op)
-
-
-def q_filter_select(tables: list[typ.relations.Table]) -> typ.relations.Table:
-    table = tables[0]
-    return (table
-            .filter(table.string1 == "unduetre")
-            .select("int1"))
-
-
-def q_filter_filter_select(tables: list[typ.relations.Table]) -> typ.relations.Table:
-    table = tables[0]
-    return (table
-            .filter(table.int1 == 123)
-            .filter(table.string1 == "unduetre")
-            # .select("int1", "string1")    # double select is unsupported: select does Cols -> tuple so no way for
-            .select("string1"))             # second select to decide number to go in .map(|x| x.num) based on col name
-
-
-def q_filter_group_select(tables: list[typ.relations.Table]) -> typ.relations.Table:
-    table = tables[0]
-    return (table
-            .filter(table.string1 == "unduetre")
-            .group_by("string1").aggregate()
-            .select("string1"))
 
 
 def run_noir_query_on_table(table_files: list[str],
@@ -176,7 +121,6 @@ def gen_noir_code(operators: List[sop.Operator], tables: List[Tuple[str, typ.rel
 
 
 def gen_noir_code_top(top: str, tables: List[Tuple[str, typ.relations.Table]]):
-    tab_names = {}
     body = top + ""
     names = []
     i = 0
@@ -184,7 +128,7 @@ def gen_noir_code_top(top: str, tables: List[Tuple[str, typ.relations.Table]]):
         # define struct for table's columns
         name_long = table.get_name()
         name = f"table{i}"
-        tab_names[name_long] = name
+        codegen.utils.TAB_NAMES[name_long] = name
         i += 1
         columns = table.columns
         body += f"#[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq)]\nstruct Cols_{name} {{"
@@ -196,7 +140,7 @@ def gen_noir_code_top(top: str, tables: List[Tuple[str, typ.relations.Table]]):
 
     for file, table in tables:
         # define table
-        name = tab_names[table.get_name()]
+        name = codegen.utils.TAB_NAMES[table.get_name()]
         names.append(name)
         body += f"let {name} = ctx.stream_csv::<Cols_{name}>(\"{file}\");\n"
 
@@ -222,18 +166,3 @@ def one_reduction_operand(operands: Sequence[Node]) -> bool:
     if len(operands) != 1:
         return False
     return isinstance(operands[0], ibis.expr.operations.Reduction)
-
-
-if __name__ == '__main__':
-    table_files = ["./data/int-1-string-1.csv", "./data/int-3.csv"]
-
-    # query_gen = q_filter_select
-    # query_gen = q_filter_filter_select
-    # query_gen = q_filter_group_select
-    # query_gen = q_filter_group_mutate
-    # query_gen = q_filter_group_mutate_reduce
-    # query_gen = q_inner_join
-    # query_gen = q_outer_join
-    query_gen = q_left_join
-
-    run_noir_query_on_table(table_files, query_gen)

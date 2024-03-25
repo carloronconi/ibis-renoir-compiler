@@ -2,6 +2,7 @@ import ibis
 from ibis.common.graph import Node
 import ibis.expr.types as typ
 import ibis.expr.operations as ops
+import codegen.utils
 
 
 class Operator:
@@ -146,7 +147,7 @@ class JoinOperator(Operator):
         self.table = table
 
     def generate(self, to_text: str) -> str:
-        other_tab = self.join.right.name
+        other_tab = codegen.utils.TAB_NAMES[self.join.right.name]
         equals = self.join.predicates[0]
         col = operator_arg_stringify(equals.left)
         other_col = operator_arg_stringify(equals.right)
