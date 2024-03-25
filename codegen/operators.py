@@ -100,7 +100,7 @@ class MapOperator(Operator):
 
 
 class ReduceOperator(Operator):
-    aggr_ops = {"Max": "max", "Min": "min", "Sum": "+"}
+    aggr_ops = {"Max": "max(a ,b)", "Min": "min(a ,b)", "Sum": "a + b"}
     reducer: Node
 
     def __init__(self, reducer: Node):
@@ -110,7 +110,7 @@ class ReduceOperator(Operator):
         op = self.aggr_ops[type(self.reducer).__name__]
         # arg = operator_arg_stringify(arg, table)  # unused: noir doesn't require to specify column,
         # aggregation depends on previous step
-        return to_text + ".reduce(|a, b| *a = (*a)." + op + "(b))"
+        return to_text + f".reduce(|a, b| {op})"
 
     def ibis_api_name(self) -> str:
         return "aggregate"

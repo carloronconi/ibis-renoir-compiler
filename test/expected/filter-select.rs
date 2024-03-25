@@ -1,5 +1,6 @@
 use noir_compute::prelude::*;
 use serde::{Deserialize, Serialize};
+use std::cmp::{max, min};
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq)]
 struct Cols_table0 {
     int1: i64,

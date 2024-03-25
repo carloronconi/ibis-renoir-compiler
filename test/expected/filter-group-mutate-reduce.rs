@@ -1,5 +1,6 @@
 use noir_compute::prelude::*;
 use serde::{Deserialize, Serialize};
+use std::cmp::{max, min};
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq)]
 struct Cols_table0 {
     int1: i64,
@@ -14,7 +15,7 @@ fn logic(ctx: &StreamContext) {
         .group_by(|x| x.string1.clone())
         .drop_key()
         .map(|x| x.int1 * 20)
-        .reduce(|a, b| *a = (*a).max(b))
+        .reduce(|a, b| max(a, b))
         .for_each(|x| println!("{x:?}"));
 }
 
