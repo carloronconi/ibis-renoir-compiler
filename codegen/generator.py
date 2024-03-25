@@ -14,8 +14,10 @@ import codegen.utils
 from codegen.utils import ROOT_DIR
 
 
-def run_noir_query_on_table(table_files: list[str],
-                            query_gen: Callable[[list[typ.relations.Table]], typ.relations.Table]):
+def compile_ibis_to_noir(table_files: list[str],
+                         query_gen: Callable[[list[typ.relations.Table]], typ.relations.Table],
+                         run_after_gen=True,
+                         render_query_graph=True):
     tables = []
     tups = []
     for table_file in table_files:
@@ -24,20 +26,22 @@ def run_noir_query_on_table(table_files: list[str],
         tups.append((table_file, tab))
 
     query = query_gen(tables)
+    if render_query_graph:
+        to_graph(query).render(ROOT_DIR + "/out/query")
+        subprocess.run(f"open {ROOT_DIR}/out/query.pdf", shell=True)
 
     operators = create_operators(query, tables[0])
     reorder_operators(operators, query_gen)
 
     gen_noir_code(operators, tups)
 
-    subprocess.run(f"cd {ROOT_DIR}/noir-template && cargo-fmt && cargo run", shell=True)
+    subprocess.run(f"cd {ROOT_DIR}/noir-template && cargo-fmt && cargo build", shell=True)
+    if run_after_gen:
+        subprocess.run(f"cd {ROOT_DIR}/noir-template && cargo run", shell=True)
 
 
 def create_operators(query: ibis.expr.types.relations.Table, table: typ.relations.Table) -> List[sop.Operator]:
     print("parsing query...")
-
-    to_graph(query).render(ROOT_DIR + "/out/query")
-    subprocess.run(f"open {ROOT_DIR}/out/query.pdf", shell=True)
 
     graph = Graph.from_bfs(query.op(), filter=ops.Node)  # filtering ops.Selection doesn't work
 
@@ -117,7 +121,7 @@ def gen_noir_code(operators: List[sop.Operator], tables: List[Tuple[str, typ.rel
         f.write(mid)
         f.write(bot)
 
-    print("Done generating code")
+    print("done generating code")
 
 
 def gen_noir_code_top(top: str, tables: List[Tuple[str, typ.relations.Table]]):

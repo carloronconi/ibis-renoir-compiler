@@ -15,7 +15,7 @@ class TestOperators(unittest.TestCase):
                     .select("int1"))
 
         table_files = [ROOT_DIR + "/data/int-1-string-1.csv"]
-        generate(table_files, q_filter_select)
+        generate(table_files, q_filter_select, run_after_gen=False, render_query_graph=False)
 
         self.assertTrue(
             filecmp.cmp(ROOT_DIR + "/noir-template/src/main.rs", ROOT_DIR + "/test/expected/filter-select.rs",
@@ -32,7 +32,7 @@ class TestOperators(unittest.TestCase):
                     .select("string1"))
 
         table_files = [ROOT_DIR + "/data/int-1-string-1.csv"]
-        generate(table_files, q_filter_filter_select)
+        generate(table_files, q_filter_filter_select, run_after_gen=False, render_query_graph=False)
 
         self.assertTrue(
             filecmp.cmp(ROOT_DIR + "/noir-template/src/main.rs", ROOT_DIR + "/test/expected/filter-filter-select.rs",
@@ -47,7 +47,7 @@ class TestOperators(unittest.TestCase):
                     .select("string1"))
 
         table_files = [ROOT_DIR + "/data/int-1-string-1.csv"]
-        generate(table_files, q_filter_group_select)
+        generate(table_files, q_filter_group_select, run_after_gen=False, render_query_graph=False)
 
         self.assertTrue(
             filecmp.cmp(ROOT_DIR + "/noir-template/src/main.rs", ROOT_DIR + "/test/expected/filter-group-select.rs",
@@ -63,7 +63,7 @@ class TestOperators(unittest.TestCase):
                 int1=table.int1 * 20))  # mutate always results in alias preceded by Multiply (or other bin op)
 
         table_files = [ROOT_DIR + "/data/int-1-string-1.csv"]
-        generate(table_files, q_filter_group_mutate)
+        generate(table_files, q_filter_group_mutate, run_after_gen=False, render_query_graph=False)
 
         self.assertTrue(
             filecmp.cmp(ROOT_DIR + "/noir-template/src/main.rs", ROOT_DIR + "/test/expected/filter-group-mutate.rs",
@@ -79,7 +79,7 @@ class TestOperators(unittest.TestCase):
                     .aggregate(by=["string1"], max=table.int1.max()))
 
         table_files = [ROOT_DIR + "/data/int-1-string-1.csv"]
-        generate(table_files, q_filter_group_mutate_reduce)
+        generate(table_files, q_filter_group_mutate_reduce, run_after_gen=False, render_query_graph=False)
 
         self.assertTrue(
             filecmp.cmp(ROOT_DIR + "/noir-template/src/main.rs", ROOT_DIR + "/test/expected/filter-group-mutate"
@@ -92,7 +92,7 @@ class TestOperators(unittest.TestCase):
                     .join(tables[1], "int1"))
 
         table_files = [ROOT_DIR + "/data/int-1-string-1.csv", ROOT_DIR + "/data/int-3.csv"]
-        generate(table_files, q_inner_join)
+        generate(table_files, q_inner_join, run_after_gen=False, render_query_graph=False)
 
         self.assertTrue(filecmp.cmp(ROOT_DIR + "/noir-template/src/main.rs", ROOT_DIR + "/test/expected/inner-join.rs",
                                     shallow=False))
@@ -103,7 +103,7 @@ class TestOperators(unittest.TestCase):
                     .outer_join(tables[1], "int1"))
 
         table_files = [ROOT_DIR + "/data/int-1-string-1.csv", ROOT_DIR + "/data/int-3.csv"]
-        generate(table_files, q_outer_join)
+        generate(table_files, q_outer_join, run_after_gen=False, render_query_graph=False)
 
         self.assertTrue(filecmp.cmp(ROOT_DIR + "/noir-template/src/main.rs", ROOT_DIR + "/test/expected/outer-join.rs",
                                     shallow=False))
@@ -114,7 +114,7 @@ class TestOperators(unittest.TestCase):
                     .left_join(tables[1], "int1"))
 
         table_files = [ROOT_DIR + "/data/int-1-string-1.csv", ROOT_DIR + "/data/int-3.csv"]
-        generate(table_files, q_left_join)
+        generate(table_files, q_left_join, run_after_gen=False, render_query_graph=False)
 
         self.assertTrue(filecmp.cmp(ROOT_DIR + "/noir-template/src/main.rs", ROOT_DIR + "/test/expected/left-join.rs",
                                     shallow=False))
