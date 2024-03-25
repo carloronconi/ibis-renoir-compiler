@@ -16,25 +16,19 @@ class Operator:
 class SelectOperator(Operator):
     columns = []
     table: typ.relations.Table
-    other_operators: list[Operator]
 
-    def __init__(self, table: typ.relations.Table,  columns: list[Node], other_operators: list[Operator]):
+    def __init__(self, table: typ.relations.Table, columns: list[Node]):
         self.columns = columns
         self.table = table
-        self.other_operators = other_operators
 
     def generate(self, to_text: str) -> str:
         mid = to_text + ".map(|x| "
         if len(self.columns) == 1:
-            mid += "x."
-            mid = fix_prev_group_by(mid, self, self.other_operators)
-            mid += f"{self.columns[0].name})"
+            mid += f"x.{self.columns[0].name})"
         else:
             mid += "("
             for col in self.columns:
-                mid += "x."
-                mid = fix_prev_group_by(mid, self, self.other_operators)
-                mid += f"{col.name}, "
+                mid += f"x.{col.name}, "
             mid += "))"
         return mid
 
@@ -74,7 +68,11 @@ class GroupOperator(Operator):
         for by in self.bys:
             # test if multiple consecutive group_by's have same effect (noir only supports one arg)
             by = operator_arg_stringify(by)
-            mid += ".group_by(|x| x." + by + ".clone())"
+            # following group_by with drop_key because noir has different behaviour from ibis when performing
+            # group_by: instead of just grouping, it turns Stream into KeyedStream: table_cols into tuple
+            # (group_by_col,(table_cols)) previously kept the new column and modified mutate/select behaviour
+            # following group_by but the approach was unstable
+            mid += ".group_by(|x| x." + by + ".clone()).drop_key()"
         return mid
 
     def ibis_api_name(self) -> str:
@@ -85,38 +83,20 @@ class MapOperator(Operator):
     math_ops = {"Multiply": "*", "Add": "+", "Subtract": "-"}
     table: typ.relations.Table
     mapper: Node
-    other_operators: list[Operator]
 
-    def __init__(self, table: typ.relations.Table, mapper: Node, other_operators: list[Operator]):
+    def __init__(self, table: typ.relations.Table, mapper: Node):
         self.mapper = mapper
         self.table = table
-        self.other_operators = other_operators
 
     def generate(self, to_text: str) -> str:
         op = self.math_ops[type(self.mapper).__name__]
         left = operator_arg_stringify(self.mapper.left)
         right = operator_arg_stringify(self.mapper.right)
-        mid = to_text + ".map(|x| x."
 
-        mid = fix_prev_group_by(mid, self, self.other_operators)
-
-        mid += left + " " + op + " " + right + ")"
-        return mid
+        return to_text + f".map(|x| x.{left} {op} {right})"
 
     def ibis_api_name(self) -> str:
         return "mutate"
-
-
-def fix_prev_group_by(text: str, self: Operator, others: list[Operator]) -> str:
-    # alternative: instead of this, could decide to follow every .group_by with a .map(|x| x.1) to make noir behave
-    # in the same way as ibis would
-
-    idx = others.index(self)
-    if isinstance(others[idx - 1], GroupOperator):
-        # if map preceded by group_by trivially adding because of noir
-        # implementation ("grouped" (old_tuple))
-        return text + "1."
-    return text
 
 
 class ReduceOperator(Operator):

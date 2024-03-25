@@ -29,6 +29,7 @@ class TestOperators(unittest.TestCase):
                     .filter(table.string1 == "unduetre")
                     # .select("int1", "string1")    # double select is unsupported: select does Cols -> tuple so no
                     # way for second select to decide number to go in .map(|x| x.num) based on col name
+                    # possible fix: create struct with same field names as table for each select encountered
                     .select("string1"))
 
         table_files = [ROOT_DIR + "/data/int-1-string-1.csv"]
@@ -63,7 +64,7 @@ class TestOperators(unittest.TestCase):
                 int1=table.int1 * 20))  # mutate always results in alias preceded by Multiply (or other bin op)
 
         table_files = [ROOT_DIR + "/data/int-1-string-1.csv"]
-        generate(table_files, q_filter_group_mutate, run_after_gen=False, render_query_graph=False)
+        generate(table_files, q_filter_group_mutate, run_after_gen=True, render_query_graph=False)
 
         self.assertTrue(
             filecmp.cmp(ROOT_DIR + "/noir-template/src/main.rs", ROOT_DIR + "/test/expected/filter-group-mutate.rs",

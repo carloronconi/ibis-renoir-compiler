@@ -57,7 +57,7 @@ def create_operators(query: Table, table: Table) -> List[sop.Operator]:
 
             case ops.core.Alias() if one_numeric_operand(operands):  # find mappers (aka map)
                 operand = operands[0]  # maps have a single operand
-                operators.append(sop.MapOperator(table, operand, operators))
+                operators.append(sop.MapOperator(table, operand))
 
             case ops.relations.Aggregation():  # find groupers (aka group by)
                 operators.append(sop.GroupOperator(table, operator.by))  # by contains list of all group by columns
@@ -70,7 +70,7 @@ def create_operators(query: Table, table: Table) -> List[sop.Operator]:
                 for operand in filter(lambda o: isinstance(o, ops.TableColumn), operands):
                     selected_columns.append(operand)
                 if selected_columns:
-                    operators.append(sop.SelectOperator(table, selected_columns, operators))
+                    operators.append(sop.SelectOperator(table, selected_columns))
 
     print("done parsing")
     # all nodes have a 'name' attribute and a 'dtype' and 'shape' attributes: use those to get info!
