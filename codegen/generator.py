@@ -8,8 +8,9 @@ from ibis.common.graph import Graph, Node
 import ibis.expr.operations as ops
 import ibis.expr.types as typ
 from ibis.expr.visualize import to_graph
-from typing import List, Sequence, Tuple
-import operators as sop
+from typing import List, Sequence, Tuple, Callable
+import codegen.operators as sop
+from codegen.utils import ROOT_DIR
 
 
 def q_inner_join(tables: list[typ.relations.Table]) -> typ.relations.Table:
@@ -68,7 +69,8 @@ def q_filter_group_select(tables: list[typ.relations.Table]) -> typ.relations.Ta
             .select("string1"))
 
 
-def run_noir_query_on_table(table_files: list[str], query_gen):
+def run_noir_query_on_table(table_files: list[str],
+                            query_gen: Callable[[list[typ.relations.Table]], typ.relations.Table]):
     tables = []
     tups = []
     for table_file in table_files:
@@ -83,14 +85,14 @@ def run_noir_query_on_table(table_files: list[str], query_gen):
 
     gen_noir_code(operators, tups)
 
-    subprocess.run("cd noir-template && cargo-fmt && cargo run", shell=True)
+    subprocess.run(f"cd {ROOT_DIR}/noir-template && cargo-fmt && cargo run", shell=True)
 
 
 def create_operators(query: ibis.expr.types.relations.Table, table: typ.relations.Table) -> List[sop.Operator]:
     print("parsing query...")
 
-    to_graph(query).render("out/query3")
-    subprocess.run("open out/query3.pdf", shell=True)
+    to_graph(query).render(ROOT_DIR + "/out/query")
+    subprocess.run(f"open {ROOT_DIR}/out/query.pdf", shell=True)
 
     graph = Graph.from_bfs(query.op(), filter=ops.Node)  # filtering ops.Selection doesn't work
 
@@ -154,18 +156,18 @@ def reorder_operators(operators: List[sop.Operator], query_gen):
 def gen_noir_code(operators: List[sop.Operator], tables: List[Tuple[str, typ.relations.Table]]):
     print("generating noir code...")
 
-    with open("noir-template/main_top.rs") as f:
+    with open(ROOT_DIR + "/noir-template/main_top.rs") as f:
         top = f.read()
     top = gen_noir_code_top(top, tables)
 
-    with open("noir-template/main_bot.rs") as f:
+    with open(ROOT_DIR + "/noir-template/main_bot.rs") as f:
         bot = f.read()
 
     mid = ""
     for op in operators:
         mid = op.generate(mid)
 
-    with open('noir-template/src/main.rs', 'w') as f:
+    with open(ROOT_DIR + '/noir-template/src/main.rs', 'w') as f:
         f.write(top)
         f.write(mid)
         f.write(bot)
@@ -174,11 +176,16 @@ def gen_noir_code(operators: List[sop.Operator], tables: List[Tuple[str, typ.rel
 
 
 def gen_noir_code_top(top: str, tables: List[Tuple[str, typ.relations.Table]]):
+    tab_names = {}
     body = top + ""
     names = []
+    i = 0
     for file, table in tables:
         # define struct for table's columns
-        name = table.get_name()
+        name_long = table.get_name()
+        name = f"table{i}"
+        tab_names[name_long] = name
+        i += 1
         columns = table.columns
         body += f"#[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq)]\nstruct Cols_{name} {{"
         for i, col in enumerate(columns):
@@ -189,9 +196,9 @@ def gen_noir_code_top(top: str, tables: List[Tuple[str, typ.relations.Table]]):
 
     for file, table in tables:
         # define table
-        name = table.get_name()
+        name = tab_names[table.get_name()]
         names.append(name)
-        body += f"let {name} = ctx.stream_csv::<Cols_{name}>(\".{file}\");\n"
+        body += f"let {name} = ctx.stream_csv::<Cols_{name}>(\"{file}\");\n"
 
     body += names.pop(0)
     return body

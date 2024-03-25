@@ -1,1 +1,4 @@
 .idea
+/out
+/noir-template/target
+/noir-template/Cargo.lock
