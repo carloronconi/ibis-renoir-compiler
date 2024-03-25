@@ -1,21 +1,17 @@
 import subprocess
-
 import inspect
-
 import ibis
-
 from ibis.common.graph import Graph, Node
 import ibis.expr.operations as ops
-import ibis.expr.types as typ
+from ibis.expr.types.relations import Table
 from ibis.expr.visualize import to_graph
 from typing import List, Sequence, Tuple, Callable
 import codegen.operators as sop
-import codegen.utils
-from codegen.utils import ROOT_DIR
+import codegen.utils as utl
 
 
 def compile_ibis_to_noir(table_files: list[str],
-                         query_gen: Callable[[list[typ.relations.Table]], typ.relations.Table],
+                         query_gen: Callable[[list[Table]], Table],
                          run_after_gen=True,
                          render_query_graph=True):
     tables = []
@@ -27,20 +23,20 @@ def compile_ibis_to_noir(table_files: list[str],
 
     query = query_gen(tables)
     if render_query_graph:
-        to_graph(query).render(ROOT_DIR + "/out/query")
-        subprocess.run(f"open {ROOT_DIR}/out/query.pdf", shell=True)
+        to_graph(query).render(utl.ROOT_DIR + "/out/query")
+        subprocess.run(f"open {utl.ROOT_DIR}/out/query.pdf", shell=True)
 
     operators = create_operators(query, tables[0])
     reorder_operators(operators, query_gen)
 
     gen_noir_code(operators, tups)
 
-    subprocess.run(f"cd {ROOT_DIR}/noir-template && cargo-fmt && cargo build", shell=True)
+    subprocess.run(f"cd {utl.ROOT_DIR}/noir-template && cargo-fmt && cargo build", shell=True)
     if run_after_gen:
-        subprocess.run(f"cd {ROOT_DIR}/noir-template && cargo run", shell=True)
+        subprocess.run(f"cd {utl.ROOT_DIR}/noir-template && cargo run", shell=True)
 
 
-def create_operators(query: ibis.expr.types.relations.Table, table: typ.relations.Table) -> List[sop.Operator]:
+def create_operators(query: Table, table: Table) -> List[sop.Operator]:
     print("parsing query...")
 
     graph = Graph.from_bfs(query.op(), filter=ops.Node)  # filtering ops.Selection doesn't work
@@ -102,21 +98,21 @@ def reorder_operators(operators: List[sop.Operator], query_gen):
         operators.pop()
 
 
-def gen_noir_code(operators: List[sop.Operator], tables: List[Tuple[str, typ.relations.Table]]):
+def gen_noir_code(operators: List[sop.Operator], tables: List[Tuple[str, Table]]):
     print("generating noir code...")
 
-    with open(ROOT_DIR + "/noir-template/main_top.rs") as f:
+    with open(utl.ROOT_DIR + "/noir-template/main_top.rs") as f:
         top = f.read()
     top = gen_noir_code_top(top, tables)
 
-    with open(ROOT_DIR + "/noir-template/main_bot.rs") as f:
+    with open(utl.ROOT_DIR + "/noir-template/main_bot.rs") as f:
         bot = f.read()
 
     mid = ""
     for op in operators:
         mid = op.generate(mid)
 
-    with open(ROOT_DIR + '/noir-template/src/main.rs', 'w') as f:
+    with open(utl.ROOT_DIR + '/noir-template/src/main.rs', 'w') as f:
         f.write(top)
         f.write(mid)
         f.write(bot)
@@ -124,7 +120,7 @@ def gen_noir_code(operators: List[sop.Operator], tables: List[Tuple[str, typ.rel
     print("done generating code")
 
 
-def gen_noir_code_top(top: str, tables: List[Tuple[str, typ.relations.Table]]):
+def gen_noir_code_top(top: str, tables: List[Tuple[str, Table]]):
     body = top + ""
     names = []
     i = 0
@@ -132,7 +128,7 @@ def gen_noir_code_top(top: str, tables: List[Tuple[str, typ.relations.Table]]):
         # define struct for table's columns
         name_long = table.get_name()
         name = f"table{i}"
-        codegen.utils.TAB_NAMES[name_long] = name
+        utl.TAB_NAMES[name_long] = name
         i += 1
         columns = table.columns
         body += f"#[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq)]\nstruct Cols_{name} {{"
@@ -144,7 +140,7 @@ def gen_noir_code_top(top: str, tables: List[Tuple[str, typ.relations.Table]]):
 
     for file, table in tables:
         # define table
-        name = codegen.utils.TAB_NAMES[table.get_name()]
+        name = utl.TAB_NAMES[table.get_name()]
         names.append(name)
         body += f"let {name} = ctx.stream_csv::<Cols_{name}>(\"{file}\");\n"
 
@@ -152,7 +148,7 @@ def gen_noir_code_top(top: str, tables: List[Tuple[str, typ.relations.Table]]):
     return body
 
 
-def to_noir_type(table: typ.relations.Table, index: int) -> str:
+def to_noir_type(table: Table, index: int) -> str:
     ibis_to_noir_type = {"Int64": "i64", "String": "String"}  # TODO: add nullability with optionals
     ibis_type = table.schema().types[index]
     return ibis_to_noir_type[ibis_type.name]
