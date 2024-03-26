@@ -45,11 +45,11 @@ class TestOperators(unittest.TestCase):
             table = tables[0]
             return (table
                     .filter(table.string1 == "unduetre")
-                    .group_by("string1").aggregate()
-                    .select("string1"))
+                    .group_by("string1").aggregate(int1_agg=table["int1"].first())
+                    .select(["string1", "int1_agg"]))
 
         table_files = [ROOT_DIR + "/data/int-1-string-1.csv"]
-        generate(table_files, q_filter_group_select, run_after_gen=False, render_query_graph=False)
+        generate(table_files, q_filter_group_select, run_after_gen=True, render_query_graph=True)
 
         self.assertTrue(
             filecmp.cmp(ROOT_DIR + "/noir-template/src/main.rs", ROOT_DIR + "/test/expected/filter-group-select.rs",
@@ -60,9 +60,8 @@ class TestOperators(unittest.TestCase):
             table = tables[0]
             return (table
                     .filter(table.string1 == "unduetre")
-                    .group_by("string1").aggregate()
-                    .mutate(
-                int1=table.int1 * 20))  # mutate always results in alias preceded by Multiply (or other bin op)
+                    .group_by("string1").aggregate(int1_agg=table["int1"].first())
+                    .mutate(mul=_.int1_agg * 20))  # mutate always results in alias preceded by Multiply (or other bin op)
 
         table_files = [ROOT_DIR + "/data/int-1-string-1.csv"]
         generate(table_files, q_filter_group_mutate, run_after_gen=True, render_query_graph=True)
@@ -76,12 +75,28 @@ class TestOperators(unittest.TestCase):
             table = tables[0]
             return (table
                     .filter(table.string1 == "unduetre")
-                    .group_by("string1").aggregate(int1_agg=table["int1"].first())  # not adding an aggregation function loses all
-                                                                # columns aside from selected ones
-                    .mutate(mul=_.int1_agg * 20)    # keeping same name for new column messes up original column
-                    # required to use `_` operator to refer to column of table being processed (doesn't exist in
-                    # original table)
-                    .aggregate(by=["string1"], max=_.mul.max()))
+                    .mutate(mul=_.int1 * 20)
+                    .group_by("string1")
+                    # it makes no sense to mutate here: as if didn't group_by! mutate before
+                    .aggregate(agg=_.int1.sum()))
+
+            # Solution (works because of two blocks below):
+            # 1. encounter aggregate
+            # 2. if has TableColumn below it's a group_by().reduce()
+            # 3. otherwise it's just a reduce()
+
+            # Not performing aggregation right after group by will ignore the group by!
+            # .group_by("string1")
+            # .mutate(mul=_.int1 * 20)
+            # .aggregate(agg=_.mul.sum()))
+
+            # Only ibis use case with group by not followed by aggregate
+            # Still, it performs an almost-aggregation right after
+            # For now not supporting this type of operator (can be expressed with
+            # normal group by + reduce)
+            # .group_by("string1")
+            # .aggregate(int1_agg=table["int1"].first())
+            # .mutate(center=_.int1 - _.int1.mean()))
 
         table_files = [ROOT_DIR + "/data/int-1-string-1.csv"]
         generate(table_files, q_filter_group_mutate_reduce, run_after_gen=True, render_query_graph=True)

@@ -88,11 +88,15 @@ def ibis_noir_generator_query():
     ibis.options.interactive = True
     table = ibis.read_csv("data/int-1-string-1.csv")
     res = (table
-           .filter(table.string1 == "unduetre")
-           .group_by("string1").aggregate(int1_agg=table["int1"].first())  # not adding an aggregation function loses all columns aside from selected ones
-           .mutate(mul=_.int1_agg * 20)     # keeping same name for new column messes up original column
-                                            # required to use `_` operator to refer to column of table being processed (doesn't exist in original table)
-           .aggregate(by=["string1"], max=_.mul.max()))
+           #.filter(table.string1 == "unduetre")
+           #.group_by("string1")
+           #.mutate(center=_.int1 - _.int1.mean()))
+           #.aggregate(int1_agg=table["int1"].first())
+           #.mutate(mul=_.int1_agg * 20)
+           #.aggregate(max=_.mul.max()))
+           .group_by("string1")
+           .mutate(mul=_.int1 * 20)
+           .aggregate(agg=_.mul.sum()))
 
     print(table)
     print(res)
