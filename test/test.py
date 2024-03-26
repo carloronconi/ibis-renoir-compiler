@@ -45,7 +45,8 @@ class TestOperators(unittest.TestCase):
             table = tables[0]
             return (table
                     .filter(table.string1 == "unduetre")
-                    .group_by("string1").aggregate(int1_agg=table["int1"].first())
+                    .group_by("string1")
+                    .aggregate(int1_agg=table["int1"].first())
                     .select(["string1", "int1_agg"]))
 
         table_files = [ROOT_DIR + "/data/int-1-string-1.csv"]
@@ -60,7 +61,8 @@ class TestOperators(unittest.TestCase):
             table = tables[0]
             return (table
                     .filter(table.string1 == "unduetre")
-                    .group_by("string1").aggregate(int1_agg=table["int1"].first())
+                    .group_by("string1")
+                    .aggregate(int1_agg=table["int1"].first())
                     .mutate(mul=_.int1_agg * 20))  # mutate always results in alias preceded by Multiply (or other bin op)
 
         table_files = [ROOT_DIR + "/data/int-1-string-1.csv"]
