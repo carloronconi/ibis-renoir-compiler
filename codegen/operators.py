@@ -16,13 +16,19 @@ class Operator:
 class SelectOperator(Operator):
     columns = []
     table: typ.relations.Table
+    operators: list[Operator]
 
-    def __init__(self, table: typ.relations.Table, columns: list[Node]):
+    def __init__(self, table: typ.relations.Table, columns: list[Node], operators: list[Operator]):
         self.columns = columns
         self.table = table
+        self.operators = operators
 
     def generate(self, to_text: str) -> str:
-        mid = to_text + ".map(|x| "
+        mid = to_text
+        if is_preceded_by_grouper(self, self.operators):
+            mid += ".map(|(_, x)|"
+        else:
+            mid += ".map(|x| "
         if len(self.columns) == 1:
             mid += f"x.{self.columns[0].name})"
         else:
@@ -66,13 +72,8 @@ class GroupOperator(Operator):
     def generate(self, to_text: str) -> str:
         mid = to_text + ""
         for by in self.bys:
-            # test if multiple consecutive group_by's have same effect (noir only supports one arg)
             by = operator_arg_stringify(by)
-            # following group_by with drop_key because noir has different behaviour from ibis when performing
-            # group_by: instead of just grouping, it turns Stream into KeyedStream: table_cols into tuple
-            # (group_by_col,(table_cols)) previously kept the new column and modified mutate/select behaviour
-            # following group_by but the approach was unstable
-            mid += ".group_by(|x| x." + by + ".clone()).drop_key()"
+            mid += ".group_by(|x| x." + by + ".clone())"
         return mid
 
     def ibis_api_name(self) -> str:
@@ -83,16 +84,20 @@ class MapOperator(Operator):
     math_ops = {"Multiply": "*", "Add": "+", "Subtract": "-"}
     table: typ.relations.Table
     mapper: Node
+    operators: list[Operator]
 
-    def __init__(self, table: typ.relations.Table, mapper: Node):
+    def __init__(self, table: typ.relations.Table, mapper: Node, operators: list[Operator]):
         self.mapper = mapper
         self.table = table
+        self.operators = operators
 
     def generate(self, to_text: str) -> str:
         op = self.math_ops[type(self.mapper).__name__]
         left = operator_arg_stringify(self.mapper.left)
         right = operator_arg_stringify(self.mapper.right)
 
+        if is_preceded_by_grouper(self, self.operators):
+            return to_text + f".map(|(_, x)| x.{left} {op} {right})"
         return to_text + f".map(|x| x.{left} {op} {right})"
 
     def ibis_api_name(self) -> str:
@@ -100,7 +105,7 @@ class MapOperator(Operator):
 
 
 class ReduceOperator(Operator):
-    aggr_ops = {"Max": "max(a ,b)", "Min": "min(a ,b)", "Sum": "a + b"}
+    aggr_ops = {"Max": "*a = (*a).max(b)", "Min": "*a = (*a).min(b)", "Sum": "*a = *a + b", "First": "*a = *a"}
     reducer: Node
 
     def __init__(self, reducer: Node):
@@ -148,3 +153,11 @@ def operator_arg_stringify(operand) -> str:
             return "\"" + ''.join(filter(str.isalnum, operand.name)) + "\""
         return operand.name
     raise Exception("Unsupported operand type")
+
+
+def is_preceded_by_grouper(op: Operator, operators: list[Operator]) -> bool:
+    map_idx = operators.index(op)
+    for i, o in zip(range(0, map_idx), operators):
+        if isinstance(o, GroupOperator):
+            return True
+    return False

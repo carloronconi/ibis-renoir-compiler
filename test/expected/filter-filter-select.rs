@@ -1,6 +1,5 @@
 use noir_compute::prelude::*;
 use serde::{Deserialize, Serialize};
-use std::cmp::{max, min};
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq)]
 struct Cols_table0 {
     int1: i64,
@@ -11,8 +10,8 @@ fn logic(ctx: &StreamContext) {
     let table0 = ctx
         .stream_csv::<Cols_table0>("/home/carlo/Projects/ibis-quickstart/data/int-1-string-1.csv");
     table0
-        .filter(|x| x.string1 == "unduetre")
         .filter(|x| x.int1 == 123)
+        .filter(|x| x.string1 == "unduetre")
         .map(|x| x.string1)
         .for_each(|x| println!("{x:?}"));
 }

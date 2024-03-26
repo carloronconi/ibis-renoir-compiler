@@ -3,6 +3,7 @@ import unittest
 from codegen import generate
 from codegen import ROOT_DIR
 from ibis.expr.types.relations import Table
+from ibis import _
 
 
 class TestOperators(unittest.TestCase):
@@ -64,7 +65,7 @@ class TestOperators(unittest.TestCase):
                 int1=table.int1 * 20))  # mutate always results in alias preceded by Multiply (or other bin op)
 
         table_files = [ROOT_DIR + "/data/int-1-string-1.csv"]
-        generate(table_files, q_filter_group_mutate, run_after_gen=True, render_query_graph=False)
+        generate(table_files, q_filter_group_mutate, run_after_gen=True, render_query_graph=True)
 
         self.assertTrue(
             filecmp.cmp(ROOT_DIR + "/noir-template/src/main.rs", ROOT_DIR + "/test/expected/filter-group-mutate.rs",
@@ -75,12 +76,15 @@ class TestOperators(unittest.TestCase):
             table = tables[0]
             return (table
                     .filter(table.string1 == "unduetre")
-                    .group_by("string1").aggregate()
-                    .mutate(int1=table.int1 * 20)
-                    .aggregate(by=["string1"], max=table.int1.max()))
+                    .group_by("string1").aggregate(int1_agg=table["int1"].first())  # not adding an aggregation function loses all
+                                                                # columns aside from selected ones
+                    .mutate(mul=_.int1_agg * 20)    # keeping same name for new column messes up original column
+                    # required to use `_` operator to refer to column of table being processed (doesn't exist in
+                    # original table)
+                    .aggregate(by=["string1"], max=_.mul.max()))
 
         table_files = [ROOT_DIR + "/data/int-1-string-1.csv"]
-        generate(table_files, q_filter_group_mutate_reduce, run_after_gen=False, render_query_graph=False)
+        generate(table_files, q_filter_group_mutate_reduce, run_after_gen=True, render_query_graph=True)
 
         self.assertTrue(
             filecmp.cmp(ROOT_DIR + "/noir-template/src/main.rs", ROOT_DIR + "/test/expected/filter-group-mutate"

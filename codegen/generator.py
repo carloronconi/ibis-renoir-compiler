@@ -27,7 +27,6 @@ def compile_ibis_to_noir(table_files: list[str],
         subprocess.run(f"open {utl.ROOT_DIR}/out/query.pdf", shell=True)
 
     operators = create_operators(query, tables[0])
-    reorder_operators(operators, query_gen)
 
     gen_noir_code(operators, tups)
 
@@ -39,12 +38,10 @@ def compile_ibis_to_noir(table_files: list[str],
 def create_operators(query: Table, table: Table) -> List[sop.Operator]:
     print("parsing query...")
 
-    graph = Graph.from_bfs(query.op(), filter=ops.Node)  # filtering ops.Selection doesn't work
+    graph = Graph.from_dfs(query.op(), filter=ops.Node)  # filtering ops.Selection doesn't work
 
     operators: list[sop.Operator] = []
-    for tup in graph.items():
-        operator = tup[0]
-        operands = tup[1]
+    for operator, operands in graph.items():
         print(str(operator) + " |\t" + type(operator).__name__ + ":\t" + str(operands))
 
         match operator:
@@ -57,9 +54,10 @@ def create_operators(query: Table, table: Table) -> List[sop.Operator]:
 
             case ops.core.Alias() if one_numeric_operand(operands):  # find mappers (aka map)
                 operand = operands[0]  # maps have a single operand
-                operators.append(sop.MapOperator(table, operand))
+                operators.append(sop.MapOperator(table, operand, operators))
 
-            case ops.relations.Aggregation():  # find groupers (aka group by)
+            # find last grouper (aka group_by): more than one grouper are unsupported because can't group a KeyedStream
+            case ops.relations.Aggregation() if is_last_aggregation(operator, graph.items().mapping.keys()):
                 operators.append(sop.GroupOperator(table, operator.by))  # by contains list of all group by columns
 
             case ops.logical.Comparison():  # find filters (aka row selection)
@@ -70,32 +68,12 @@ def create_operators(query: Table, table: Table) -> List[sop.Operator]:
                 for operand in filter(lambda o: isinstance(o, ops.TableColumn), operands):
                     selected_columns.append(operand)
                 if selected_columns:
-                    operators.append(sop.SelectOperator(table, selected_columns))
+                    operators.append(sop.SelectOperator(table, selected_columns, operators))
 
     print("done parsing")
     # all nodes have a 'name' attribute and a 'dtype' and 'shape' attributes: use those to get info!
 
     return operators
-
-
-def reorder_operators(operators: List[sop.Operator], query_gen):
-    operators.reverse()
-
-    source = inspect.getsource(query_gen).splitlines()
-    source = list(filter(lambda l: l.startswith("."), map(lambda l: l.strip(), source)))
-
-    # swap-sort the operators according to the parsed ibis query
-    for i, line in enumerate(source):
-        line_op = line.strip().split(".")[1].split("(")[0]
-        if not line_op == operators[i].ibis_api_name():
-            for j in range(i + 1, len(operators)):
-                if line_op == operators[j].ibis_api_name():
-                    operators[i], operators[j] = operators[j], operators[i]
-                    break
-
-    # filter out additional operators
-    while len(operators) > len(source):
-        operators.pop()
 
 
 def gen_noir_code(operators: List[sop.Operator], tables: List[Tuple[str, Table]]):
@@ -166,3 +144,9 @@ def one_reduction_operand(operands: Sequence[Node]) -> bool:
     if len(operands) != 1:
         return False
     return isinstance(operands[0], ibis.expr.operations.Reduction)
+
+
+def is_last_aggregation(operator: Node, operators) -> bool:
+    return (filter(lambda op: isinstance(op, ops.relations.Aggregation), reversed(operators))
+            .__next__()
+            .equals(operator))

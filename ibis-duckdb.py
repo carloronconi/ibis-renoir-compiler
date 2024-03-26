@@ -86,21 +86,16 @@ def ibis_visualize():
 def ibis_noir_generator_query():
     # try same query as ibis-noir-generator on duckdb
     ibis.options.interactive = True
-    table = ibis.read_csv("codegen/int-1-string-1.csv")
-    # query = (table
-    #          .filter(table.string1 == "unduetre")
-    #          .group_by("string1").aggregate(_.int1.max())
-    #          .rename(int1="Max(int1)")
-    #          .mutate(new_col_name=_.int1 * 20)
-    #          .aggregate(by=["string1"], bubu=_.new_col_name.max()))  # no way to pass custom reducer function!
+    table = ibis.read_csv("data/int-1-string-1.csv")
+    res = (table
+           .filter(table.string1 == "unduetre")
+           .group_by("string1").aggregate(int1_agg=table["int1"].first())  # not adding an aggregation function loses all columns aside from selected ones
+           .mutate(mul=_.int1_agg * 20)     # keeping same name for new column messes up original column
+                                            # required to use `_` operator to refer to column of table being processed (doesn't exist in original table)
+           .aggregate(by=["string1"], max=_.mul.max()))
 
-    tab2 = ibis.read_csv("codegen/int-3.csv")
-    print(tab2.columns)
-
-    join = (table.join(tab2, "int1"))
-    print(join)
-
-    to_graph(join).render("out/query0")
+    print(table)
+    print(res)
 
 
 """

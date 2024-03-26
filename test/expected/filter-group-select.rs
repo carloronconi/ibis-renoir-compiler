@@ -1,6 +1,5 @@
 use noir_compute::prelude::*;
 use serde::{Deserialize, Serialize};
-use std::cmp::{max, min};
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq)]
 struct Cols_table0 {
     int1: i64,
@@ -13,8 +12,7 @@ fn logic(ctx: &StreamContext) {
     table0
         .filter(|x| x.string1 == "unduetre")
         .group_by(|x| x.string1.clone())
-        .drop_key()
-        .map(|x| x.string1)
+        .map(|(_, x)| x.string1)
         .for_each(|x| println!("{x:?}"));
 }
 
