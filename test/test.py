@@ -19,7 +19,7 @@ class TestOperators(unittest.TestCase):
 
         compile_ibis_to_noir([(file, table)], query, run_after_gen=True, render_query_graph=False)
 
-        print(query.head().to_pandas())  # TODO: test that this is coherent with result of noir run
+        print(query.head().to_pandas())
 
         self.assertTrue(
             filecmp.cmp(ROOT_DIR + "/noir-template/src/main.rs", ROOT_DIR + "/test/expected/filter-select.rs",
@@ -39,7 +39,7 @@ class TestOperators(unittest.TestCase):
         print(query.head().to_pandas())
 
         self.assertTrue(
-            filecmp.cmp(ROOT_DIR + "/noir-template/src/main.rs", ROOT_DIR + "/test/expected/filter-filter-select.rs",
+            filecmp.cmp(ROOT_DIR + "/noir-template/src/main.rs", ROOT_DIR + "/test/expected/filter-filter-select-select.rs",
                         shallow=False))
 
     def test_filter_group_select(self):
@@ -50,7 +50,6 @@ class TestOperators(unittest.TestCase):
                  .group_by("string1")
                  .aggregate(int1_agg=table["int1"].first())
                  .select(["int1_agg"]))
-        # TODO: test fails because ibis renames col when aggregating, do same in generated noir
 
         compile_ibis_to_noir([(file, table)], query, run_after_gen=True, render_query_graph=False)
 
@@ -68,7 +67,7 @@ class TestOperators(unittest.TestCase):
                  .group_by("string1")
                  .aggregate(int1_agg=table["int1"].first())
                  .mutate(mul=_.int1_agg * 20))  # mutate always results in alias preceded by Multiply (or other bin op)
-        # TODO: same as before + mutate should create new col as in ibis instead of substituting
+        # TODO: mutate (MapOperator) should maintain existing cols and create new col as in ibis instead of substituting (also other mutate test)
 
         compile_ibis_to_noir([(file, table)], query, run_after_gen=True, render_query_graph=False)
 
@@ -85,8 +84,6 @@ class TestOperators(unittest.TestCase):
                  .filter(table.string1 == "unduetre")
                  .aggregate(int1_agg=table["int1"].sum()))
         # here example of reduce without group_by
-
-        # TODO: fails because not generating noir code to aggregate specific column
 
         compile_ibis_to_noir([(file, table)], query, run_after_gen=True, render_query_graph=False)
 
@@ -105,7 +102,6 @@ class TestOperators(unittest.TestCase):
                  .group_by("string1")
                  # it makes no sense to mutate after group_by: as if didn't group_by! mutate before it
                  .aggregate(agg=_.mul.sum()))
-        # TODO: after every map use new struct, otherwise following ops can't find col name
 
         # Solution (works because of two blocks below):
         # 1. encounter aggregate
