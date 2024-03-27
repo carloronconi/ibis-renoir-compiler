@@ -25,15 +25,13 @@ class TestOperators(unittest.TestCase):
             filecmp.cmp(ROOT_DIR + "/noir-template/src/main.rs", ROOT_DIR + "/test/expected/filter-select.rs",
                         shallow=False))
 
-    def test_filter_filter_select(self):
+    def test_filter_filter_select_select(self):
         file = ROOT_DIR + "/data/int-1-string-1.csv"
         table = ibis.read_csv(file)
         query = (table
                  .filter(table.int1 == 123)
                  .filter(table.string1 == "unduetre")
-                 # .select("int1", "string1")    # double select is unsupported: select does Cols -> tuple so no
-                 # way for second select to decide number to go in .map(|x| x.num) based on col name
-                 # possible fix: create struct with same field names as table for each select encountered
+                 .select("int1", "string1")
                  .select("string1"))
 
         compile_ibis_to_noir([(file, table)], query, run_after_gen=True, render_query_graph=False)

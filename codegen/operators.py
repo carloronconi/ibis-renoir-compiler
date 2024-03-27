@@ -13,27 +13,29 @@ class Operator:
 
 class SelectOperator(Operator):
 
-    def __init__(self, node: ops.Node, operators: list[Operator], structs: list[Struct]):
+    def __init__(self, node: ops.Selection, operators: list[Operator], structs: list[Struct]):
+        self.node = node
+        self.structs = structs
         self.columns = []
         for operand in filter(lambda o: isinstance(o, ops.TableColumn), node.__children__):
             self.columns.append(operand)
-
         self.operators = operators
 
     def generate(self, to_text: str) -> str:
-        # self.structs.append(Struct())
+        new_struct = Struct.from_aggregation(self.node)
+        self.structs.append(new_struct)
+
         mid = to_text
         if is_preceded_by_grouper(self, self.operators):
             mid += ".map(|(_, x)|"
         else:
             mid += ".map(|x| "
-        if len(self.columns) == 1:
-            mid += f"x.{self.columns[0].name})"
-        else:
-            mid += "("
-            for col in self.columns:
-                mid += f"x.{col.name}, "
-            mid += "))"
+
+        mid += f"{new_struct.name_struct}{{"
+        for new_col, col in zip(new_struct.columns, self.columns):
+            mid += f"{new_col}: x.{col.name}, "
+        mid += "})"
+
         return mid
 
 
