@@ -2,7 +2,8 @@ import ibis
 from ibis.common.graph import Node
 import ibis.expr.types as typ
 import ibis.expr.operations as ops
-import codegen.utils
+import codegen.utils as utl
+from codegen.struct import Struct
 
 
 class Operator:
@@ -14,16 +15,15 @@ class Operator:
 
 
 class SelectOperator(Operator):
-    columns = []
-    operators: list[Operator]
 
-    def __init__(self, node: Node, operators: list[Operator]):
+    def __init__(self, node: ops.Node, operators: list[Operator], structs: list[Struct]):
         for operand in filter(lambda o: isinstance(o, ops.TableColumn), node.__children__):
             self.columns.append(operand)
 
         self.operators = operators
 
     def generate(self, to_text: str) -> str:
+        self.structs.append(Struct())
         mid = to_text
         if is_preceded_by_grouper(self, self.operators):
             mid += ".map(|(_, x)|"
@@ -44,11 +44,9 @@ class SelectOperator(Operator):
 
 class FilterOperator(Operator):
     bin_ops = {"Equals": "==", "Greater": ">", "GreaterEqual": ">=", "Less": "<", "LessEqual": "<="}
-    comparator: ops.logical.Comparison
-    table: typ.relations.Table
 
-    def __init__(self, comparator: ops.logical.Comparison):
-        self.comparator = comparator
+    def __init__(self, node: ops.logical.Comparison, operators: list[Operator], structs: list[Struct]):
+        self.comparator = node
 
     def generate(self, to_text: str) -> str:
         op = self.bin_ops[type(self.comparator).__name__]
@@ -61,11 +59,9 @@ class FilterOperator(Operator):
 
 
 class GroupOperator(Operator):
-    bys = []
-    table: typ.relations.Table
 
-    def __init__(self, operator: ops.relations.Aggregation):
-        self.bys = operator.by
+    def __init__(self, node: ops.relations.Aggregation, operators: list[Operator], structs: list[Struct]):
+        self.bys = node.by
 
     def generate(self, to_text: str) -> str:
         mid = to_text + ""
@@ -80,15 +76,15 @@ class GroupOperator(Operator):
 
 class MapOperator(Operator):
     math_ops = {"Multiply": "*", "Add": "+", "Subtract": "-"}
-    table: typ.relations.Table
-    mapper: Node
-    operators: list[Operator]
 
-    def __init__(self, operator: Node, operators: list[Operator]):
-        self.mapper = operator.__children__[0]
+    def __init__(self, node: ops.Node, operators: list[Operator], structs: list[Struct]):
+        self.mapper = node.__children__[0]
         self.operators = operators
+        self.structs = structs
 
     def generate(self, to_text: str) -> str:
+        self.structs.append(Struct.from_alias())
+
         op = self.math_ops[type(self.mapper).__name__]
         left = operator_arg_stringify(self.mapper.left)
         right = operator_arg_stringify(self.mapper.right)
@@ -102,17 +98,16 @@ class MapOperator(Operator):
 
 
 class ReduceOperator(Operator):
-    aggr_ops = {"Max": "*a = (*a).max(b)", "Min": "*a = (*a).min(b)", "Sum": "*a = *a + b", "First": "*a = *a"}
-    reducer: Node
+    aggr_ops = {"Max": "a.{0} = max(a.{0}, b.{0})", "Min": "a.{0} = min(a.{0}, b.{0})", "Sum": "a.{0} = a.{0} + b.{0}",
+                "First": "a.{0} = a.{0}"}
 
-    def __init__(self, node: Node):
+    def __init__(self, node: ops.Node, operators: list[Operator], structs: list[Struct]):
         alias = next(filter(lambda c: isinstance(c, ops.Alias), node.__children__))
         self.reducer = alias.__children__[0]
 
     def generate(self, to_text: str) -> str:
-        op = self.aggr_ops[type(self.reducer).__name__]
-        # arg = operator_arg_stringify(arg, table)  # unused: noir doesn't require to specify column,
-        # aggregation depends on previous step
+        col = operator_arg_stringify(self.reducer.__children__[0])
+        op = self.aggr_ops[type(self.reducer).__name__].format(col)
         return to_text + f".reduce(|a, b| {op})"
 
     def ibis_api_name(self) -> str:
@@ -122,13 +117,12 @@ class ReduceOperator(Operator):
 class JoinOperator(Operator):
     noir_types = {"InnerJoin": "join", "OuterJoin": "outer_join", "LeftJoin": "left_join"}
     ibis_types = {"InnerJoin": "join", "OuterJoin": "outer_join", "LeftJoin": "left_join"}
-    join: ops.relations.Join
 
-    def __init__(self,  join: ops.relations.Join):
-        self.join = join
+    def __init__(self, node: ops.relations.Join, operators: list[Operator], structs: list[Struct]):
+        self.join = node
 
     def generate(self, to_text: str) -> str:
-        other_tab = codegen.utils.TAB_NAMES[self.join.right.name]
+        other_tab = utl.TAB_NAMES[self.join.right.name]
         equals = self.join.predicates[0]
         col = operator_arg_stringify(equals.left)
         other_col = operator_arg_stringify(equals.right)
@@ -137,6 +131,19 @@ class JoinOperator(Operator):
 
     def ibis_api_name(self) -> str:
         return self.ibis_types[type(self.join).__name__]
+
+
+class DatabaseOperator(Operator):
+    def __init__(self, node: ops.DatabaseTable, operators: list[Operator], structs: list[Struct]):
+        self.table = node
+        self.structs = structs
+
+    def generate(self, to_text: str) -> str:
+        struct = Struct.from_table(self.table)
+        self.structs.append(struct)
+        return (to_text +
+                f"let {struct.name_short} = ctx.stream_csv::<Cols_{struct.name_short}>(\"{utl.TAB_FILES[struct.name_long]}\");\n" +
+                self.structs[0].name_short)
 
 
 # if operand is literal, return its value

@@ -50,8 +50,8 @@ class TestOperators(unittest.TestCase):
         query = (table
                  .filter(table.string1 == "unduetre")
                  .group_by("string1")
-                 .aggregate(int1_agg=table["int1"].first())
-                 .select(["string1", "int1_agg"]))
+                 .aggregate(int1_agg=table["int1"].sum())
+                 .select(["int1_agg"]))
         # TODO: test fails because ibis renames col when aggregating, do same in generated noir
 
         compile_ibis_to_noir([(file, table)], query, run_after_gen=True, render_query_graph=False)
