@@ -127,6 +127,7 @@ class TestOperators(unittest.TestCase):
         tables = [ibis.read_csv(file) for file in files]
         query = (tables[0]
                  .join(tables[1], "int1"))
+        # TODO: re-structure joins with new recognizer
 
         compile_ibis_to_noir(zip(files, tables), query, run_after_gen=False, render_query_graph=False)
 

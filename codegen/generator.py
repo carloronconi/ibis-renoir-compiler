@@ -1,5 +1,4 @@
 import subprocess
-import ibis
 from ibis.common.graph import Node
 import ibis.expr.operations as ops
 from ibis.expr.types.relations import Table
@@ -48,7 +47,7 @@ def post_order_dfs(root: Node, recognizer: Callable[[Node, list[sop.Operator]], 
 def operator_recognizer(node: Node, operators: list[sop.Operator]):
     match node:
         case ops.DatabaseTable():
-            pass
+            pass # TODO: would avoid passing list of tables to compile_ibis_to_noir, only passing query!
         case ops.relations.Join():
             operators.append(sop.JoinOperator(node))
         case ops.relations.Aggregation() if any(isinstance(x, ops.core.Alias) for x in node.__children__):
