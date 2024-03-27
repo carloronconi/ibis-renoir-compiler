@@ -14,13 +14,14 @@ class Operator:
 class SelectOperator(Operator):
 
     def __init__(self, node: ops.Node, operators: list[Operator], structs: list[Struct]):
+        self.columns = []
         for operand in filter(lambda o: isinstance(o, ops.TableColumn), node.__children__):
             self.columns.append(operand)
 
         self.operators = operators
 
     def generate(self, to_text: str) -> str:
-        self.structs.append(Struct())
+        # self.structs.append(Struct())
         mid = to_text
         if is_preceded_by_grouper(self, self.operators):
             mid += ".map(|(_, x)|"
@@ -97,11 +98,12 @@ class GroupReduceOperator(Operator):
     aggr_ops = {"Max": "a.{0} = max(a.{0}, b.{0})", "Min": "a.{0} = min(a.{0}, b.{0})", "Sum": "a.{0} = a.{0} + b.{0}",
                 "First": "a.{0} = a.{0}"}
 
-    def __init__(self, node: ops.Node, operators: list[Operator], structs: list[Struct]):
-        alias = next(filter(lambda c: isinstance(c, ops.Alias), node.__children__))
-        self.reducer = alias.__children__[0]
+    def __init__(self, node: ops.Aggregation, operators: list[Operator], structs: list[Struct]):
+        self.alias = next(filter(lambda c: isinstance(c, ops.Alias), node.__children__))
+        self.reducer = self.alias.__children__[0]
         self.structs = structs
         self.bys = node.by
+        self.node = node
 
     def generate(self, to_text: str) -> str:
         mid = to_text
@@ -114,7 +116,13 @@ class GroupReduceOperator(Operator):
 
         mid += f".reduce(|a, b| {op})"
 
-        # also add map to conform to ibis, which renames reduced column
+        last_col_name = self.node.schema.names[-1]
+        last_col_type = self.node.schema.types[-1]
+
+        new_struct = Struct.from_args(str(id(self.alias)), [last_col_name], [last_col_type])
+        self.structs.append(new_struct)
+
+        mid += f".map(|(_, x)| {new_struct.name_struct}{{{new_struct.columns[0]}: x.{col}}})"
 
         return mid
 
@@ -163,6 +171,6 @@ def operator_arg_stringify(operand) -> str:
 def is_preceded_by_grouper(op: Operator, operators: list[Operator]) -> bool:
     map_idx = operators.index(op)
     for i, o in zip(range(0, map_idx), operators):
-        if isinstance(o, GroupOperator):
+        if isinstance(o, GroupReduceOperator):
             return True
     return False

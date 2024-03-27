@@ -21,6 +21,10 @@ class Struct(object):
     def from_aggregation(cls, agg: Aggregation):
         return cls(name=str(id(agg)), columns=list(agg.schema.names), types=agg.schema.types)
 
+    @classmethod
+    def from_args(cls, name: str, columns: list, types: list):
+        return cls(name=name, columns=columns, types=types)
+
     def generate(self, to_text: str) -> str:
         body = to_text
         body += f"#[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq)]\nstruct {self.name_struct} {{"
