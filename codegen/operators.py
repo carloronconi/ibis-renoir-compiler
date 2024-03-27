@@ -174,7 +174,7 @@ class JoinOperator(Operator):
 
     def generate(self, to_text: str) -> str:
         # id of variable to join is previous table's result variable, which is always 2 before curr struct
-        other_tab_name = Struct.id_counter_to_name_short(self.structs[-1].id_counter - 2)
+        other_tab_name = Struct.id_counter_to_name_short(max(0, self.structs[-1].id_counter - 2))
 
         equals = self.join.predicates[0]
         col = operator_arg_stringify(equals.left)
