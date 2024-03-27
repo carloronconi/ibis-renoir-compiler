@@ -58,8 +58,9 @@ def operator_recognizer(node: Node, operators: list[sop.Operator], structs: list
             operators.append(sop.JoinOperator(node, operators, structs))
         case ops.relations.Aggregation() if any(isinstance(x, ops.core.Alias) for x in node.__children__):
             if any(isinstance(x, ops.TableColumn) for x in node.__children__):
-                operators.append(sop.GroupOperator(node, operators, structs))  # group_by().reduce()
-            operators.append(sop.ReduceOperator(node, operators, structs))
+                operators.append(sop.GroupReduceOperator(node, operators, structs))  # group_by().reduce()
+            else:
+                operators.append(sop.LoneReduceOperator(node, operators, structs))
         case ops.logical.Comparison() if any(isinstance(c, ops.Literal) for c in node.__children__):
             operators.append(sop.FilterOperator(node, operators, structs))
         case ops.core.Alias() if any(isinstance(c, ops.numeric.NumericBinary) for c in node.__children__):
