@@ -2,3 +2,4 @@
 /out
 /noir-template/target
 /noir-template/Cargo.lock
+/noir-template/src/main.rs
