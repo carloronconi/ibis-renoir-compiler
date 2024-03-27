@@ -173,11 +173,9 @@ class JoinOperator(Operator):
         self.structs = structs
 
     def generate(self, to_text: str) -> str:
-        tab = find_node_database(self.join.left)
-        other_tab = find_node_database(self.join.right)
-        other_tab_name = filter(lambda s: s.name_long == other_tab.name, self.structs).__next__().name_short
+        # id of variable to join is previous table's result variable, which is always 2 before curr struct
+        other_tab_name = Struct.id_counter_to_name_short(self.structs[-1].id_counter - 2)
 
-        # other_tab = utl.TAB_NAMES[self.join.right.name]
         equals = self.join.predicates[0]
         col = operator_arg_stringify(equals.left)
         other_col = operator_arg_stringify(equals.right)

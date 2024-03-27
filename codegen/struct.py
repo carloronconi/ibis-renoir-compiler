@@ -5,11 +5,19 @@ class Struct(object):
     name_counter = 0
     ibis_to_noir_type = {"Int64": "i64", "String": "String"}  # TODO: add nullability with optionals
 
+    @classmethod
+    def id_counter_to_name_short(cls, id_c: int) -> str:
+        return f"var_{id_c}"
+
+    @classmethod
+    def name_short_to_name_struct(cls, name_short: str) -> str:
+        return f"Struct_{name_short}"
+
     def __init__(self, name: str, columns: list, types: list):
         self.name_long = name
         self.id_counter = Struct.name_counter
-        self.name_short = f"var_{self.id_counter}"
-        self.name_struct = f"Struct_{self.name_short}"
+        self.name_short = Struct.id_counter_to_name_short(self.id_counter)
+        self.name_struct = Struct.name_short_to_name_struct(self.name_short)
         Struct.name_counter += 1
         self.columns = columns
         self.types = types
