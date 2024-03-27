@@ -1,20 +1,30 @@
 use noir_compute::prelude::*;
 use serde::{Deserialize, Serialize};
-use std::cmp::{max, min};
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq)]
-struct Cols_table0 {
+struct Struct_var_0 {
     int1: i64,
     string1: String,
 }
+#[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq)]
+struct Struct_var_1 {
+    int1_agg: i64,
+}
+#[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq)]
+struct Struct_var_2 {
+    int1_agg: i64,
+}
 
 fn logic(ctx: &StreamContext) {
-    let table0 = ctx
-        .stream_csv::<Cols_table0>("/home/carlo/Projects/ibis-quickstart/data/int-1-string-1.csv");
-    table0
+    let var_0 = ctx
+        .stream_csv::<Struct_var_0>("/home/carlo/Projects/ibis-quickstart/data/int-1-string-1.csv");
+    var_0
         .filter(|x| x.string1 == "unduetre")
         .group_by(|x| x.string1.clone())
-        .drop_key()
-        .map(|x| x.string1)
+        .reduce(|a, b| a.int1 = a.int1)
+        .map(|(_, x)| Struct_var_1 { int1_agg: x.int1 })
+        .map(|(_, x)| Struct_var_2 {
+            int1_agg: x.int1_agg,
+        })
         .for_each(|x| println!("{x:?}"));
 }
 
