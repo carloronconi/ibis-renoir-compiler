@@ -80,8 +80,9 @@ def gen_noir_code(operators: List[sop.Operator], structs, tables: List[Tuple[str
         top = f.read()
     top = gen_noir_code_top(top, structs, tables)
 
+    bot = f"; {structs[-1].name_short}.for_each(|x| println!(\"{{x:?}}\"));"
     with open(utl.ROOT_DIR + "/noir-template/main_bot.rs") as f:
-        bot = f.read()
+        bot += f.read()
 
     with open(utl.ROOT_DIR + '/noir-template/src/main.rs', 'w') as f:
         f.write(top)

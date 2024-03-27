@@ -1,4 +1,3 @@
-    .for_each(|x| println!("{x:?}"));
 }
 
 fn main() -> eyre::Result<()> {
