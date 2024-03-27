@@ -17,7 +17,9 @@ class TestOperators(unittest.TestCase):
                  .filter(table.string1 == "unduetre")
                  .select("int1"))
 
-        compile_ibis_to_noir([(file, table)], query, run_after_gen=False, render_query_graph=False)
+        compile_ibis_to_noir([(file, table)], query, run_after_gen=True, render_query_graph=False)
+
+        print(query.head().to_pandas())  # TODO: test that this is coherent with result of noir run
 
         self.assertTrue(
             filecmp.cmp(ROOT_DIR + "/noir-template/src/main.rs", ROOT_DIR + "/test/expected/filter-select.rs",
@@ -34,7 +36,9 @@ class TestOperators(unittest.TestCase):
                  # possible fix: create struct with same field names as table for each select encountered
                  .select("string1"))
 
-        compile_ibis_to_noir([(file, table)], query, run_after_gen=False, render_query_graph=False)
+        compile_ibis_to_noir([(file, table)], query, run_after_gen=True, render_query_graph=False)
+
+        print(query.head().to_pandas())
 
         self.assertTrue(
             filecmp.cmp(ROOT_DIR + "/noir-template/src/main.rs", ROOT_DIR + "/test/expected/filter-filter-select.rs",
@@ -50,7 +54,9 @@ class TestOperators(unittest.TestCase):
                  .select(["string1", "int1_agg"]))
         # TODO: test fails because ibis renames col when aggregating, do same in generated noir
 
-        compile_ibis_to_noir([(file, table)], query, run_after_gen=False, render_query_graph=False)
+        compile_ibis_to_noir([(file, table)], query, run_after_gen=True, render_query_graph=False)
+
+        print(query.head().to_pandas())
 
         self.assertTrue(
             filecmp.cmp(ROOT_DIR + "/noir-template/src/main.rs", ROOT_DIR + "/test/expected/filter-group-select.rs",
@@ -66,7 +72,9 @@ class TestOperators(unittest.TestCase):
                  .mutate(mul=_.int1_agg * 20))  # mutate always results in alias preceded by Multiply (or other bin op)
         # TODO: same as before + mutate should create new col as in ibis instead of substituting
 
-        compile_ibis_to_noir([(file, table)], query, run_after_gen=False, render_query_graph=False)
+        compile_ibis_to_noir([(file, table)], query, run_after_gen=True, render_query_graph=False)
+
+        print(query.head().to_pandas())
 
         self.assertTrue(
             filecmp.cmp(ROOT_DIR + "/noir-template/src/main.rs", ROOT_DIR + "/test/expected/filter-group-mutate.rs",
@@ -77,10 +85,14 @@ class TestOperators(unittest.TestCase):
         table = ibis.read_csv(file)
         query = (table
                  .filter(table.string1 == "unduetre")
-                 .aggregate(int1_agg=table["int1"].first()))
+                 .aggregate(int1_agg=table["int1"].sum()))
         # here example of reduce without group_by
 
-        compile_ibis_to_noir([(file, table)], query, run_after_gen=False, render_query_graph=False)
+        # TODO: fails because not generating noir code to aggregate specific column
+
+        compile_ibis_to_noir([(file, table)], query, run_after_gen=True, render_query_graph=False)
+
+        print(query.head().to_pandas())
 
         self.assertTrue(
             filecmp.cmp(ROOT_DIR + "/noir-template/src/main.rs", ROOT_DIR + "/test/expected/filter-reduce.rs",
@@ -94,7 +106,7 @@ class TestOperators(unittest.TestCase):
                  .mutate(mul=_.int1 * 20)
                  .group_by("string1")
                  # it makes no sense to mutate after group_by: as if didn't group_by! mutate before it
-                 .aggregate(agg=_.int1.sum()))
+                 .aggregate(agg=_.mul.sum()))
         # TODO: after every map use new struct, otherwise following ops can't find col name
 
         # Solution (works because of two blocks below):
@@ -115,7 +127,9 @@ class TestOperators(unittest.TestCase):
         # .aggregate(int1_agg=table["int1"].first())
         # .mutate(center=_.int1 - _.int1.mean()))
 
-        compile_ibis_to_noir([(file, table)], query, run_after_gen=False, render_query_graph=False)
+        compile_ibis_to_noir([(file, table)], query, run_after_gen=True, render_query_graph=False)
+
+        print(query.head().to_pandas())
 
         self.assertTrue(
             filecmp.cmp(ROOT_DIR + "/noir-template/src/main.rs", ROOT_DIR + "/test/expected/filter-group-mutate"
@@ -129,7 +143,9 @@ class TestOperators(unittest.TestCase):
                  .join(tables[1], "int1"))
         # TODO: re-structure joins with new recognizer
 
-        compile_ibis_to_noir(zip(files, tables), query, run_after_gen=False, render_query_graph=False)
+        compile_ibis_to_noir(zip(files, tables), query, run_after_gen=True, render_query_graph=False)
+
+        print(query.head().to_pandas())
 
         self.assertTrue(filecmp.cmp(ROOT_DIR + "/noir-template/src/main.rs", ROOT_DIR + "/test/expected/inner-join.rs",
                                     shallow=False))
@@ -140,7 +156,9 @@ class TestOperators(unittest.TestCase):
         query = (tables[0]
                  .outer_join(tables[1], "int1"))
 
-        compile_ibis_to_noir(zip(files, tables), query, run_after_gen=False, render_query_graph=False)
+        compile_ibis_to_noir(zip(files, tables), query, run_after_gen=True, render_query_graph=False)
+
+        print(query.head().to_pandas())
 
         self.assertTrue(filecmp.cmp(ROOT_DIR + "/noir-template/src/main.rs", ROOT_DIR + "/test/expected/inner-join.rs",
                                     shallow=False))
@@ -151,7 +169,9 @@ class TestOperators(unittest.TestCase):
         query = (tables[0]
                  .left_join(tables[1], "int1"))
 
-        compile_ibis_to_noir(zip(files, tables), query, run_after_gen=False, render_query_graph=False)
+        compile_ibis_to_noir(zip(files, tables), query, run_after_gen=True, render_query_graph=False)
+
+        print(query.head().to_pandas())
 
         self.assertTrue(filecmp.cmp(ROOT_DIR + "/noir-template/src/main.rs", ROOT_DIR + "/test/expected/inner-join.rs",
                                     shallow=False))
