@@ -15,11 +15,11 @@ class Struct(object):
 
     @classmethod
     def from_table(cls, table: DatabaseTable):
-        return cls(name=table.name, columns=list(table.schema.names), types=table.schema.types)
+        return cls(name=table.name, columns=list(table.schema.names), types=list(table.schema.types))
 
     @classmethod
     def from_aggregation(cls, agg: Aggregation):
-        return cls(name=str(id(agg)), columns=list(agg.schema.names), types=agg.schema.types)
+        return cls(name=str(id(agg)), columns=list(agg.schema.names), types=list(agg.schema.types))
 
     @classmethod
     def from_args(cls, name: str, columns: list, types: list):

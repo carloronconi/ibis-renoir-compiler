@@ -55,21 +55,40 @@ class FilterOperator(Operator):
 class MapOperator(Operator):
     math_ops = {"Multiply": "*", "Add": "+", "Subtract": "-"}
 
-    def __init__(self, node: ops.Node, operators: list[Operator], structs: list[Struct]):
+    def __init__(self, node: ops.core.Alias, operators: list[Operator], structs: list[Struct]):
         self.mapper = node.__children__[0]
         self.operators = operators
         self.structs = structs
+        self.node = node
 
     def generate(self, to_text: str) -> str:
-        self.structs.append(Struct.from_alias())
+        prev_struct = self.structs[-1]
+        cols = prev_struct.columns.copy()
+        cols.append(self.node.name)
+        typs = prev_struct.types.copy()
+        typs.append(self.node.dtype)
+
+        new_struct = Struct.from_args(str(id(self.node)), cols, typs)
+        self.structs.append(new_struct)
 
         op = self.math_ops[type(self.mapper).__name__]
         left = operator_arg_stringify(self.mapper.left)
         right = operator_arg_stringify(self.mapper.right)
 
+        mid = to_text
         if is_preceded_by_grouper(self, self.operators):
-            return to_text + f".map(|(_, x)| x.{left} {op} {right})"
-        return to_text + f".map(|x| x.{left} {op} {right})"
+            mid += ".map(|(_, x)|"
+        else:
+            mid += ".map(|x| "
+
+        mid += f"{new_struct.name_struct}{{"
+        for new_col, prev_col in zip(new_struct.columns, prev_struct.columns):
+            mid += f"{new_col}: x.{prev_col}, "
+        mid += f"{self.node.name}: x.{left} {op} {right},"
+        mid += "})"
+
+        return mid
+
 
 
 class LoneReduceOperator(Operator):

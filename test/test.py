@@ -67,7 +67,6 @@ class TestOperators(unittest.TestCase):
                  .group_by("string1")
                  .aggregate(int1_agg=table["int1"].first())
                  .mutate(mul=_.int1_agg * 20))  # mutate always results in alias preceded by Multiply (or other bin op)
-        # TODO: mutate (MapOperator) should maintain existing cols and create new col as in ibis instead of substituting (also other mutate test)
 
         compile_ibis_to_noir([(file, table)], query, run_after_gen=True, render_query_graph=False)
 
