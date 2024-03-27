@@ -2,6 +2,8 @@ import ibis
 from ibis.common.graph import Node
 import ibis.expr.types as typ
 import ibis.expr.operations as ops
+from ibis.expr.operations import DatabaseTable
+
 import codegen.utils as utl
 from codegen.struct import Struct
 
@@ -90,7 +92,6 @@ class MapOperator(Operator):
         return mid
 
 
-
 class LoneReduceOperator(Operator):
     aggr_ops = {"Sum": "{0}: a.{0} + b.{0}"}
 
@@ -154,14 +155,19 @@ class JoinOperator(Operator):
 
     def __init__(self, node: ops.relations.Join, operators: list[Operator], structs: list[Struct]):
         self.join = node
+        self.structs = structs
 
     def generate(self, to_text: str) -> str:
-        other_tab = utl.TAB_NAMES[self.join.right.name]
+        tab = find_node_database(self.join.left)
+        other_tab = find_node_database(self.join.right)
+        other_tab_name = filter(lambda s: s.name_long == other_tab.name, self.structs).__next__().name_short
+
+        # other_tab = utl.TAB_NAMES[self.join.right.name]
         equals = self.join.predicates[0]
         col = operator_arg_stringify(equals.left)
         other_col = operator_arg_stringify(equals.right)
         join_t = self.noir_types[type(self.join).__name__]
-        return to_text + f".{join_t}({other_tab}, |x| x.{col}, |y| y.{other_col})"
+        return to_text + f".{join_t}({other_tab_name}, |x| x.{col}, |y| y.{other_col})"
 
 
 class DatabaseOperator(Operator):
@@ -173,8 +179,8 @@ class DatabaseOperator(Operator):
         struct = Struct.from_table(self.table)
         self.structs.append(struct)
         return (to_text +
-                f"let {struct.name_short} = ctx.stream_csv::<{struct.name_struct}>(\"{utl.TAB_FILES[struct.name_long]}\");\n" +
-                self.structs[0].name_short)
+                f";\nlet {struct.name_short} = ctx.stream_csv::<{struct.name_struct}>(\"{utl.TAB_FILES[struct.name_long]}\");\n" +
+                struct.name_short)
 
 
 # if operand is literal, return its value
@@ -195,3 +201,10 @@ def is_preceded_by_grouper(op: Operator, operators: list[Operator]) -> bool:
         if isinstance(o, GroupReduceOperator):
             return True
     return False
+
+
+def find_node_database(node: Node) -> DatabaseTable:
+    curr = node
+    while curr and not isinstance(curr, DatabaseTable):
+        curr = curr.table
+    return curr
