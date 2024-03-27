@@ -140,6 +140,7 @@ class TestOperators(unittest.TestCase):
 
         # TODO: should work - gen code is as planned but run result is same rows as ibis but repeated thrice - noir says `environment: starting execution (3 blocks)` so maybe it's expected?
         # TODO: adding select after join messes it up - should deal with (join_col_type, InnerJoinTuple) similarly to when select preceded by group_by making it KeyedStream
+        # TODO: tests work by themselves but fail when running all together - prob static vars? try adding diff to failed testcase message
 
         compile_ibis_to_noir(zip(files, tables), query, run_after_gen=True, render_query_graph=False)
 
@@ -158,7 +159,7 @@ class TestOperators(unittest.TestCase):
 
         print(query.head().to_pandas())
 
-        self.assertTrue(filecmp.cmp(ROOT_DIR + "/noir-template/src/main.rs", ROOT_DIR + "/test/expected/inner-join.rs",
+        self.assertTrue(filecmp.cmp(ROOT_DIR + "/noir-template/src/main.rs", ROOT_DIR + "/test/expected/outer-join.rs",
                                     shallow=False))
 
     def test_left_join(self):
@@ -171,7 +172,7 @@ class TestOperators(unittest.TestCase):
 
         print(query.head().to_pandas())
 
-        self.assertTrue(filecmp.cmp(ROOT_DIR + "/noir-template/src/main.rs", ROOT_DIR + "/test/expected/inner-join.rs",
+        self.assertTrue(filecmp.cmp(ROOT_DIR + "/noir-template/src/main.rs", ROOT_DIR + "/test/expected/left-join.rs",
                                     shallow=False))
 
 

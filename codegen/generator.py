@@ -102,9 +102,3 @@ def gen_noir_code_top(top: str, structs, tables: List[Tuple[str, Table]]):
     body += "\nfn logic(ctx: &StreamContext) {\n"
 
     return body
-
-
-def to_noir_type(table: Table, index: int) -> str:
-    ibis_to_noir_type = {"Int64": "i64", "String": "String"}  # TODO: add nullability with optionals
-    ibis_type = table.schema().types[index]
-    return ibis_to_noir_type[ibis_type.name]
