@@ -9,25 +9,18 @@ import codegen.operators as sop
 import codegen.utils as utl
 
 
-def compile_ibis_to_noir(table_files: list[str],
-                         query_gen: Callable[[list[Table]], Table],
+def compile_ibis_to_noir(files_tables: list[tuple[str, Table]],
+                         query: Table,
                          run_after_gen=True,
                          render_query_graph=True):
-    tables = []
-    tups = []
-    for table_file in table_files:
-        tab = ibis.read_csv(table_file)
-        tables.append(tab)
-        tups.append((table_file, tab))
 
-    query = query_gen(tables)
     if render_query_graph:
         to_graph(query).render(utl.ROOT_DIR + "/out/query")
         subprocess.run(f"open {utl.ROOT_DIR}/out/query.pdf", shell=True)
 
     operators = post_order_dfs(query.op(), operator_recognizer)
 
-    gen_noir_code(operators, tups)
+    gen_noir_code(operators, files_tables)
 
     subprocess.run(f"cd {utl.ROOT_DIR}/noir-template && cargo-fmt && cargo build", shell=True)
     if run_after_gen:
