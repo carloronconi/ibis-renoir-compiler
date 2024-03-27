@@ -1,4 +1,4 @@
-from ibis.expr.operations import DatabaseTable, Alias
+from ibis.expr.operations import DatabaseTable, Alias, Aggregation
 
 
 class Struct(object):
@@ -18,8 +18,8 @@ class Struct(object):
         return cls(name=table.name, columns=list(table.schema.names), types=table.schema.types)
 
     @classmethod
-    def from_alias(cls, alias: Alias):
-        pass
+    def from_aggregation(cls, agg: Aggregation):
+        return cls(name=str(id(agg)), columns=list(agg.schema.names), types=agg.schema.types)
 
     def generate(self, to_text: str) -> str:
         body = to_text

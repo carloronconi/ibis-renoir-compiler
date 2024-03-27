@@ -49,19 +49,6 @@ class FilterOperator(Operator):
         return to_text + ".filter(|x| x." + left + " " + op + " " + right + ")"
 
 
-class GroupOperator(Operator):
-
-    def __init__(self, node: ops.relations.Aggregation, operators: list[Operator], structs: list[Struct]):
-        self.bys = node.by
-
-    def generate(self, to_text: str) -> str:
-        mid = to_text + ""
-        for by in self.bys:
-            by = operator_arg_stringify(by)
-            mid += ".group_by(|x| x." + by + ".clone())"
-        return mid
-
-
 class MapOperator(Operator):
     math_ops = {"Multiply": "*", "Add": "+", "Subtract": "-"}
 
@@ -83,20 +70,53 @@ class MapOperator(Operator):
 
 
 class LoneReduceOperator(Operator):
-    # aggr_ops = {"Max": "a.{0} = max(a.{0}, b.{0})", "Min": "a.{0} = min(a.{0}, b.{0})", "Sum": "a.{0} = a.{0} + b.{0}",
-    #             "First": "a.{0} = a.{0}"}
     aggr_ops = {"Sum": "{0}: a.{0} + b.{0}"}
 
-    def __init__(self, node: ops.Node, operators: list[Operator], structs: list[Struct]):
+    def __init__(self, node: ops.Aggregation, operators: list[Operator], structs: list[Struct]):
         alias = next(filter(lambda c: isinstance(c, ops.Alias), node.__children__))
         self.reducer = alias.__children__[0]
         self.structs = structs
+        self.node = node
 
     def generate(self, to_text: str) -> str:
         col = operator_arg_stringify(self.reducer.__children__[0])
         op = self.aggr_ops[type(self.reducer).__name__].format(col)
 
-        return to_text + f".reduce(|a, b| {self.structs[-1].name_struct}{{{op}, ..a }} )"
+        mid = to_text + f".reduce(|a, b| {self.structs[-1].name_struct}{{{op}, ..a }} )"
+
+        # map after the reduce to conform to ibis renaming reduced column!
+        new_struct = Struct.from_aggregation(self.node)
+        self.structs.append(new_struct)
+
+        mid += f".map(|x| {new_struct.name_struct}{{{new_struct.columns[0]}: x.{col}}})"
+
+        return mid
+
+
+class GroupReduceOperator(Operator):
+    aggr_ops = {"Max": "a.{0} = max(a.{0}, b.{0})", "Min": "a.{0} = min(a.{0}, b.{0})", "Sum": "a.{0} = a.{0} + b.{0}",
+                "First": "a.{0} = a.{0}"}
+
+    def __init__(self, node: ops.Node, operators: list[Operator], structs: list[Struct]):
+        alias = next(filter(lambda c: isinstance(c, ops.Alias), node.__children__))
+        self.reducer = alias.__children__[0]
+        self.structs = structs
+        self.bys = node.by
+
+    def generate(self, to_text: str) -> str:
+        mid = to_text
+        for by in self.bys:
+            by = operator_arg_stringify(by)
+            mid += ".group_by(|x| x." + by + ".clone())"
+
+        col = operator_arg_stringify(self.reducer.__children__[0])
+        op = self.aggr_ops[type(self.reducer).__name__].format(col)
+
+        mid += f".reduce(|a, b| {op})"
+
+        # also add map to conform to ibis, which renames reduced column
+
+        return mid
 
 
 class JoinOperator(Operator):
