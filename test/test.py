@@ -34,7 +34,7 @@ class TestOperators(unittest.TestCase):
                     .select("string1"))
 
         table_files = [ROOT_DIR + "/data/int-1-string-1.csv"]
-        generate(table_files, q_filter_filter_select, run_after_gen=False, render_query_graph=False)
+        generate(table_files, q_filter_filter_select, run_after_gen=False, render_query_graph=True)
 
         self.assertTrue(
             filecmp.cmp(ROOT_DIR + "/noir-template/src/main.rs", ROOT_DIR + "/test/expected/filter-filter-select.rs",
@@ -48,6 +48,7 @@ class TestOperators(unittest.TestCase):
                     .group_by("string1")
                     .aggregate(int1_agg=table["int1"].first())
                     .select(["string1", "int1_agg"]))
+            # TODO: test fails because ibis renames col when aggregating, do same in generated noir
 
         table_files = [ROOT_DIR + "/data/int-1-string-1.csv"]
         generate(table_files, q_filter_group_select, run_after_gen=True, render_query_graph=True)
@@ -64,6 +65,7 @@ class TestOperators(unittest.TestCase):
                     .group_by("string1")
                     .aggregate(int1_agg=table["int1"].first())
                     .mutate(mul=_.int1_agg * 20))  # mutate always results in alias preceded by Multiply (or other bin op)
+            # TODO: same as before + mutate should create new col as in ibis instead of substituting
 
         table_files = [ROOT_DIR + "/data/int-1-string-1.csv"]
         generate(table_files, q_filter_group_mutate, run_after_gen=True, render_query_graph=True)
@@ -72,15 +74,32 @@ class TestOperators(unittest.TestCase):
             filecmp.cmp(ROOT_DIR + "/noir-template/src/main.rs", ROOT_DIR + "/test/expected/filter-group-mutate.rs",
                         shallow=False))
 
+    def test_filter_reduce(self):
+        def q_filter_reduce(tables: list[Table]) -> Table:
+            table = tables[0]
+            return (table
+                    .filter(table.string1 == "unduetre")
+                    .aggregate(int1_agg=table["int1"].first()))
+            # here example of reduce without group_by
+
+        table_files = [ROOT_DIR + "/data/int-1-string-1.csv"]
+        generate(table_files, q_filter_reduce, run_after_gen=True, render_query_graph=True)
+
+        self.assertTrue(
+            filecmp.cmp(ROOT_DIR + "/noir-template/src/main.rs", ROOT_DIR + "/test/expected/filter-reduce.rs",
+                        shallow=False))
+
     def test_filter_group_mutate_reduce(self):
         def q_filter_group_mutate_reduce(tables: list[Table]) -> Table:
             table = tables[0]
             return (table
-                    .filter(table.string1 == "unduetre")
+                    .filter(table.int1 > 200)
                     .mutate(mul=_.int1 * 20)
                     .group_by("string1")
                     # it makes no sense to mutate here: as if didn't group_by! mutate before
                     .aggregate(agg=_.int1.sum()))
+
+            # TODO: after every map use new struct, otherwise following ops can't find col name
 
             # Solution (works because of two blocks below):
             # 1. encounter aggregate

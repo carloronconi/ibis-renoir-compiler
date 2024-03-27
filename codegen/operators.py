@@ -15,12 +15,12 @@ class Operator:
 
 class SelectOperator(Operator):
     columns = []
-    table: typ.relations.Table
     operators: list[Operator]
 
-    def __init__(self, table: typ.relations.Table, columns: list[Node], operators: list[Operator]):
-        self.columns = columns
-        self.table = table
+    def __init__(self, node: Node, operators: list[Operator]):
+        for operand in filter(lambda o: isinstance(o, ops.TableColumn), node.__children__):
+            self.columns.append(operand)
+
         self.operators = operators
 
     def generate(self, to_text: str) -> str:
@@ -47,9 +47,8 @@ class FilterOperator(Operator):
     comparator: ops.logical.Comparison
     table: typ.relations.Table
 
-    def __init__(self, table: typ.relations.Table, comparator: ops.logical.Comparison):
+    def __init__(self, comparator: ops.logical.Comparison):
         self.comparator = comparator
-        self.table = table
 
     def generate(self, to_text: str) -> str:
         op = self.bin_ops[type(self.comparator).__name__]
@@ -62,12 +61,11 @@ class FilterOperator(Operator):
 
 
 class GroupOperator(Operator):
-    bys: list[Node]
+    bys = []
     table: typ.relations.Table
 
-    def __init__(self, table: typ.relations.Table, bys: list[Node]):
-        self.bys = bys
-        self.table = table
+    def __init__(self, operator: ops.relations.Aggregation):
+        self.bys = operator.by
 
     def generate(self, to_text: str) -> str:
         mid = to_text + ""
@@ -86,9 +84,8 @@ class MapOperator(Operator):
     mapper: Node
     operators: list[Operator]
 
-    def __init__(self, table: typ.relations.Table, mapper: Node, operators: list[Operator]):
-        self.mapper = mapper
-        self.table = table
+    def __init__(self, operator: Node, operators: list[Operator]):
+        self.mapper = operator.__children__[0]
         self.operators = operators
 
     def generate(self, to_text: str) -> str:
@@ -108,8 +105,9 @@ class ReduceOperator(Operator):
     aggr_ops = {"Max": "*a = (*a).max(b)", "Min": "*a = (*a).min(b)", "Sum": "*a = *a + b", "First": "*a = *a"}
     reducer: Node
 
-    def __init__(self, reducer: Node):
-        self.reducer = reducer
+    def __init__(self, node: Node):
+        alias = next(filter(lambda c: isinstance(c, ops.Alias), node.__children__))
+        self.reducer = alias.__children__[0]
 
     def generate(self, to_text: str) -> str:
         op = self.aggr_ops[type(self.reducer).__name__]
@@ -125,11 +123,9 @@ class JoinOperator(Operator):
     noir_types = {"InnerJoin": "join", "OuterJoin": "outer_join", "LeftJoin": "left_join"}
     ibis_types = {"InnerJoin": "join", "OuterJoin": "outer_join", "LeftJoin": "left_join"}
     join: ops.relations.Join
-    table: typ.relations.Table
 
-    def __init__(self, table: typ.relations.Table, join: ops.relations.Join):
+    def __init__(self,  join: ops.relations.Join):
         self.join = join
-        self.table = table
 
     def generate(self, to_text: str) -> str:
         other_tab = codegen.utils.TAB_NAMES[self.join.right.name]

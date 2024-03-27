@@ -12,6 +12,7 @@ fn logic(ctx: &StreamContext) {
     table0
         .filter(|x| x.string1 == "unduetre")
         .group_by(|x| x.string1.clone())
+        .reduce(|a, b| *a = *a)
         .map(|(_, x)| x.int1 * 20)
         .for_each(|x| println!("{x:?}"));
 }

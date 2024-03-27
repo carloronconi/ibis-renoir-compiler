@@ -10,8 +10,8 @@ fn logic(ctx: &StreamContext) {
     let table0 = ctx
         .stream_csv::<Cols_table0>("/home/carlo/Projects/ibis-quickstart/data/int-1-string-1.csv");
     table0
-        .filter(|x| x.int1 == 123)
         .filter(|x| x.string1 == "unduetre")
+        .filter(|x| x.int1 == 123)
         .map(|x| x.string1)
         .for_each(|x| println!("{x:?}"));
 }

@@ -1,11 +1,10 @@
 import subprocess
-import inspect
 import ibis
-from ibis.common.graph import Graph, Node
+from ibis.common.graph import Node
 import ibis.expr.operations as ops
 from ibis.expr.types.relations import Table
 from ibis.expr.visualize import to_graph
-from typing import List, Sequence, Tuple, Callable
+from typing import List, Tuple, Callable, Optional
 import codegen.operators as sop
 import codegen.utils as utl
 
@@ -26,7 +25,7 @@ def compile_ibis_to_noir(table_files: list[str],
         to_graph(query).render(utl.ROOT_DIR + "/out/query")
         subprocess.run(f"open {utl.ROOT_DIR}/out/query.pdf", shell=True)
 
-    operators = create_operators(query, tables[0])
+    operators = post_order_dfs(query.op(), operator_recognizer)
 
     gen_noir_code(operators, tups)
 
@@ -35,45 +34,40 @@ def compile_ibis_to_noir(table_files: list[str],
         subprocess.run(f"cd {utl.ROOT_DIR}/noir-template && cargo run", shell=True)
 
 
-def create_operators(query: Table, table: Table) -> List[sop.Operator]:
-    print("parsing query...")
+def post_order_dfs(root: Node, recognizer: Callable[[Node, list[sop.Operator]], Optional[sop.Operator]]):
+    stack: list[tuple[Node, bool]] = [(root, False)]
+    visited: set[Node] = set()
+    out: list[sop.Operator] = []
 
-    graph = Graph.from_dfs(query.op(), filter=ops.Node)  # filtering ops.Selection doesn't work
+    while stack:
+        (node, visit) = stack.pop()
+        if visit:
+            recognizer(node, out)
+        elif node not in visited:
+            visited.add(node)
+            stack.append((node, True))
+            for child in node.__children__:
+                stack.append((child, False))
 
-    operators: list[sop.Operator] = []
-    for operator, operands in graph.items():
-        print(str(operator) + " |\t" + type(operator).__name__ + ":\t" + str(operands))
+    return out
 
-        match operator:
-            case ops.relations.Join():
-                operators.append(sop.JoinOperator(table, operator))
 
-            case ops.core.Alias() if one_reduction_operand(operands):  # find reducers (aka reduce)
-                operand = operands[0]
-                operators.append(sop.ReduceOperator(operand))
-
-            case ops.core.Alias() if one_numeric_operand(operands):  # find mappers (aka map)
-                operand = operands[0]  # maps have a single operand
-                operators.append(sop.MapOperator(table, operand, operators))
-
-            # find last grouper (aka group_by): more than one grouper are unsupported because can't group a KeyedStream
-            case ops.relations.Aggregation() if is_last_aggregation(operator, graph.items().mapping.keys()):
-                operators.append(sop.GroupOperator(table, operator.by))  # by contains list of all group by columns
-
-            case ops.logical.Comparison():  # find filters (aka row selection)
-                operators.append(sop.FilterOperator(table, operator))
-
-            case ops.relations.Selection():  # find maps (aka column projection)
-                selected_columns = []
-                for operand in filter(lambda o: isinstance(o, ops.TableColumn), operands):
-                    selected_columns.append(operand)
-                if selected_columns:
-                    operators.append(sop.SelectOperator(table, selected_columns, operators))
-
-    print("done parsing")
-    # all nodes have a 'name' attribute and a 'dtype' and 'shape' attributes: use those to get info!
-
-    return operators
+def operator_recognizer(node: Node, operators: list[sop.Operator]):
+    match node:
+        case ops.DatabaseTable():
+            pass
+        case ops.relations.Join():
+            operators.append(sop.JoinOperator(node))
+        case ops.relations.Aggregation() if any(isinstance(x, ops.core.Alias) for x in node.__children__):
+            if any(isinstance(x, ops.TableColumn) for x in node.__children__):
+                operators.append(sop.GroupOperator(node))  # group_by().reduce()
+            operators.append(sop.ReduceOperator(node))
+        case ops.logical.Comparison() if any(isinstance(c, ops.Literal) for c in node.__children__):
+            operators.append(sop.FilterOperator(node))
+        case ops.core.Alias() if any(isinstance(c, ops.numeric.NumericBinary) for c in node.__children__):
+            operators.append(sop.MapOperator(node, operators))
+        case ops.relations.Selection() if any(isinstance(c, ops.TableColumn) for c in node.__children__):
+            operators.append(sop.SelectOperator(node, operators))
 
 
 def gen_noir_code(operators: List[sop.Operator], tables: List[Tuple[str, Table]]):
@@ -130,23 +124,3 @@ def to_noir_type(table: Table, index: int) -> str:
     ibis_to_noir_type = {"Int64": "i64", "String": "String"}  # TODO: add nullability with optionals
     ibis_type = table.schema().types[index]
     return ibis_to_noir_type[ibis_type.name]
-
-
-def one_numeric_operand(operands: Sequence[Node]) -> bool:
-    if len(operands) != 1:
-        return False
-    if getattr(operands[0], '__module__', None) != ibis.expr.operations.numeric.__name__:
-        return False
-    return True
-
-
-def one_reduction_operand(operands: Sequence[Node]) -> bool:
-    if len(operands) != 1:
-        return False
-    return isinstance(operands[0], ibis.expr.operations.Reduction)
-
-
-def is_last_aggregation(operator: Node, operators) -> bool:
-    return (filter(lambda op: isinstance(op, ops.relations.Aggregation), reversed(operators))
-            .__next__()
-            .equals(operator))
