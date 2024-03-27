@@ -65,7 +65,8 @@ def operator_recognizer(node: Node, operators: list[sop.Operator], structs: list
             operators.append(sop.FilterOperator(node, operators, structs))
         case ops.core.Alias() if any(isinstance(c, ops.numeric.NumericBinary) for c in node.__children__):
             operators.append(sop.MapOperator(node, operators, structs))
-        case ops.relations.Selection() if any(isinstance(c, ops.TableColumn) for c in node.__children__):
+        case ops.relations.Selection() if (any(isinstance(c, ops.TableColumn) for c in node.__children__) and
+                                           not any(isinstance(c, ops.Join) for c in node.__children__)):
             operators.append(sop.SelectOperator(node, operators, structs))
 
 
