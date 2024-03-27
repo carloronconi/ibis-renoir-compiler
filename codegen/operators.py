@@ -12,6 +12,9 @@ class Operator:
     def generate(self, to_text: str) -> str:
         raise NotImplementedError
 
+    def does_add_struct(self) -> bool:
+        return False
+
 
 class SelectOperator(Operator):
 
@@ -39,6 +42,9 @@ class SelectOperator(Operator):
         mid += "})"
 
         return mid
+
+    def does_add_struct(self) -> bool:
+        return True
 
 
 class FilterOperator(Operator):
@@ -91,6 +97,9 @@ class MapOperator(Operator):
 
         return mid
 
+    def does_add_struct(self) -> bool:
+        return True
+
 
 class LoneReduceOperator(Operator):
     aggr_ops = {"Sum": "{0}: a.{0} + b.{0}"}
@@ -114,6 +123,9 @@ class LoneReduceOperator(Operator):
         mid += f".map(|x| {new_struct.name_struct}{{{new_struct.columns[0]}: x.{col}}})"
 
         return mid
+
+    def does_add_struct(self) -> bool:
+        return True
 
 
 class GroupReduceOperator(Operator):
@@ -148,6 +160,9 @@ class GroupReduceOperator(Operator):
 
         return mid
 
+    def does_add_struct(self) -> bool:
+        return True
+
 
 class JoinOperator(Operator):
     noir_types = {"InnerJoin": "join", "OuterJoin": "outer_join", "LeftJoin": "left_join"}
@@ -174,13 +189,29 @@ class DatabaseOperator(Operator):
     def __init__(self, node: ops.DatabaseTable, operators: list[Operator], structs: list[Struct]):
         self.table = node
         self.structs = structs
+        self.operators = operators
 
     def generate(self, to_text: str) -> str:
         struct = Struct.from_table(self.table)
         self.structs.append(struct)
+
+        # need to have count_id of last struct produced by this table's transformations:
+        # increment this struct's id counter by the number of operations in this table that produce structs
+        this_idx = self.operators.index(self)
+        end_idx = this_idx + 1
+        while end_idx < len(self.operators):
+            op = self.operators[end_idx]
+            if isinstance(op, DatabaseOperator):
+                break
+            end_idx += 1
+        count_structs = len(list(filter(lambda o: o.does_add_struct(), self.operators[this_idx + 1:end_idx])))
+
         return (to_text +
                 f";\nlet {struct.name_short} = ctx.stream_csv::<{struct.name_struct}>(\"{utl.TAB_FILES[struct.name_long]}\");\n" +
-                struct.name_short)
+                f"let var_{struct.id_counter + count_structs} = {struct.name_short}")
+
+    def does_add_struct(self) -> bool:
+        return True
 
 
 # if operand is literal, return its value

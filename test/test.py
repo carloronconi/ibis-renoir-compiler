@@ -142,7 +142,7 @@ class TestOperators(unittest.TestCase):
         # when generating, right before encountering second DatabaseOperator
         # we do ";" and start with new let
 
-        compile_ibis_to_noir(zip(files, tables), query, run_after_gen=True, render_query_graph=True)
+        compile_ibis_to_noir(zip(files, tables), query, run_after_gen=True, render_query_graph=False)
 
         print(query.head().to_pandas())
 

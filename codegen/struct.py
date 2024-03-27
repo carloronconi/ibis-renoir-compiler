@@ -7,7 +7,8 @@ class Struct(object):
 
     def __init__(self, name: str, columns: list, types: list):
         self.name_long = name
-        self.name_short = f"var_{Struct.name_counter}"
+        self.id_counter = Struct.name_counter
+        self.name_short = f"var_{self.id_counter}"
         self.name_struct = f"Struct_{self.name_short}"
         Struct.name_counter += 1
         self.columns = columns
