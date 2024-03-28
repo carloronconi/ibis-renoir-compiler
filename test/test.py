@@ -143,7 +143,9 @@ class TestOperators(unittest.TestCase):
 
         compile_ibis_to_noir(zip(files, tables), query, run_after_gen=True, render_query_graph=False)
 
-        print(query.head(20).to_pandas())
+        df = query.to_pandas()
+        print(df)
+        df.to_csv(ROOT_DIR + "/test/expected/ibis-result.csv")
 
         self.assertTrue(filecmp.cmp(ROOT_DIR + "/noir-template/src/main.rs", ROOT_DIR + "/test/expected/inner-join.rs",
                                     shallow=False))
