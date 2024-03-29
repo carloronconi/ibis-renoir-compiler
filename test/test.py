@@ -137,9 +137,12 @@ class TestOperators(unittest.TestCase):
                  .filter(_.int1 < 200)
                  .mutate(mul=_.int1 * 20)
                  .join(tables[1]
-                       .mutate(sum=_.int3 + 100), "int1"))
+                       .mutate(sum=_.int3 + 100), "int1")
+                 .select(["string1", "int1", "int3"])
+                 )
 
         # TODO: adding select after join messes it up - should deal with (join_col_type, InnerJoinTuple) similarly to when select preceded by group_by making it KeyedStream
+        # need to also add x.0.colname or x.1.colname depending on from which table from JoinOperator the col came from
 
         self.cleanup()
         compile_ibis_to_noir(zip(files, tables), query, run_after_gen=True, render_query_graph=False)

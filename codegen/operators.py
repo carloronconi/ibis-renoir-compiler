@@ -1,3 +1,5 @@
+from typing import Union, Type
+
 import ibis
 from ibis.common.graph import Node
 import ibis.expr.types as typ
@@ -31,7 +33,7 @@ class SelectOperator(Operator):
         self.structs.append(new_struct)
 
         mid = to_text
-        if is_preceded_by_grouper(self, self.operators):
+        if is_keyed_stream(self, self.operators):
             mid += ".map(|(_, x)|"
         else:
             mid += ".map(|x| "
@@ -84,7 +86,7 @@ class MapOperator(Operator):
         right = operator_arg_stringify(self.mapper.right)
 
         mid = to_text
-        if is_preceded_by_grouper(self, self.operators):
+        if is_keyed_stream(self, self.operators):
             mid += ".map(|(_, x)|"
         else:
             mid += ".map(|x| "
@@ -224,12 +226,14 @@ def operator_arg_stringify(operand) -> str:
     raise Exception("Unsupported operand type")
 
 
-def is_preceded_by_grouper(op: Operator, operators: list[Operator]) -> bool:
+def is_keyed_stream(op: Operator, operators: list[Operator]) -> Union[None, Type[GroupReduceOperator], Type[JoinOperator]]:
     map_idx = operators.index(op)
     for i, o in zip(range(0, map_idx), operators):
         if isinstance(o, GroupReduceOperator):
-            return True
-    return False
+            return GroupReduceOperator
+        if isinstance(o, JoinOperator):
+            return JoinOperator
+    return None
 
 
 def find_node_database(node: Node) -> DatabaseTable:
