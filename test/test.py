@@ -138,9 +138,9 @@ class TestOperators(unittest.TestCase):
                  .join(tables[1]
                        .mutate(sum=_.int3 + 100), "int1"))
 
-        # TODO: test for output results other than for expected gencode
+        # TODO: test for output results other than for expected gencode (with difflib)
         # TODO: adding select after join messes it up - should deal with (join_col_type, InnerJoinTuple) similarly to when select preceded by group_by making it KeyedStream
-        # TODO: tests work by themselves but fail when running all together - prob static vars? try adding diff to failed testcase message
+        # TODO: tests work by themselves but fail when running all together - prob static vars? try adding diff to failed testcase message (with difflib)
 
         compile_ibis_to_noir(zip(files, tables), query, run_after_gen=True, render_query_graph=False)
 
