@@ -2,6 +2,7 @@ import filecmp
 import unittest
 
 import ibis
+import pandas as pd
 
 from codegen import compile_ibis_to_noir
 from codegen import ROOT_DIR
@@ -144,9 +145,7 @@ class TestOperators(unittest.TestCase):
 
         compile_ibis_to_noir(zip(files, tables), query, run_after_gen=True, render_query_graph=False)
 
-        df = query.to_pandas()
-        print(df)
-        df.to_csv(ROOT_DIR + "/test/expected/ibis-result.csv")
+        self.assert_similarity_noir_output(query)
 
         self.assertTrue(filecmp.cmp(ROOT_DIR + "/noir-template/src/main.rs", ROOT_DIR + "/test/expected/inner-join.rs",
                                     shallow=False))
@@ -176,6 +175,42 @@ class TestOperators(unittest.TestCase):
 
         self.assertTrue(filecmp.cmp(ROOT_DIR + "/noir-template/src/main.rs", ROOT_DIR + "/test/expected/left-join.rs",
                                     shallow=False))
+
+    def assert_similarity_noir_output(self, query):
+        df_ibis = query.to_pandas()
+        print(df_ibis.columns)
+
+        df_noir = pd.read_csv(ROOT_DIR + "/out/noir-result.csv", header=None)
+
+        equal_cols = 0
+        drop_col_names = []
+        for col_ibis_name in df_ibis.columns:
+            for col_noir_name in df_noir.columns:
+                col_ibis = sorted(df_ibis[col_ibis_name].to_list())
+                col_noir = sorted(df_noir[col_noir_name].to_list())
+                if col_noir == col_ibis:
+                    drop_col_names.append(col_noir_name)
+                    df_noir.drop(col_noir_name, axis=1, inplace=True)
+                    equal_cols += 1
+                    break
+
+        # check if all ibis columns are present in noir columns (with elements in any order)
+        self.assertTrue(equal_cols == len(df_ibis.columns))
+
+        df_noir = pd.read_csv(ROOT_DIR + "/out/noir-result.csv", header=None)
+        for col in drop_col_names:
+            df_noir.drop(col, axis=1)
+
+        for i, row_ibis in df_ibis.iterrows():
+            row_ibis = set(row_ibis.to_list())
+            for n, row_noir in df_noir.iterrows():
+                row_noir = set(row_noir.to_list())
+                if row_noir == row_ibis:
+                    df_noir.drop(n, axis="index", inplace=True)
+                    break
+
+        # check if each ibis row contain same set of values as one noir row (set due to strings not being sortable with ints)
+        self.assertTrue(len(df_noir.index) == 0)
 
 
 if __name__ == '__main__':
