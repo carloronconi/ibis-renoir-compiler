@@ -81,7 +81,7 @@ def gen_noir_code(operators: List[sop.Operator], structs, tables: List[Tuple[str
         top = f.read()
     top = gen_noir_code_top(top, structs, tables)
 
-    bot = f"; {structs[-1].name_short}.for_each(|x| println!(\"{{x:?}}\"));"
+    bot = f"; let out = {structs[-1].name_short}.collect_vec();"
     with open(utl.ROOT_DIR + "/noir-template/main_bot.rs") as f:
         bot += f.read()
 
@@ -90,6 +90,7 @@ def gen_noir_code(operators: List[sop.Operator], structs, tables: List[Tuple[str
         f.write(mid)
         f.write(bot)
 
+    Struct.name_counter = 0  # resetting otherwise tests fail when running sequentially
     print("done generating code")
 
 
@@ -99,6 +100,6 @@ def gen_noir_code_top(top: str, structs, tables: List[Tuple[str, Table]]):
     for st in structs:
         body = st.generate(body)
 
-    body += "\nfn logic(ctx: &StreamContext) {\n"
+    body += "\nfn logic(ctx: StreamContext) {\n"
 
     return body
