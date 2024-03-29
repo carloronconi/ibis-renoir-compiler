@@ -133,7 +133,6 @@ class TestOperators(unittest.TestCase):
                        .mutate(sum=_.int3 + 100), "int1"))
 
         # TODO: adding select after join messes it up - should deal with (join_col_type, InnerJoinTuple) similarly to when select preceded by group_by making it KeyedStream
-        # TODO: tests work by themselves but fail when running all together - prob static vars? try adding diff to failed testcase message (with difflib)
 
         compile_ibis_to_noir(zip(files, tables), query, run_after_gen=True, render_query_graph=False)
         print(query.head(20).to_pandas())
@@ -151,7 +150,7 @@ class TestOperators(unittest.TestCase):
 
         print(query.head(20).to_pandas())
 
-        # TODO: printing to file with Serde fails because some values are NaN: don't test for now (same for left join)
+        # TODO: printing to file with Serde fails because some values are NaN: don't test output for now (same for left join)
         # self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source("/test/expected/outer-join.rs")
 

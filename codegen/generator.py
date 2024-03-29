@@ -90,6 +90,7 @@ def gen_noir_code(operators: List[sop.Operator], structs, tables: List[Tuple[str
         f.write(mid)
         f.write(bot)
 
+    Struct.name_counter = 0  # resetting otherwise tests fail when running sequentially
     print("done generating code")
 
 
