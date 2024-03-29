@@ -26,9 +26,11 @@ def compile_ibis_to_noir(files_tables: list[tuple[str, Table]],
 
     gen_noir_code(operators, structs, files_tables)
 
-    subprocess.run(f"cd {utl.ROOT_DIR}/noir-template && cargo-fmt && cargo build", shell=True)
+    if subprocess.run(f"cd {utl.ROOT_DIR}/noir-template && cargo-fmt && cargo build", shell=True).returncode != 0:
+        raise Exception("Failed to compile generated noir code!")
     if run_after_gen:
-        subprocess.run(f"cd {utl.ROOT_DIR}/noir-template && cargo run", shell=True)
+        if subprocess.run(f"cd {utl.ROOT_DIR}/noir-template && cargo run", shell=True).returncode != 0:
+            raise Exception("Noir code panicked!")
 
 
 def post_order_dfs(root: Node, recognizer: Callable[[Node, list[sop.Operator], list[Struct]], None]):

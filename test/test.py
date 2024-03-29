@@ -1,3 +1,4 @@
+import os
 import unittest
 
 import ibis
@@ -18,6 +19,7 @@ class TestOperators(unittest.TestCase):
                  .filter(table.string1 == "unduetre")
                  .select("int1"))
 
+        self.cleanup()
         compile_ibis_to_noir([(file, table)], query, run_after_gen=True, render_query_graph=False)
 
         print(query.head(20).to_pandas())
@@ -34,6 +36,7 @@ class TestOperators(unittest.TestCase):
                  .select("int1", "string1")
                  .select("string1"))
 
+        self.cleanup()
         compile_ibis_to_noir([(file, table)], query, run_after_gen=True, render_query_graph=False)
 
         print(query.head(20).to_pandas())
@@ -50,6 +53,7 @@ class TestOperators(unittest.TestCase):
                  .aggregate(int1_agg=table["int1"].first())
                  .select(["int1_agg"]))
 
+        self.cleanup()
         compile_ibis_to_noir([(file, table)], query, run_after_gen=True, render_query_graph=False)
 
         print(query.head(20).to_pandas())
@@ -66,6 +70,7 @@ class TestOperators(unittest.TestCase):
                  .aggregate(int1_agg=table["int1"].first())
                  .mutate(mul=_.int1_agg * 20))  # mutate always results in alias preceded by Multiply (or other bin op)
 
+        self.cleanup()
         compile_ibis_to_noir([(file, table)], query, run_after_gen=True, render_query_graph=False)
 
         print(query.head(20).to_pandas())
@@ -81,6 +86,7 @@ class TestOperators(unittest.TestCase):
                  .aggregate(int1_agg=table["int1"].sum()))
         # here example of reduce without group_by
 
+        self.cleanup()
         compile_ibis_to_noir([(file, table)], query, run_after_gen=True, render_query_graph=False)
 
         print(query.head(20).to_pandas())
@@ -116,6 +122,7 @@ class TestOperators(unittest.TestCase):
         # .aggregate(int1_agg=table["int1"].first())
         # .mutate(center=_.int1 - _.int1.mean()))
 
+        self.cleanup()
         compile_ibis_to_noir([(file, table)], query, run_after_gen=True, render_query_graph=False)
 
         print(query.head(20).to_pandas())
@@ -134,6 +141,7 @@ class TestOperators(unittest.TestCase):
 
         # TODO: adding select after join messes it up - should deal with (join_col_type, InnerJoinTuple) similarly to when select preceded by group_by making it KeyedStream
 
+        self.cleanup()
         compile_ibis_to_noir(zip(files, tables), query, run_after_gen=True, render_query_graph=False)
         print(query.head(20).to_pandas())
 
@@ -146,6 +154,7 @@ class TestOperators(unittest.TestCase):
         query = (tables[0]
                  .outer_join(tables[1], "int1"))
 
+        self.cleanup()
         compile_ibis_to_noir(zip(files, tables), query, run_after_gen=False, render_query_graph=False)
 
         print(query.head(20).to_pandas())
@@ -160,12 +169,19 @@ class TestOperators(unittest.TestCase):
         query = (tables[0]
                  .left_join(tables[1], "int1"))
 
+        self.cleanup()
         compile_ibis_to_noir(zip(files, tables), query, run_after_gen=False, render_query_graph=False)
 
         print(query.head(20).to_pandas())
 
         # self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source("/test/expected/left-join.rs")
+
+    def cleanup(self):
+        try:
+            os.remove(ROOT_DIR + "/out/noir-result.csv")
+        except FileNotFoundError:
+            pass
 
     def assert_equality_noir_source(self, test_expected_file: str):
         with open(ROOT_DIR + test_expected_file, "r") as f:
