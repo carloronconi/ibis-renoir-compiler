@@ -270,7 +270,7 @@ def is_keyed_stream(op: Operator, operators: list[Operator]) -> bool:
 
     db_idx, db = find_operators_database(op, operators)
 
-    for i, o in zip(range(db_idx, curr_op_idx), operators):
+    for o in operators[db_idx:curr_op_idx]:
         if isinstance(o, GroupReduceOperator) or isinstance(o, JoinOperator):
             return True
     return False

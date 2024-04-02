@@ -5,6 +5,7 @@ use std::fs::File;
 struct Struct_var_0 {
     int1: i64,
     string1: String,
+    int4: i64,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq)]
 struct Struct_var_1 {

@@ -5,11 +5,13 @@ use std::fs::File;
 struct Struct_var_0 {
     int1: i64,
     string1: String,
+    int4: i64,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq)]
 struct Struct_var_1 {
     int1: i64,
     string1: String,
+    int4: i64,
     mul: i64,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq)]
@@ -25,6 +27,7 @@ fn logic(ctx: StreamContext) {
         .map(|x| Struct_var_1 {
             int1: x.int1,
             string1: x.string1,
+            int4: x.int4,
             mul: x.int1 * 20,
         })
         .group_by(|x| x.string1.clone())

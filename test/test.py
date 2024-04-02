@@ -159,6 +159,7 @@ class TestOperators(unittest.TestCase):
 
         print(query.head(20).to_pandas())
 
+        # TODO: map after outer/left join is broken because it produces option fields instead of normal (like inner join would)
         # TODO: printing to file with Serde fails because some values are NaN: don't test output for now (same for left join)
         # self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source("/test/expected/outer-join.rs")
