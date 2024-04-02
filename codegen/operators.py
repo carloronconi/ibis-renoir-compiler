@@ -173,6 +173,7 @@ class JoinOperator(Operator):
     def __init__(self, node: ops.relations.Join, operators: list[Operator], structs: list[Struct]):
         self.join = node
         self.structs = structs
+        self.operators = operators
 
     def generate(self, to_text: str) -> str:
         right_struct = Struct.last_complete_transform
@@ -185,9 +186,14 @@ class JoinOperator(Operator):
         col = operator_arg_stringify(equals.left)
         other_col = operator_arg_stringify(equals.right)
         join_t = self.noir_types[type(self.join).__name__]
-        result = (to_text +
-                  f".{join_t}({right_struct.name_short}, |x| x.{col}, |y| y.{other_col})" +
-                  f".map(|(_, x)| {join_struct.name_struct} {{")
+
+        result = to_text
+        if is_keyed_stream(self, self.operators):
+            result += f".{join_t}({right_struct.name_short}.group_by(|x| x.{col}.clone()))"
+        else:
+            result += f".{join_t}({right_struct.name_short}, |x| x.{col}, |y| y.{other_col})"
+
+        result += f".map(|(_, x)| {join_struct.name_struct} {{"
         left_cols = 0
         for col in left_struct.columns:
             result += f"{col}: x.0.{col}, "
