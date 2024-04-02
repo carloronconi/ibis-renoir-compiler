@@ -130,7 +130,7 @@ class TestOperators(unittest.TestCase):
         self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source("/test/expected/filter-group-mutate-reduce.rs")
 
-    def test_inner_join(self):
+    def test_inner_join_select(self):
         files = [ROOT_DIR + "/data/int-1-string-1.csv", ROOT_DIR + "/data/int-3.csv"]
         tables = [ibis.read_csv(file) for file in files]
         query = (tables[0]
@@ -141,15 +141,12 @@ class TestOperators(unittest.TestCase):
                  .select(["string1", "int1", "int3"])
                  )
 
-        # TODO: adding select after join messes it up - should deal with (join_col_type, InnerJoinTuple) similarly to when select preceded by group_by making it KeyedStream
-        # need to also add x.0.colname or x.1.colname depending on from which table from JoinOperator the col came from
-
         self.cleanup()
         compile_ibis_to_noir(zip(files, tables), query, run_after_gen=True, render_query_graph=False)
         print(query.head(20).to_pandas())
 
         self.assert_similarity_noir_output(query)
-        self.assert_equality_noir_source("/test/expected/inner-join.rs")
+        self.assert_equality_noir_source("/test/expected/inner-join-select.rs")
 
     def test_outer_join(self):
         files = [ROOT_DIR + "/data/int-1-string-1.csv", ROOT_DIR + "/data/int-3.csv"]

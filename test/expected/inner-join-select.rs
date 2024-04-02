@@ -18,12 +18,30 @@ struct Struct_var_1 {
 struct Struct_var_2 {
     int1: i64,
     string1: String,
+    int4: i64,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq)]
 struct Struct_var_3 {
     int1: i64,
     string1: String,
+    int4: i64,
     mul: i64,
+}
+#[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq)]
+struct Struct_var_4 {
+    int1: i64,
+    string1: String,
+    int4: i64,
+    mul: i64,
+    int2: i64,
+    int3: i64,
+    sum: i64,
+}
+#[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq)]
+struct Struct_var_5 {
+    string1: String,
+    int1: i64,
+    int3: i64,
 }
 
 fn logic(ctx: StreamContext) {
@@ -37,15 +55,30 @@ fn logic(ctx: StreamContext) {
     });
     let var_2 = ctx
         .stream_csv::<Struct_var_2>("/home/carlo/Projects/ibis-quickstart/data/int-1-string-1.csv");
-    let var_3 = var_2
+    let var_5 = var_2
         .filter(|x| x.int1 < 200)
         .map(|x| Struct_var_3 {
             int1: x.int1,
             string1: x.string1,
+            int4: x.int4,
             mul: x.int1 * 20,
         })
-        .join(var_1, |x| x.int1, |y| y.int1);
-    let out = var_3.collect_vec();
+        .join(var_1, |x| x.int1, |y| y.int1)
+        .map(|(_, x)| Struct_var_4 {
+            int1: x.0.int1,
+            string1: x.0.string1,
+            int4: x.0.int4,
+            mul: x.0.mul,
+            int2: x.1.int2,
+            int3: x.1.int3,
+            sum: x.1.sum,
+        })
+        .map(|(_, x)| Struct_var_5 {
+            string1: x.string1,
+            int1: x.int1,
+            int3: x.int3,
+        });
+    let out = var_5.collect_vec();
     tracing::info!("starting execution");
     ctx.execute_blocking();
 

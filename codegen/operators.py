@@ -175,14 +175,29 @@ class JoinOperator(Operator):
         self.structs = structs
 
     def generate(self, to_text: str) -> str:
-        # id of variable to join is previous table's result variable, which is always 2 before curr struct
-        other_tab_name = Struct.id_counter_to_name_short(max(0, self.structs[-1].id_counter - 2))
+        right_struct = Struct.last_complete_transform
+        left_struct = self.structs[-1]
+
+        join_struct: Struct = Struct.from_join(left_struct, right_struct)
+        self.structs.append(join_struct)
 
         equals = self.join.predicates[0]
         col = operator_arg_stringify(equals.left)
         other_col = operator_arg_stringify(equals.right)
         join_t = self.noir_types[type(self.join).__name__]
-        return to_text + f".{join_t}({other_tab_name}, |x| x.{col}, |y| y.{other_col})"
+        result = (to_text +
+                  f".{join_t}({right_struct.name_short}, |x| x.{col}, |y| y.{other_col})" +
+                  f".map(|(_, x)| {join_struct.name_struct} {{")
+        left_cols = 0
+        for col in left_struct.columns:
+            result += f"{col}: x.0.{col}, "
+            left_cols += 1
+        for col in join_struct.columns[left_cols:]:
+            result += f"{col}: x.1.{col}, "
+        return result + "})"
+
+    def does_add_struct(self) -> bool:
+        return True
 
 
 class DatabaseOperator(Operator):
@@ -192,6 +207,11 @@ class DatabaseOperator(Operator):
         self.operators = operators
 
     def generate(self, to_text: str) -> str:
+        # database operator means that previous table's transforms are over
+        # will use this to perform joins
+        if len(self.structs) > 0:
+            Struct.last_complete_transform = self.structs[-1]
+
         struct = Struct.from_table(self.table)
         self.structs.append(struct)
 
