@@ -181,7 +181,7 @@ class TestOperators(unittest.TestCase):
         """
         Tests two cases:
         - mutate (could also be select) after join (which produces a KeyedStream of a tuple of joined structs)
-        - group-reduce before join (which produces a KeyedStream which wants to join with another KeyedStream)
+        - group-reduce KeyedStream join with Stream (KeyedStream wants to join with another KeyedStream)
         """
         files = [ROOT_DIR + "/data/int-1-string-1.csv", ROOT_DIR + "/data/int-3.csv"]
         tables = [ibis.read_csv(file) for file in files]
@@ -198,6 +198,27 @@ class TestOperators(unittest.TestCase):
 
         self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source("/test/expected/group-reduce-join-mutate.rs")
+
+    def test_group_reduce_group_reduce_join(self):
+        """
+        Tests joining KeyedStream with other var which is KeyedStream already
+        """
+
+        files = [ROOT_DIR + "/data/int-1-string-1.csv", ROOT_DIR + "/data/int-3.csv"]
+        tables = [ibis.read_csv(file) for file in files]
+        query = (tables[1]
+                 .group_by("int1")
+                 .aggregate(agg2=_.int2.sum())
+                 .inner_join(tables[0]
+                             .group_by("int1").aggregate(agg4=_.int4.sum()), "int1"))
+
+        self.cleanup()
+        compile_ibis_to_noir(zip(files, tables), query, run_after_gen=True, render_query_graph=False)
+
+        print(query.head(20).to_pandas())
+
+        self.assert_similarity_noir_output(query)
+        self.assert_equality_noir_source("/test/expected/group-reduce-group-reduce-join.rs")
 
     def cleanup(self):
         try:

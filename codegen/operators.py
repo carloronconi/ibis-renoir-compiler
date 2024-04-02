@@ -188,8 +188,17 @@ class JoinOperator(Operator):
         join_t = self.noir_types[type(self.join).__name__]
 
         result = to_text
-        if is_keyed_stream(self, self.operators):
+        left_keyed_stream = is_keyed_stream(self, self.operators)
+
+        # to discover if right var is a KeyedStream, check if between latest db operator and previous db operator there
+        # were any operators that turn Stream into KeyedStream
+        i, db = find_operators_database(self, self.operators)
+        right_keyed_stream = is_keyed_stream(db, self.operators)
+
+        if left_keyed_stream and not right_keyed_stream:
             result += f".{join_t}({right_struct.name_short}.group_by(|x| x.{col}.clone()))"
+        elif left_keyed_stream and right_keyed_stream:
+            result += f".{join_t}({right_struct.name_short})"
         else:
             result += f".{join_t}({right_struct.name_short}, |x| x.{col}, |y| y.{other_col})"
 
@@ -252,14 +261,32 @@ def operator_arg_stringify(operand) -> str:
     raise Exception("Unsupported operand type")
 
 
-def is_keyed_stream(op: Operator, operators: list[Operator]) -> Union[None, Type[GroupReduceOperator], Type[JoinOperator]]:
-    map_idx = operators.index(op)
-    for i, o in zip(range(0, map_idx), operators):
-        if isinstance(o, GroupReduceOperator):
-            return GroupReduceOperator
-        if isinstance(o, JoinOperator):
-            return JoinOperator
-    return None
+def is_keyed_stream(op: Operator, operators: list[Operator]) -> bool:
+    """
+    Operator receives KeyedStream if between its DatabaseOperator and itself (itself excluded), there is an operation
+    turning the Stream into a KeyedStream: either a GroupReduceOperator or a JoinOperator
+    """
+    curr_op_idx = operators.index(op)
+
+    db_idx, db = find_operators_database(op, operators)
+
+    for i, o in zip(range(db_idx, curr_op_idx), operators):
+        if isinstance(o, GroupReduceOperator) or isinstance(o, JoinOperator):
+            return True
+    return False
+
+
+def find_operators_database(op: Operator, operators: list[Operator]) -> tuple[int, DatabaseOperator]:
+    curr_op_idx = operators.index(op)
+
+    # find last DatabaseOperator instance before the current operator
+    db_idx = 0
+    db = None
+    for i, o in enumerate(operators[:curr_op_idx]):
+        if isinstance(o, DatabaseOperator):
+            db_idx = i
+            db = o
+    return db_idx, db
 
 
 def find_node_database(node: Node) -> DatabaseTable:
