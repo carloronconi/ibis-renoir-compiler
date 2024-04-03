@@ -24,7 +24,7 @@ def compile_ibis_to_noir(files_tables: list[tuple[str, Table]],
 
     (operators, structs) = post_order_dfs(query.op(), operator_recognizer)
 
-    gen_noir_code(operators, structs, files_tables)
+    gen_noir_code(operators, structs)
 
     if subprocess.run(f"cd {utl.ROOT_DIR}/noir-template && cargo-fmt && cargo build", shell=True).returncode != 0:
         raise Exception("Failed to compile generated noir code!")
@@ -72,7 +72,7 @@ def operator_recognizer(node: Node, operators: list[sop.Operator], structs: list
             operators.append(sop.SelectOperator(node, operators, structs))
 
 
-def gen_noir_code(operators: List[sop.Operator], structs, tables: List[Tuple[str, Table]]):
+def gen_noir_code(operators: List[sop.Operator], structs):
     print("generating noir code...")
 
     mid = ""
@@ -81,7 +81,7 @@ def gen_noir_code(operators: List[sop.Operator], structs, tables: List[Tuple[str
 
     with open(utl.ROOT_DIR + "/noir-template/main_top.rs") as f:
         top = f.read()
-    top = gen_noir_code_top(top, structs, tables)
+    top = gen_noir_code_top(top, structs)
 
     bot = f"; let out = {structs[-1].name_short}.collect_vec();"
     with open(utl.ROOT_DIR + "/noir-template/main_bot.rs") as f:
@@ -96,7 +96,7 @@ def gen_noir_code(operators: List[sop.Operator], structs, tables: List[Tuple[str
     print("done generating code")
 
 
-def gen_noir_code_top(top: str, structs, tables: List[Tuple[str, Table]]):
+def gen_noir_code_top(top: str, structs):
     body = top
 
     for st in structs:

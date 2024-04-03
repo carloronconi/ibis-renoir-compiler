@@ -1,43 +1,44 @@
 use noir_compute::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
-#[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
 struct Struct_var_0 {
     int1: i64,
     int2: i64,
     int3: i64,
 }
-#[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
 struct Struct_var_1 {
     int1: i64,
     int2: i64,
     int3: i64,
     sum: i64,
 }
-#[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
 struct Struct_var_2 {
     int1: i64,
     string1: String,
     int4: i64,
 }
-#[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
 struct Struct_var_3 {
     int1: i64,
     string1: String,
     int4: i64,
     mul: i64,
 }
-#[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
 struct Struct_var_4 {
     int1: i64,
     string1: String,
     int4: i64,
     mul: i64,
+    int1_right: i64,
     int2: i64,
     int3: i64,
     sum: i64,
 }
-#[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
 struct Struct_var_5 {
     string1: String,
     int1: i64,
@@ -69,6 +70,7 @@ fn logic(ctx: StreamContext) {
             string1: x.0.string1,
             int4: x.0.int4,
             mul: x.0.mul,
+            int1_right: x.1.int1,
             int2: x.1.int2,
             int3: x.1.int3,
             sum: x.1.sum,
