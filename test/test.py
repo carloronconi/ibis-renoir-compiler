@@ -155,13 +155,13 @@ class TestOperators(unittest.TestCase):
                  .outer_join(tables[1], "int1"))
 
         self.cleanup()
-        compile_ibis_to_noir(zip(files, tables), query, run_after_gen=False, render_query_graph=False)
+        compile_ibis_to_noir(zip(files, tables), query, run_after_gen=True, render_query_graph=False)
 
         print(query.head(20).to_pandas())
 
-        # TODO: map after outer/left join is broken because it produces option fields instead of normal (like inner join would)
-        # TODO: printing to file with Serde fails because some values are NaN: don't test output for now (same for left join)
-        # self.assert_similarity_noir_output(query)
+        # TODO: using defaults in noir is not semantically correct for query
+        # TODO: using defaults in noir printed csv (empty strings specifically) breaks similarity check
+        self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source("/test/expected/outer-join.rs")
 
     def test_left_join(self):
@@ -171,11 +171,11 @@ class TestOperators(unittest.TestCase):
                  .left_join(tables[1], "int1"))
 
         self.cleanup()
-        compile_ibis_to_noir(zip(files, tables), query, run_after_gen=False, render_query_graph=False)
+        compile_ibis_to_noir(zip(files, tables), query, run_after_gen=True, render_query_graph=False)
 
-        print(query.head(20).to_pandas())
+        print(query.head(50).to_pandas())
 
-        # self.assert_similarity_noir_output(query)
+        self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source("/test/expected/left-join.rs")
 
     def test_group_reduce_join_mutate(self):

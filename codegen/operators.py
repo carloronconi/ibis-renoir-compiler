@@ -202,13 +202,18 @@ class JoinOperator(Operator):
         else:
             result += f".{join_t}({right_struct.name_short}, |x| x.{col}, |y| y.{other_col})"
 
+        if join_t == "left_join":
+            result += ".map(|(_, (x, y))| (x, y.unwrap_or_default()))"
+        elif join_t == "outer_join":
+            result += ".map(|(_, (x, y))| (x.unwrap_or_default(), y.unwrap_or_default()))"
+
         result += f".map(|(_, x)| {join_struct.name_struct} {{"
         left_cols = 0
         for col in left_struct.columns:
             result += f"{col}: x.0.{col}, "
             left_cols += 1
-        for col in join_struct.columns[left_cols:]:
-            result += f"{col}: x.1.{col}, "
+        for col, col_r in zip(join_struct.columns[left_cols:], right_struct.columns):
+            result += f"{col}: x.1.{col_r}, "
         return result + "})"
 
     def does_add_struct(self) -> bool:

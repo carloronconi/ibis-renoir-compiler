@@ -38,9 +38,14 @@ class Struct(object):
     def from_join(cls, left: "Struct", right: "Struct"):
         n = left.name_long[len(left.name_long)//2:] + right.name_long[len(right.name_long)//2:]
         c_t = list(left.cols_types)
-        right_to_append = [(c, t) for c, t in right.cols_types if c not in left.columns]
+        right_to_append = []
+        for c, t in right.cols_types:
+            if c not in left.columns:
+                right_to_append.append((c, t))
+            else:
+                right_to_append.append((c + "_right", t))
         c_t.extend(right_to_append)
-        # add from other structs, skipping overlapping column names
+        # overlapping column names are renamed according to ibis convention
         return cls(name=n, cols_types=c_t)
 
     @classmethod
@@ -49,7 +54,7 @@ class Struct(object):
 
     def generate(self, to_text: str) -> str:
         body = to_text
-        body += f"#[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq)]\nstruct {self.name_struct} {{"
+        body += f"#[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]\nstruct {self.name_struct} {{"
         for col, typ in self.cols_types:
             body += f"{col}: {Struct.ibis_to_noir_type[typ.name]},"
         body += "}\n"
