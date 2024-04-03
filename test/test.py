@@ -1,4 +1,5 @@
 import os
+import sys
 import unittest
 
 import ibis
@@ -12,93 +13,75 @@ from difflib import unified_diff
 
 class TestOperators(unittest.TestCase):
 
+    def setUp(self):
+        self.files = [ROOT_DIR + "/data/int-1-string-1.csv", ROOT_DIR + "/data/int-3.csv"]
+        self.tables = [ibis.read_csv(file) for file in self.files]
+
+        try:
+            os.remove(ROOT_DIR + "/out/noir-result.csv")
+        except FileNotFoundError:
+            pass
+
     def test_filter_select(self):
-        file = ROOT_DIR + "/data/int-1-string-1.csv"
-        table = ibis.read_csv(file)
-        query = (table
-                 .filter(table.string1 == "unduetre")
+        query = (self.tables[0]
+                 .filter(_.string1 == "unduetre")
                  .select("int1"))
 
-        self.cleanup()
-        compile_ibis_to_noir([(file, table)], query, run_after_gen=True, render_query_graph=False)
-
-        print(query.head(20).to_pandas())
+        compile_ibis_to_noir([(self.files[0], self.tables[0])], query, run_after_gen=True, render_query_graph=False)
 
         self.assert_similarity_noir_output(query)
-        self.assert_equality_noir_source("/test/expected/filter-select.rs")
+        self.assert_equality_noir_source()
 
     def test_filter_filter_select_select(self):
-        file = ROOT_DIR + "/data/int-1-string-1.csv"
-        table = ibis.read_csv(file)
-        query = (table
-                 .filter(table.int1 == 123)
-                 .filter(table.string1 == "unduetre")
+        query = (self.tables[0]
+                 .filter(_.int1 == 123)
+                 .filter(_.string1 == "unduetre")
                  .select("int1", "string1")
                  .select("string1"))
 
-        self.cleanup()
-        compile_ibis_to_noir([(file, table)], query, run_after_gen=True, render_query_graph=False)
-
-        print(query.head(20).to_pandas())
+        compile_ibis_to_noir([(self.files[0], self.tables[0])], query, run_after_gen=True, render_query_graph=False)
 
         self.assert_similarity_noir_output(query)
-        self.assert_equality_noir_source("/test/expected/filter-filter-select-select.rs")
+        self.assert_equality_noir_source()
 
     def test_filter_group_select(self):
-        file = ROOT_DIR + "/data/int-1-string-1.csv"
-        table = ibis.read_csv(file)
-        query = (table
-                 .filter(table.string1 == "unduetre")
+        query = (self.tables[0]
+                 .filter(_.string1 == "unduetre")
                  .group_by("string1")
-                 .aggregate(int1_agg=table["int1"].first())
+                 .aggregate(int1_agg=_["int1"].first())
                  .select(["int1_agg"]))
 
-        self.cleanup()
-        compile_ibis_to_noir([(file, table)], query, run_after_gen=True, render_query_graph=False)
-
-        print(query.head(20).to_pandas())
+        compile_ibis_to_noir([(self.files[0], self.tables[0])], query, run_after_gen=True, render_query_graph=False)
 
         self.assert_similarity_noir_output(query)
-        self.assert_equality_noir_source("/test/expected/filter-group-select.rs")
+        self.assert_equality_noir_source()
 
     def test_filter_group_mutate(self):
-        file = ROOT_DIR + "/data/int-1-string-1.csv"
-        table = ibis.read_csv(file)
-        query = (table
-                 .filter(table.string1 == "unduetre")
+        query = (self.tables[0]
+                 .filter(_.string1 == "unduetre")
                  .group_by("string1")
-                 .aggregate(int1_agg=table["int1"].first())
+                 .aggregate(int1_agg=_["int1"].first())
                  .mutate(mul=_.int1_agg * 20))  # mutate always results in alias preceded by Multiply (or other bin op)
 
-        self.cleanup()
-        compile_ibis_to_noir([(file, table)], query, run_after_gen=True, render_query_graph=False)
-
-        print(query.head(20).to_pandas())
+        compile_ibis_to_noir([(self.files[0], self.tables[0])], query, run_after_gen=True, render_query_graph=False)
 
         self.assert_similarity_noir_output(query)
-        self.assert_equality_noir_source("/test/expected/filter-group-mutate.rs")
+        self.assert_equality_noir_source()
 
     def test_filter_reduce(self):
-        file = ROOT_DIR + "/data/int-1-string-1.csv"
-        table = ibis.read_csv(file)
-        query = (table
-                 .filter(table.string1 == "unduetre")
-                 .aggregate(int1_agg=table["int1"].sum()))
+        query = (self.tables[0]
+                 .filter(_.string1 == "unduetre")
+                 .aggregate(int1_agg=_["int1"].sum()))
         # here example of reduce without group_by
 
-        self.cleanup()
-        compile_ibis_to_noir([(file, table)], query, run_after_gen=True, render_query_graph=False)
-
-        print(query.head(20).to_pandas())
+        compile_ibis_to_noir([(self.files[0], self.tables[0])], query, run_after_gen=True, render_query_graph=False)
 
         self.assert_similarity_noir_output(query)
-        self.assert_equality_noir_source("/test/expected/filter-reduce.rs")
+        self.assert_equality_noir_source()
 
     def test_filter_group_mutate_reduce(self):
-        file = ROOT_DIR + "/data/int-1-string-1.csv"
-        table = ibis.read_csv(file)
-        query = (table
-                 .filter(table.int1 > 200)
+        query = (self.tables[0]
+                 .filter(_.int1 > 200)
                  .mutate(mul=_.int1 * 20)
                  .group_by("string1")
                  # it makes no sense to mutate after group_by: as if didn't group_by! mutate before it
@@ -122,61 +105,43 @@ class TestOperators(unittest.TestCase):
         # .aggregate(int1_agg=table["int1"].first())
         # .mutate(center=_.int1 - _.int1.mean()))
 
-        self.cleanup()
-        compile_ibis_to_noir([(file, table)], query, run_after_gen=True, render_query_graph=False)
-
-        print(query.head(20).to_pandas())
+        compile_ibis_to_noir([(self.files[0], self.tables[0])], query, run_after_gen=True, render_query_graph=False)
 
         self.assert_similarity_noir_output(query)
-        self.assert_equality_noir_source("/test/expected/filter-group-mutate-reduce.rs")
+        self.assert_equality_noir_source()
 
     def test_inner_join_select(self):
-        files = [ROOT_DIR + "/data/int-1-string-1.csv", ROOT_DIR + "/data/int-3.csv"]
-        tables = [ibis.read_csv(file) for file in files]
-        query = (tables[0]
+        query = (self.tables[0]
                  .filter(_.int1 < 200)
                  .mutate(mul=_.int1 * 20)
-                 .join(tables[1]
+                 .join(self.tables[1]
                        .mutate(sum=_.int3 + 100), "int1")
-                 .select(["string1", "int1", "int3"])
-                 )
+                 .select(["string1", "int1", "int3"]))
 
-        self.cleanup()
-        compile_ibis_to_noir(zip(files, tables), query, run_after_gen=True, render_query_graph=False)
-        print(query.head(20).to_pandas())
+        compile_ibis_to_noir(zip(self.files, self.tables), query, run_after_gen=True, render_query_graph=False)
 
         self.assert_similarity_noir_output(query)
-        self.assert_equality_noir_source("/test/expected/inner-join-select.rs")
+        self.assert_equality_noir_source()
 
     def test_outer_join(self):
-        files = [ROOT_DIR + "/data/int-1-string-1.csv", ROOT_DIR + "/data/int-3.csv"]
-        tables = [ibis.read_csv(file) for file in files]
-        query = (tables[0]
-                 .outer_join(tables[1], "int1"))
+        query = (self.tables[0]
+                 .outer_join(self.tables[1], "int1"))
 
-        self.cleanup()
-        compile_ibis_to_noir(zip(files, tables), query, run_after_gen=True, render_query_graph=False)
-
-        print(query.head(20).to_pandas())
+        compile_ibis_to_noir(zip(self.files, self.tables), query, run_after_gen=True, render_query_graph=False)
 
         # TODO: using defaults in noir is not semantically correct for query
         # TODO: using defaults in noir printed csv (empty strings specifically) breaks similarity check
         self.assert_similarity_noir_output(query)
-        self.assert_equality_noir_source("/test/expected/outer-join.rs")
+        self.assert_equality_noir_source()
 
     def test_left_join(self):
-        files = [ROOT_DIR + "/data/int-1-string-1.csv", ROOT_DIR + "/data/int-3.csv"]
-        tables = [ibis.read_csv(file) for file in files]
-        query = (tables[0]
-                 .left_join(tables[1], "int1"))
+        query = (self.tables[0]
+                 .left_join(self.tables[1], "int1"))
 
-        self.cleanup()
-        compile_ibis_to_noir(zip(files, tables), query, run_after_gen=True, render_query_graph=False)
-
-        print(query.head(50).to_pandas())
+        compile_ibis_to_noir(zip(self.files, self.tables), query, run_after_gen=True, render_query_graph=False)
 
         self.assert_similarity_noir_output(query)
-        self.assert_equality_noir_source("/test/expected/left-join.rs")
+        self.assert_equality_noir_source()
 
     def test_group_reduce_join_mutate(self):
         """
@@ -184,50 +149,35 @@ class TestOperators(unittest.TestCase):
         - mutate (could also be select) after join (which produces a KeyedStream of a tuple of joined structs)
         - group-reduce KeyedStream join with Stream (KeyedStream wants to join with another KeyedStream)
         """
-        files = [ROOT_DIR + "/data/int-1-string-1.csv", ROOT_DIR + "/data/int-3.csv"]
-        tables = [ibis.read_csv(file) for file in files]
-        query = (tables[1]
+        query = (self.tables[1]
                  .group_by("int1")
                  .aggregate(agg2=_.int2.sum())
-                 .inner_join(tables[0], "int1")
+                 .inner_join(self.tables[0], "int1")
                  .mutate(mut4=_.int4 + 100))
 
-        self.cleanup()
-        compile_ibis_to_noir(zip(files, tables), query, run_after_gen=True, render_query_graph=False)
-
-        print(query.head(20).to_pandas())
+        compile_ibis_to_noir(zip(self.files, self.tables), query, run_after_gen=True, render_query_graph=False)
 
         self.assert_similarity_noir_output(query)
-        self.assert_equality_noir_source("/test/expected/group-reduce-join-mutate.rs")
+        self.assert_equality_noir_source()
 
     def test_group_reduce_group_reduce_join(self):
         """
         Tests joining KeyedStream with other var which is KeyedStream already
         """
-
-        files = [ROOT_DIR + "/data/int-1-string-1.csv", ROOT_DIR + "/data/int-3.csv"]
-        tables = [ibis.read_csv(file) for file in files]
-        query = (tables[1]
+        query = (self.tables[1]
                  .group_by("int1")
                  .aggregate(agg2=_.int2.sum())
-                 .inner_join(tables[0]
+                 .inner_join(self.tables[0]
                              .group_by("int1").aggregate(agg4=_.int4.sum()), "int1"))
 
-        self.cleanup()
-        compile_ibis_to_noir(zip(files, tables), query, run_after_gen=True, render_query_graph=False)
-
-        print(query.head(20).to_pandas())
+        compile_ibis_to_noir(zip(self.files, self.tables), query, run_after_gen=True, render_query_graph=False)
 
         self.assert_similarity_noir_output(query)
-        self.assert_equality_noir_source("/test/expected/group-reduce-group-reduce-join.rs")
+        self.assert_equality_noir_source()
 
-    def cleanup(self):
-        try:
-            os.remove(ROOT_DIR + "/out/noir-result.csv")
-        except FileNotFoundError:
-            pass
+    def assert_equality_noir_source(self):
+        test_expected_file = "/test/expected/" + sys._getframe().f_back.f_code.co_name + ".rs"
 
-    def assert_equality_noir_source(self, test_expected_file: str):
         with open(ROOT_DIR + test_expected_file, "r") as f:
             expected_lines = f.readlines()
         with open(ROOT_DIR + "/noir-template/src/main.rs", "r") as f:
@@ -238,6 +188,7 @@ class TestOperators(unittest.TestCase):
         print("\033[92m Source equality: OK\033[00m")
 
     def assert_similarity_noir_output(self, query):
+        print(query.head(50).to_pandas())
         df_ibis = query.to_pandas()
 
         df_noir = pd.read_csv(ROOT_DIR + "/out/noir-result.csv", header=None)
