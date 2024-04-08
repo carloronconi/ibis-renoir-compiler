@@ -1,9 +1,6 @@
-from typing import Union, Type
-
 import ibis
-from ibis.common.graph import Node
-import ibis.expr.types as typ
 import ibis.expr.operations as ops
+from ibis.common.graph import Node
 from ibis.expr.operations import DatabaseTable
 
 import codegen.utils as utl
@@ -59,7 +56,7 @@ class FilterOperator(Operator):
         op = self.bin_ops[type(self.comparator).__name__]
         left = operator_arg_stringify(self.comparator.left)
         right = operator_arg_stringify(self.comparator.right)
-        return to_text + ".filter(|x| x." + left + " " + op + " " + right + ")"
+        return to_text + f".filter(|x| x.{left}.clone().is_some_and(|v| v {op} {right}))"
 
 
 class MapOperator(Operator):
@@ -94,7 +91,7 @@ class MapOperator(Operator):
         mid += f"{new_struct.name_struct}{{"
         for new_col, prev_col in zip(new_struct.columns, prev_struct.columns):
             mid += f"{new_col}: x.{prev_col}, "
-        mid += f"{self.node.name}: x.{left} {op} {right},"
+        mid += f"{self.node.name}: x.{left}.map(|v| v {op} {right}),"
         mid += "})"
 
         return mid
@@ -104,7 +101,7 @@ class MapOperator(Operator):
 
 
 class LoneReduceOperator(Operator):
-    aggr_ops = {"Sum": "{0}: a.{0} + b.{0}"}
+    aggr_ops = {"Sum": "+"}
 
     def __init__(self, node: ops.Aggregation, operators: list[Operator], structs: list[Struct]):
         alias = next(filter(lambda c: isinstance(c, ops.Alias), node.__children__))
@@ -114,9 +111,10 @@ class LoneReduceOperator(Operator):
 
     def generate(self, to_text: str) -> str:
         col = operator_arg_stringify(self.reducer.__children__[0])
-        op = self.aggr_ops[type(self.reducer).__name__].format(col)
+        op = self.aggr_ops[type(self.reducer).__name__]
 
-        mid = to_text + f".reduce(|a, b| {self.structs[-1].name_struct}{{{op}, ..a }} )"
+        mid = to_text + (f".reduce(|a, b| {self.structs[-1].name_struct}{{"
+                         f"{col}: a.{col}.zip(b.{col}).map(|(x, y)| x {op} y), ..a }} )")
 
         # map after the reduce to conform to ibis renaming reduced column!
         new_struct = Struct.from_aggregation(self.node)
@@ -131,8 +129,8 @@ class LoneReduceOperator(Operator):
 
 
 class GroupReduceOperator(Operator):
-    aggr_ops = {"Max": "a.{0} = max(a.{0}, b.{0})", "Min": "a.{0} = min(a.{0}, b.{0})", "Sum": "a.{0} = a.{0} + b.{0}",
-                "First": "a.{0} = a.{0}"}
+    aggr_ops = {"Max": "max(x, y)", "Min": "min(x, y)", "Sum": "x + y",
+                "First": "x"}
 
     def __init__(self, node: ops.Aggregation, operators: list[Operator], structs: list[Struct]):
         self.alias = next(filter(lambda c: isinstance(c, ops.Alias), node.__children__))
@@ -148,9 +146,9 @@ class GroupReduceOperator(Operator):
             mid += ".group_by(|x| x." + by + ".clone())"
 
         col = operator_arg_stringify(self.reducer.__children__[0])
-        op = self.aggr_ops[type(self.reducer).__name__].format(col)
+        op = self.aggr_ops[type(self.reducer).__name__]
 
-        mid += f".reduce(|a, b| {op})"
+        mid += f".reduce(|a, b| {{a.{col} = a.{col}.zip(b.{col}).map(|(x, y)| {op});}})"
 
         last_col_name = self.node.schema.names[-1]
         last_col_type = self.node.schema.types[-1]
