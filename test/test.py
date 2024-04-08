@@ -1,14 +1,14 @@
 import os
 import sys
 import unittest
+from difflib import unified_diff
 
 import ibis
 import pandas as pd
-
-from codegen import compile_ibis_to_noir
-from codegen import ROOT_DIR
 from ibis import _
-from difflib import unified_diff
+
+from codegen import ROOT_DIR
+from codegen import compile_ibis_to_noir
 
 
 class TestOperators(unittest.TestCase):
@@ -129,8 +129,6 @@ class TestOperators(unittest.TestCase):
 
         compile_ibis_to_noir(zip(self.files, self.tables), query, run_after_gen=True, render_query_graph=False)
 
-        # TODO: using defaults in noir is not semantically correct for query
-        # TODO: using defaults in noir printed csv (empty strings specifically) breaks similarity check
         self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source()
 
@@ -196,10 +194,10 @@ class TestOperators(unittest.TestCase):
         equal_cols = 0
         equal_col_names = []
         for col_ibis_name in df_ibis.columns:
+            col_ibis = df_ibis[col_ibis_name].sort_values().reset_index(drop=True)
             for col_noir_name in df_noir.columns:
-                col_ibis = sorted(df_ibis[col_ibis_name].to_list())
-                col_noir = sorted(df_noir[col_noir_name].to_list())
-                if col_noir == col_ibis:
+                col_noir = df_noir[col_noir_name].sort_values().reset_index(drop=True)
+                if col_ibis.equals(col_noir):
                     equal_col_names.append(col_noir_name)
                     df_noir.drop(col_noir_name, axis=1, inplace=True)
                     equal_cols += 1
@@ -214,9 +212,9 @@ class TestOperators(unittest.TestCase):
                 df_noir.drop(col, axis=1, inplace=True)
 
         for i, row_ibis in df_ibis.iterrows():
-            row_ibis = set(row_ibis.to_list())
+            row_ibis = set(row_ibis.dropna().to_list())
             for n, row_noir in df_noir.iterrows():
-                row_noir = set(row_noir.to_list())
+                row_noir = set(row_noir.dropna().to_list())
                 if row_noir == row_ibis:
                     df_noir.drop(n, axis="index", inplace=True)
                     break

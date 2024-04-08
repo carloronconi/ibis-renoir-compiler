@@ -3,46 +3,46 @@ use serde::{Deserialize, Serialize};
 use std::fs::File;
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
 struct Struct_var_0 {
-    int1: i64,
-    int2: i64,
-    int3: i64,
+    int1: Option<i64>,
+    int2: Option<i64>,
+    int3: Option<i64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
 struct Struct_var_1 {
-    int1: i64,
-    int2: i64,
-    int3: i64,
-    sum: i64,
+    int1: Option<i64>,
+    int2: Option<i64>,
+    int3: Option<i64>,
+    sum: Option<i64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
 struct Struct_var_2 {
-    int1: i64,
-    string1: String,
-    int4: i64,
+    int1: Option<i64>,
+    string1: Option<String>,
+    int4: Option<i64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
 struct Struct_var_3 {
-    int1: i64,
-    string1: String,
-    int4: i64,
-    mul: i64,
+    int1: Option<i64>,
+    string1: Option<String>,
+    int4: Option<i64>,
+    mul: Option<i64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
 struct Struct_var_4 {
-    int1: i64,
-    string1: String,
-    int4: i64,
-    mul: i64,
-    int1_right: i64,
-    int2: i64,
-    int3: i64,
-    sum: i64,
+    int1: Option<i64>,
+    string1: Option<String>,
+    int4: Option<i64>,
+    mul: Option<i64>,
+    int1_right: Option<i64>,
+    int2: Option<i64>,
+    int3: Option<i64>,
+    sum: Option<i64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
 struct Struct_var_5 {
-    string1: String,
-    int1: i64,
-    int3: i64,
+    string1: Option<String>,
+    int1: Option<i64>,
+    int3: Option<i64>,
 }
 
 fn logic(ctx: StreamContext) {
@@ -52,17 +52,17 @@ fn logic(ctx: StreamContext) {
         int1: x.int1,
         int2: x.int2,
         int3: x.int3,
-        sum: x.int3 + 100,
+        sum: x.int3.map(|v| v + 100),
     });
     let var_2 = ctx
         .stream_csv::<Struct_var_2>("/home/carlo/Projects/ibis-quickstart/data/int-1-string-1.csv");
     let var_5 = var_2
-        .filter(|x| x.int1 < 200)
+        .filter(|x| x.int1.clone().is_some_and(|v| v < 200))
         .map(|x| Struct_var_3 {
             int1: x.int1,
             string1: x.string1,
             int4: x.int4,
-            mul: x.int1 * 20,
+            mul: x.int1.map(|v| v * 20),
         })
         .join(var_1, |x| x.int1, |y| y.int1)
         .map(|(_, x)| Struct_var_4 {

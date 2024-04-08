@@ -3,28 +3,28 @@ use serde::{Deserialize, Serialize};
 use std::fs::File;
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
 struct Struct_var_0 {
-    int1: i64,
-    string1: String,
-    int4: i64,
+    int1: Option<i64>,
+    string1: Option<String>,
+    int4: Option<i64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
 struct Struct_var_1 {
-    agg4: i64,
+    agg4: Option<i64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
 struct Struct_var_2 {
-    int1: i64,
-    int2: i64,
-    int3: i64,
+    int1: Option<i64>,
+    int2: Option<i64>,
+    int3: Option<i64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
 struct Struct_var_3 {
-    agg2: i64,
+    agg2: Option<i64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
 struct Struct_var_4 {
-    agg2: i64,
-    agg4: i64,
+    agg2: Option<i64>,
+    agg4: Option<i64>,
 }
 
 fn logic(ctx: StreamContext) {
@@ -32,13 +32,17 @@ fn logic(ctx: StreamContext) {
         .stream_csv::<Struct_var_0>("/home/carlo/Projects/ibis-quickstart/data/int-1-string-1.csv");
     let var_1 = var_0
         .group_by(|x| x.int1.clone())
-        .reduce(|a, b| a.int4 = a.int4 + b.int4)
+        .reduce(|a, b| {
+            a.int4 = a.int4.zip(b.int4).map(|(x, y)| x + y);
+        })
         .map(|(_, x)| Struct_var_1 { agg4: x.int4 });
     let var_2 =
         ctx.stream_csv::<Struct_var_2>("/home/carlo/Projects/ibis-quickstart/data/int-3.csv");
     let var_4 = var_2
         .group_by(|x| x.int1.clone())
-        .reduce(|a, b| a.int2 = a.int2 + b.int2)
+        .reduce(|a, b| {
+            a.int2 = a.int2.zip(b.int2).map(|(x, y)| x + y);
+        })
         .map(|(_, x)| Struct_var_3 { agg2: x.int2 })
         .join(var_1)
         .map(|(_, x)| Struct_var_4 {

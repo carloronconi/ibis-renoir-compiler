@@ -3,34 +3,34 @@ use serde::{Deserialize, Serialize};
 use std::fs::File;
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
 struct Struct_var_0 {
-    int1: i64,
-    string1: String,
-    int4: i64,
+    int1: Option<i64>,
+    string1: Option<String>,
+    int4: Option<i64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
 struct Struct_var_1 {
-    int1: i64,
-    int2: i64,
-    int3: i64,
+    int1: Option<i64>,
+    int2: Option<i64>,
+    int3: Option<i64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
 struct Struct_var_2 {
-    agg2: i64,
+    agg2: Option<i64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
 struct Struct_var_3 {
-    agg2: i64,
-    int1: i64,
-    string1: String,
-    int4: i64,
+    agg2: Option<i64>,
+    int1: Option<i64>,
+    string1: Option<String>,
+    int4: Option<i64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
 struct Struct_var_4 {
-    agg2: i64,
-    int1: i64,
-    string1: String,
-    int4: i64,
-    mut4: i64,
+    agg2: Option<i64>,
+    int1: Option<i64>,
+    string1: Option<String>,
+    int4: Option<i64>,
+    mut4: Option<i64>,
 }
 
 fn logic(ctx: StreamContext) {
@@ -41,7 +41,9 @@ fn logic(ctx: StreamContext) {
         ctx.stream_csv::<Struct_var_1>("/home/carlo/Projects/ibis-quickstart/data/int-3.csv");
     let var_4 = var_1
         .group_by(|x| x.int1.clone())
-        .reduce(|a, b| a.int2 = a.int2 + b.int2)
+        .reduce(|a, b| {
+            a.int2 = a.int2.zip(b.int2).map(|(x, y)| x + y);
+        })
         .map(|(_, x)| Struct_var_2 { agg2: x.int2 })
         .join(var_0.group_by(|x| x.int1.clone()))
         .map(|(_, x)| Struct_var_3 {
@@ -55,7 +57,7 @@ fn logic(ctx: StreamContext) {
             int1: x.int1,
             string1: x.string1,
             int4: x.int4,
-            mut4: x.int4 + 100,
+            mut4: x.int4.map(|v| v + 100),
         });
     let out = var_4.collect_vec();
     tracing::info!("starting execution");
