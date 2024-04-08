@@ -1,11 +1,10 @@
-from typing import Any
-
-from ibis.expr.operations import DatabaseTable, Alias, Aggregation
+import ibis.formats
+from ibis.expr.operations import DatabaseTable, Aggregation
 
 
 class Struct(object):
     name_counter = 0
-    ibis_to_noir_type = {"Int64": "i64", "String": "String"}  # TODO: add nullability with optionals
+    ibis_to_noir_type = {"Int64": "i64", "String": "String"}
     last_complete_transform: "Struct"
 
     @classmethod
@@ -16,7 +15,13 @@ class Struct(object):
     def name_short_to_name_struct(cls, name_short: str) -> str:
         return f"Struct_{name_short}"
 
-    def __init__(self, name: str, cols_types: list[tuple[str, Any]]):
+    @classmethod
+    def type_ibis_to_noir_str(cls, ibis_name: str, ibis_nullable: bool) -> str:
+        if ibis_nullable:
+            return f"Option<{cls.ibis_to_noir_type[ibis_name]}>"
+        return cls.ibis_to_noir_type[ibis_name]
+
+    def __init__(self, name: str, cols_types: list[tuple[str, ibis.expr.datatypes.core.DataType]]):
         self.name_long = name
         self.id_counter = Struct.name_counter
         self.name_short = Struct.id_counter_to_name_short(self.id_counter)
@@ -54,9 +59,12 @@ class Struct(object):
 
     def generate(self, to_text: str) -> str:
         body = to_text
+        # here the fact that the external struct derives Default, combined with the fact that its fields are optional
+        # means that a None struct will be automatically turned, in the next struct with optional fields copying
+        # the previous struct's fields into None fields
         body += f"#[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]\nstruct {self.name_struct} {{"
         for col, typ in self.cols_types:
-            body += f"{col}: {Struct.ibis_to_noir_type[typ.name]},"
+            body += f"{col}: {Struct.type_ibis_to_noir_str(typ.name, typ.nullable)},"
         body += "}\n"
         return body
 
