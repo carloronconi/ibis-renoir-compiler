@@ -3,20 +3,20 @@ use serde::{Deserialize, Serialize};
 use std::fs::File;
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
 struct Struct_var_0 {
-    int1: i64,
-    string1: String,
-    int4: i64,
+    int1: Option<i64>,
+    string1: Option<String>,
+    int4: Option<i64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
 struct Struct_var_1 {
-    int1: i64,
+    int1: Option<i64>,
 }
 
 fn logic(ctx: StreamContext) {
     let var_0 = ctx
         .stream_csv::<Struct_var_0>("/home/carlo/Projects/ibis-quickstart/data/int-1-string-1.csv");
     let var_1 = var_0
-        .filter(|x| x.string1 == "unduetre")
+        .filter(|x| x.string1.clone().is_some_and(|v| v == "unduetre"))
         .map(|x| Struct_var_1 { int1: x.int1 });
     let out = var_1.collect_vec();
     tracing::info!("starting execution");

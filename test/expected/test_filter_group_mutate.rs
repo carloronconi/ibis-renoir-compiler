@@ -3,31 +3,33 @@ use serde::{Deserialize, Serialize};
 use std::fs::File;
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
 struct Struct_var_0 {
-    int1: i64,
-    string1: String,
-    int4: i64,
+    int1: Option<i64>,
+    string1: Option<String>,
+    int4: Option<i64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
 struct Struct_var_1 {
-    int1_agg: i64,
+    int1_agg: Option<i64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
 struct Struct_var_2 {
-    int1_agg: i64,
-    mul: i64,
+    int1_agg: Option<i64>,
+    mul: Option<i64>,
 }
 
 fn logic(ctx: StreamContext) {
     let var_0 = ctx
         .stream_csv::<Struct_var_0>("/home/carlo/Projects/ibis-quickstart/data/int-1-string-1.csv");
     let var_2 = var_0
-        .filter(|x| x.string1 == "unduetre")
+        .filter(|x| x.string1.clone().is_some_and(|v| v == "unduetre"))
         .group_by(|x| x.string1.clone())
-        .reduce(|a, b| a.int1 = a.int1)
+        .reduce(|a, b| {
+            a.int1 = a.int1.zip(b.int1).map(|(x, y)| x);
+        })
         .map(|(_, x)| Struct_var_1 { int1_agg: x.int1 })
         .map(|(_, x)| Struct_var_2 {
             int1_agg: x.int1_agg,
-            mul: x.int1_agg * 20,
+            mul: x.int1_agg.map(|v| v * 20),
         });
     let out = var_2.collect_vec();
     tracing::info!("starting execution");

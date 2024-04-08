@@ -3,35 +3,37 @@ use serde::{Deserialize, Serialize};
 use std::fs::File;
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
 struct Struct_var_0 {
-    int1: i64,
-    string1: String,
-    int4: i64,
+    int1: Option<i64>,
+    string1: Option<String>,
+    int4: Option<i64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
 struct Struct_var_1 {
-    int1: i64,
-    string1: String,
-    int4: i64,
-    mul: i64,
+    int1: Option<i64>,
+    string1: Option<String>,
+    int4: Option<i64>,
+    mul: Option<i64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
 struct Struct_var_2 {
-    agg: i64,
+    agg: Option<i64>,
 }
 
 fn logic(ctx: StreamContext) {
     let var_0 = ctx
         .stream_csv::<Struct_var_0>("/home/carlo/Projects/ibis-quickstart/data/int-1-string-1.csv");
     let var_2 = var_0
-        .filter(|x| x.int1 > 200)
+        .filter(|x| x.int1.clone().is_some_and(|v| v > 200))
         .map(|x| Struct_var_1 {
             int1: x.int1,
             string1: x.string1,
             int4: x.int4,
-            mul: x.int1 * 20,
+            mul: x.int1.map(|v| v * 20),
         })
         .group_by(|x| x.string1.clone())
-        .reduce(|a, b| a.mul = a.mul + b.mul)
+        .reduce(|a, b| {
+            a.mul = a.mul.zip(b.mul).map(|(x, y)| x + y);
+        })
         .map(|(_, x)| Struct_var_2 { agg: x.mul });
     let out = var_2.collect_vec();
     tracing::info!("starting execution");
