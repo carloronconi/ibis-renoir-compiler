@@ -129,8 +129,6 @@ class TestOperators(unittest.TestCase):
 
         compile_ibis_to_noir(zip(self.files, self.tables), query, run_after_gen=True, render_query_graph=False)
 
-        # TODO: using defaults in noir is not semantically correct for query
-        # TODO: using defaults in noir printed csv (empty strings specifically) breaks similarity check
         self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source()
 
