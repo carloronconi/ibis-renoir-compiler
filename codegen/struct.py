@@ -8,7 +8,7 @@ class Struct(object):
     last_complete_transform: "Struct"
     structs = []
     # copied when generating new structs: toggle if operator turns to keyed/un-keyed
-    with_keyed_stream = False
+    with_keyed_stream = None
 
     @classmethod
     def id_counter_to_name_short(cls, id_c: int) -> str:
@@ -24,10 +24,13 @@ class Struct(object):
             return f"Option<{cls.ibis_to_noir_type[ibis_name]}>"
         return cls.ibis_to_noir_type[ibis_name]
 
-    def __init__(self, name: str, cols_types: dict[str, ibis.expr.datatypes.core.DataType]):
+    def __init__(self, name: str, cols_types: dict[str, ibis.expr.datatypes.core.DataType], with_name_short=None):
         self.name_long = name
         self.id_counter = Struct.name_counter
-        self.name_short = Struct.id_counter_to_name_short(self.id_counter)
+        if with_name_short:
+            self.name_short = with_name_short
+        else:
+            self.name_short = Struct.id_counter_to_name_short(self.id_counter)
         self.name_struct = Struct.name_short_to_name_struct(self.name_short)
         Struct.name_counter += 1
         self.cols_types = cols_types
@@ -55,8 +58,8 @@ class Struct(object):
         return cls(name=n, cols_types=c_t)
 
     @classmethod
-    def from_args(cls, name: str, columns: list, types: list):
-        return cls(name, dict(zip(columns, types)))
+    def from_args(cls, name: str, columns: list, types: list, with_name_short=None):
+        return cls(name, dict(zip(columns, types)), with_name_short=with_name_short)
 
     @classmethod
     def last(cls) -> "Struct":

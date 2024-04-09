@@ -32,6 +32,14 @@ class Operator:
                                                not any(isinstance(c, ops.Join) for c in node.__children__)):
                 return SelectOperator(node)
 
+    @classmethod
+    def new_top(cls):
+        return TopOperator()
+
+    @classmethod
+    def new_bot(cls):
+        return BotOperator()
+
     def generate(self) -> str:
         raise NotImplementedError
 
@@ -188,7 +196,7 @@ class GroupReduceOperator(Operator):
         last_col_name = self.node.schema.names[-1]
         last_col_type = self.node.schema.types[-1]
 
-        Struct.with_keyed_stream = True
+        Struct.with_keyed_stream = (self.bys[0].name, self.bys[0].dtype)
         new_struct = Struct.from_args(str(id(self.alias)), [last_col_name], [last_col_type])
 
         mid += f".map(|(_, x)| {new_struct.name_struct}{{{new_struct.columns[0]}: x.{col}}})"
@@ -211,13 +219,13 @@ class JoinOperator(Operator):
         right_struct = Struct.last_complete_transform
         left_struct = Struct.last()
 
-        Struct.with_keyed_stream = True
-        join_struct: Struct = Struct.from_join(left_struct, right_struct)
-
         equals = self.join.predicates[0]
         left_col = operator_arg_stringify(equals.left)
         right_col = operator_arg_stringify(equals.right)
         join_t = self.noir_types[type(self.join).__name__]
+
+        Struct.with_keyed_stream = (equals.left.name, equals.left.dtype)
+        join_struct: Struct = Struct.from_join(left_struct, right_struct)
 
         if left_struct.is_keyed_stream and not right_struct.is_keyed_stream:
             result = f".{join_t}({right_struct.name_short}.group_by(|x| x.{left_col}.clone()))"
@@ -253,7 +261,7 @@ class DatabaseOperator(Operator):
         # database operator means that previous table's transforms are over
         # will use this to perform joins
         Struct.transform_completed()
-        Struct.with_keyed_stream = False
+        Struct.with_keyed_stream = None
         struct = Struct.from_relation(self.table)
 
         # need to have count_id of last struct produced by this table's transformations:
@@ -274,6 +282,39 @@ class DatabaseOperator(Operator):
         return True
 
 
+class TopOperator(Operator):
+    def __init__(self):
+        super().__init__()
+
+    def generate(self) -> str:
+        with open(utl.ROOT_DIR + "/noir-template/main_top.rs") as f:
+            top = f.read()
+        for st in Struct.structs:
+            top += st.generate()
+        top += "\nfn logic(ctx: StreamContext) {\n"
+        return top
+
+
+class BotOperator(Operator):
+    def __init__(self):
+        super().__init__()
+
+    def generate(self) -> str:
+        last_struct = Struct.last()
+        bot = f"; let out = {last_struct.name_short}.collect_vec();"
+        bot += "\ntracing::info!(\"starting execution\");\nctx.execute_blocking();\nlet out = out.get().unwrap();\n"
+
+        if last_struct.is_keyed_stream:
+            col_name, col_type = Struct.last().with_keyed_stream
+            new_struct = Struct.from_args(str(id(self)), [col_name], [col_type], with_name_short="collect")
+            bot += (f"let out = out.iter().map(|(k, v)| ({new_struct.name_struct}{{{col_name}: k.clone()}}, "
+                    f"v)).collect::<Vec<_>>();")
+
+        with open(utl.ROOT_DIR + "/noir-template/main_bot.rs") as f:
+            bot += f.read()
+        return bot
+
+
 # if operand is literal, return its value
 # if operand is table column, return its index in the original table
 def operator_arg_stringify(operand: Node) -> str:
@@ -284,4 +325,3 @@ def operator_arg_stringify(operand: Node) -> str:
             return "\"" + ''.join(filter(str.isalnum, operand.name)) + "\""
         return operand.name
     raise Exception("Unsupported operand type")
-

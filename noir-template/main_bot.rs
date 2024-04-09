@@ -1,7 +1,3 @@
-    tracing::info!("starting execution");
-    ctx.execute_blocking();
-
-    let out = out.get().unwrap();
     let file = File::create("../out/noir-result.csv").unwrap();
     let mut wtr = csv::WriterBuilder::new()
         .from_writer(file);

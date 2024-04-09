@@ -53,17 +53,8 @@ def gen_noir_code():
     for op in Operator.operators:
         mid += op.generate()  # operators can also modify structs while generating, so generate mid before top
 
-    with open(utl.ROOT_DIR + "/noir-template/main_top.rs") as f:
-        top = f.read()
-    top += gen_noir_code_top()
-
-    last_struct = Struct.last()
-    if last_struct.is_keyed_stream:  # if keyed need to drop key to be able to print to file with serde
-        bot = f"; let out = {last_struct.name_short}.drop_key().collect_vec();"
-    else:
-        bot = f"; let out = {last_struct.name_short}.collect_vec();"
-    with open(utl.ROOT_DIR + "/noir-template/main_bot.rs") as f:
-        bot += f.read()
+    bot = Operator.new_bot().generate()  # bottom can also generate new struct, so generate bot before top
+    top = Operator.new_top().generate()
 
     with open(utl.ROOT_DIR + '/noir-template/src/main.rs', 'w') as f:
         f.write(top)
@@ -72,14 +63,3 @@ def gen_noir_code():
 
     Struct.name_counter = 0  # resetting otherwise tests fail when running sequentially
     print("done generating code")
-
-
-def gen_noir_code_top():
-    body = ""
-
-    for st in Struct.structs:
-        body += st.generate()
-
-    body += "\nfn logic(ctx: StreamContext) {\n"
-
-    return body
