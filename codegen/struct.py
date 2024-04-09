@@ -6,6 +6,7 @@ class Struct(object):
     name_counter = 0
     ibis_to_noir_type = {"Int64": "i64", "String": "String"}
     last_complete_transform: "Struct"
+    structs = []
 
     @classmethod
     def id_counter_to_name_short(cls, id_c: int) -> str:
@@ -28,6 +29,7 @@ class Struct(object):
         self.name_struct = Struct.name_short_to_name_struct(self.name_short)
         Struct.name_counter += 1
         self.cols_types = cols_types
+        Struct.structs.append(self)
 
     @classmethod
     def from_table(cls, table: DatabaseTable):
@@ -57,12 +59,26 @@ class Struct(object):
     def from_args(cls, name: str, columns: list, types: list):
         return cls(name, dict(zip(columns, types)))
 
-    def generate(self, to_text: str) -> str:
-        body = to_text
+    @classmethod
+    def last(cls) -> "Struct":
+        if not cls.structs:
+            raise Exception("No struct instances built yet!")
+        return cls.structs[-1]
+
+    @classmethod
+    def some(cls) -> bool:
+        return len(cls.structs) > 0
+
+    @classmethod
+    def transform_completed(cls):
+        if cls.some():
+            cls.last_complete_transform = cls.last()
+
+    def generate(self) -> str:
         # here the fact that the external struct derives Default, combined with the fact that its fields are optional
         # means that a None struct will be automatically turned, in the next struct with optional fields copying
         # the previous struct's fields into None fields
-        body += f"#[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]\nstruct {self.name_struct} {{"
+        body = f"#[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]\nstruct {self.name_struct} {{"
         for col, typ in self.cols_types.items():
             body += f"{col}: {Struct.type_ibis_to_noir_str(typ.name, typ.nullable)},"
         body += "}\n"

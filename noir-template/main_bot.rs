@@ -4,7 +4,6 @@
     let out = out.get().unwrap();
     let file = File::create("../out/noir-result.csv").unwrap();
     let mut wtr = csv::WriterBuilder::new()
-        .has_headers(false)
         .from_writer(file);
 
     for e in out {

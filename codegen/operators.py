@@ -8,7 +8,32 @@ from codegen.struct import Struct
 
 
 class Operator:
-    def generate(self, to_text: str) -> str:
+    operators = []
+
+    def __init__(self):
+        Operator.operators.append(self)
+
+    @classmethod
+    def from_node(cls, node: Node):
+        match node:
+            case ops.DatabaseTable():
+                return DatabaseOperator(node)
+            case ops.relations.Join():
+                return JoinOperator(node)
+            case ops.relations.Aggregation() if any(isinstance(x, ops.core.Alias) for x in node.__children__):
+                if any(isinstance(x, ops.TableColumn) for x in node.__children__):
+                    return GroupReduceOperator(node)  # group_by().reduce()
+                else:
+                    return LoneReduceOperator(node)
+            case ops.logical.Comparison() if any(isinstance(c, ops.Literal) for c in node.__children__):
+                return FilterOperator(node)
+            case ops.core.Alias() if any(isinstance(c, ops.numeric.NumericBinary) for c in node.__children__):
+                return MapOperator(node)
+            case ops.relations.Selection() if (any(isinstance(c, ops.TableColumn) for c in node.__children__) and
+                                               not any(isinstance(c, ops.Join) for c in node.__children__)):
+                return SelectOperator(node)
+
+    def generate(self) -> str:
         raise NotImplementedError
 
     def does_add_struct(self) -> bool:
@@ -17,19 +42,17 @@ class Operator:
 
 class SelectOperator(Operator):
 
-    def __init__(self, node: ops.Selection, operators: list[Operator], structs: list[Struct]):
+    def __init__(self, node: ops.Selection):
         self.node = node
-        self.structs = structs
         self.columns = []
         for operand in filter(lambda o: isinstance(o, ops.TableColumn), node.__children__):
             self.columns.append(operand)
-        self.operators = operators
+        super().__init__()
 
-    def generate(self, to_text: str) -> str:
+    def generate(self) -> str:
         new_struct = Struct.from_aggregation(self.node)
-        self.structs.append(new_struct)
 
-        mid = to_text
+        mid = ""
         if is_keyed_stream(self, self.operators):
             mid += ".map(|(_, x)|"
         else:
@@ -49,43 +72,41 @@ class SelectOperator(Operator):
 class FilterOperator(Operator):
     bin_ops = {"Equals": "==", "Greater": ">", "GreaterEqual": ">=", "Less": "<", "LessEqual": "<="}
 
-    def __init__(self, node: ops.logical.Comparison, operators: list[Operator], structs: list[Struct]):
+    def __init__(self, node: ops.logical.Comparison):
         self.comparator = node
-        self.structs = structs
+        super().__init__()
 
-    def generate(self, to_text: str) -> str:
+    def generate(self) -> str:
         op = self.bin_ops[type(self.comparator).__name__]
         left = operator_arg_stringify(self.comparator.left)
         right = operator_arg_stringify(self.comparator.right)
-        if self.structs[-1].is_col_nullable(left):
-            return to_text + f".filter(|x| x.{left}.clone().is_some_and(|v| v {op} {right}))"
-        return to_text + f".filter(|x| x.{left} {op} {right})"
+        if Struct.last().is_col_nullable(left):
+            return f".filter(|x| x.{left}.clone().is_some_and(|v| v {op} {right}))"
+        return f".filter(|x| x.{left} {op} {right})"
 
 
 class MapOperator(Operator):
     math_ops = {"Multiply": "*", "Add": "+", "Subtract": "-"}
 
-    def __init__(self, node: ops.core.Alias, operators: list[Operator], structs: list[Struct]):
+    def __init__(self, node: ops.core.Alias):
         self.mapper = node.__children__[0]
-        self.operators = operators
-        self.structs = structs
         self.node = node
+        super().__init__()
 
-    def generate(self, to_text: str) -> str:
-        prev_struct = self.structs[-1]
+    def generate(self) -> str:
+        prev_struct = Struct.last()
         cols = prev_struct.columns.copy()
         cols.append(self.node.name)
         typs = prev_struct.types.copy()
         typs.append(self.node.dtype)
 
         new_struct = Struct.from_args(str(id(self.node)), cols, typs)
-        self.structs.append(new_struct)
 
         op = self.math_ops[type(self.mapper).__name__]
         left = operator_arg_stringify(self.mapper.left)
         right = operator_arg_stringify(self.mapper.right)
 
-        mid = to_text
+        mid = ""
         if is_keyed_stream(self, self.operators):
             mid += ".map(|(_, x)|"
         else:
@@ -109,25 +130,24 @@ class MapOperator(Operator):
 class LoneReduceOperator(Operator):
     aggr_ops = {"Sum": "+"}
 
-    def __init__(self, node: ops.Aggregation, operators: list[Operator], structs: list[Struct]):
+    def __init__(self, node: ops.Aggregation):
         alias = next(filter(lambda c: isinstance(c, ops.Alias), node.__children__))
         self.reducer = alias.__children__[0]
-        self.structs = structs
         self.node = node
+        super().__init__()
 
-    def generate(self, to_text: str) -> str:
+    def generate(self) -> str:
         col = operator_arg_stringify(self.reducer.__children__[0])
         op = self.aggr_ops[type(self.reducer).__name__]
 
-        if self.structs[-1].is_col_nullable(col):
-            mid = to_text + (f".reduce(|a, b| {self.structs[-1].name_struct}{{"
-                             f"{col}: a.{col}.zip(b.{col}).map(|(x, y)| x {op} y), ..a }} )")
+        if Struct.last().is_col_nullable(col):
+            mid = (f".reduce(|a, b| {Struct.last().name_struct}{{"
+                   f"{col}: a.{col}.zip(b.{col}).map(|(x, y)| x {op} y), ..a }} )")
         else:
-            mid = to_text + f".reduce(|a, b| {self.structs[-1].name_struct}{{{col}: a.{col} {op} b.{col}, ..a }} )"
+            mid = f".reduce(|a, b| {Struct.last().name_struct}{{{col}: a.{col} {op} b.{col}, ..a }} )"
 
         # map after the reduce to conform to ibis renaming reduced column!
         new_struct = Struct.from_aggregation(self.node)
-        self.structs.append(new_struct)
 
         mid += f".map(|x| {new_struct.name_struct}{{{new_struct.columns[0]}: x.{col}}})"
 
@@ -144,22 +164,22 @@ class GroupReduceOperator(Operator):
                      "Sum": "a.{0} = a.{0} + b.{0}",
                      "First": "a.{0} = a.{0}"}
 
-    def __init__(self, node: ops.Aggregation, operators: list[Operator], structs: list[Struct]):
+    def __init__(self, node: ops.Aggregation):
         self.alias = next(filter(lambda c: isinstance(c, ops.Alias), node.__children__))
         self.reducer = self.alias.__children__[0]
-        self.structs = structs
         self.bys = node.by
         self.node = node
+        super().__init__()
 
-    def generate(self, to_text: str) -> str:
-        mid = to_text
+    def generate(self) -> str:
+        mid = ""
         for by in self.bys:
             by = operator_arg_stringify(by)
             mid += ".group_by(|x| x." + by + ".clone())"
 
         col = operator_arg_stringify(self.reducer.__children__[0])
 
-        if self.structs[-1].is_col_nullable(col):
+        if Struct.last().is_col_nullable(col):
             op = self.aggr_ops[type(self.reducer).__name__]
             mid += f".reduce(|a, b| {{a.{col} = a.{col}.zip(b.{col}).map(|(x, y)| {op});}})"
         else:
@@ -170,7 +190,6 @@ class GroupReduceOperator(Operator):
         last_col_type = self.node.schema.types[-1]
 
         new_struct = Struct.from_args(str(id(self.alias)), [last_col_name], [last_col_type])
-        self.structs.append(new_struct)
 
         mid += f".map(|(_, x)| {new_struct.name_struct}{{{new_struct.columns[0]}: x.{col}}})"
 
@@ -184,24 +203,22 @@ class JoinOperator(Operator):
     noir_types = {"InnerJoin": "join", "OuterJoin": "outer_join", "LeftJoin": "left_join"}
     ibis_types = {"InnerJoin": "join", "OuterJoin": "outer_join", "LeftJoin": "left_join"}
 
-    def __init__(self, node: ops.relations.Join, operators: list[Operator], structs: list[Struct]):
+    def __init__(self, node: ops.relations.Join):
         self.join = node
-        self.structs = structs
-        self.operators = operators
+        super().__init__()
 
-    def generate(self, to_text: str) -> str:
+    def generate(self) -> str:
         right_struct = Struct.last_complete_transform
-        left_struct = self.structs[-1]
+        left_struct = Struct.last()
 
         join_struct: Struct = Struct.from_join(left_struct, right_struct)
-        self.structs.append(join_struct)
 
         equals = self.join.predicates[0]
         col = operator_arg_stringify(equals.left)
         other_col = operator_arg_stringify(equals.right)
         join_t = self.noir_types[type(self.join).__name__]
 
-        result = to_text
+        result = ""
         left_keyed_stream = is_keyed_stream(self, self.operators)
 
         # to discover if right var is a KeyedStream, check if between latest db operator and previous db operator there
@@ -235,19 +252,16 @@ class JoinOperator(Operator):
 
 
 class DatabaseOperator(Operator):
-    def __init__(self, node: ops.DatabaseTable, operators: list[Operator], structs: list[Struct]):
+    def __init__(self, node: ops.DatabaseTable):
         self.table = node
-        self.structs = structs
-        self.operators = operators
+        super().__init__()
 
-    def generate(self, to_text: str) -> str:
+    def generate(self) -> str:
         # database operator means that previous table's transforms are over
         # will use this to perform joins
-        if len(self.structs) > 0:
-            Struct.last_complete_transform = self.structs[-1]
+        Struct.transform_completed()
 
         struct = Struct.from_table(self.table)
-        self.structs.append(struct)
 
         # need to have count_id of last struct produced by this table's transformations:
         # increment this struct's id counter by the number of operations in this table that produce structs
@@ -260,8 +274,7 @@ class DatabaseOperator(Operator):
             end_idx += 1
         count_structs = len(list(filter(lambda o: o.does_add_struct(), self.operators[this_idx + 1:end_idx])))
 
-        return (to_text +
-                f";\nlet {struct.name_short} = ctx.stream_csv::<{struct.name_struct}>(\"{utl.TAB_FILES[struct.name_long]}\");\n" +
+        return (f";\nlet {struct.name_short} = ctx.stream_csv::<{struct.name_struct}>(\"{utl.TAB_FILES[struct.name_long]}\");\n" +
                 f"let var_{struct.id_counter + count_structs} = {struct.name_short}")
 
     def does_add_struct(self) -> bool:
