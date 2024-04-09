@@ -1,5 +1,5 @@
 import ibis.formats
-from ibis.expr.operations import DatabaseTable, Aggregation
+from ibis.expr.operations import Relation
 
 
 class Struct(object):
@@ -7,6 +7,8 @@ class Struct(object):
     ibis_to_noir_type = {"Int64": "i64", "String": "String"}
     last_complete_transform: "Struct"
     structs = []
+    # copied when generating new structs: toggle if operator turns to keyed/un-keyed
+    with_keyed_stream = False
 
     @classmethod
     def id_counter_to_name_short(cls, id_c: int) -> str:
@@ -29,17 +31,14 @@ class Struct(object):
         self.name_struct = Struct.name_short_to_name_struct(self.name_short)
         Struct.name_counter += 1
         self.cols_types = cols_types
+        self.is_keyed_stream = Struct.with_keyed_stream
         Struct.structs.append(self)
 
     @classmethod
-    def from_table(cls, table: DatabaseTable):
-        names = list(table.schema.names)
-        types = list(table.schema.types)
-        return cls(name=table.name, cols_types=dict(zip(names, types)))
-
-    @classmethod
-    def from_aggregation(cls, agg: Aggregation):
-        return cls(name=str(id(agg)), cols_types=dict(zip(list(agg.schema.names), list(agg.schema.types))))
+    def from_relation(cls, node: Relation):
+        names = list(node.schema.names)
+        types = list(node.schema.types)
+        return cls(name=str(id(node)), cols_types=dict(zip(names, types)))
 
     @classmethod
     def from_join(cls, left: "Struct", right: "Struct"):

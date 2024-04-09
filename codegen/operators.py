@@ -1,7 +1,6 @@
 import ibis
 import ibis.expr.operations as ops
 from ibis.common.graph import Node
-from ibis.expr.operations import DatabaseTable
 
 import codegen.utils as utl
 from codegen.struct import Struct
@@ -50,10 +49,10 @@ class SelectOperator(Operator):
         super().__init__()
 
     def generate(self) -> str:
-        new_struct = Struct.from_aggregation(self.node)
+        new_struct = Struct.from_relation(self.node)
 
         mid = ""
-        if is_keyed_stream(self, self.operators):
+        if new_struct.is_keyed_stream:
             mid += ".map(|(_, x)|"
         else:
             mid += ".map(|x| "
@@ -107,7 +106,7 @@ class MapOperator(Operator):
         right = operator_arg_stringify(self.mapper.right)
 
         mid = ""
-        if is_keyed_stream(self, self.operators):
+        if new_struct.is_keyed_stream:
             mid += ".map(|(_, x)|"
         else:
             mid += ".map(|x| "
@@ -147,7 +146,7 @@ class LoneReduceOperator(Operator):
             mid = f".reduce(|a, b| {Struct.last().name_struct}{{{col}: a.{col} {op} b.{col}, ..a }} )"
 
         # map after the reduce to conform to ibis renaming reduced column!
-        new_struct = Struct.from_aggregation(self.node)
+        new_struct = Struct.from_relation(self.node)
 
         mid += f".map(|x| {new_struct.name_struct}{{{new_struct.columns[0]}: x.{col}}})"
 
@@ -189,6 +188,7 @@ class GroupReduceOperator(Operator):
         last_col_name = self.node.schema.names[-1]
         last_col_type = self.node.schema.types[-1]
 
+        Struct.with_keyed_stream = True
         new_struct = Struct.from_args(str(id(self.alias)), [last_col_name], [last_col_type])
 
         mid += f".map(|(_, x)| {new_struct.name_struct}{{{new_struct.columns[0]}: x.{col}}})"
@@ -211,27 +211,20 @@ class JoinOperator(Operator):
         right_struct = Struct.last_complete_transform
         left_struct = Struct.last()
 
+        Struct.with_keyed_stream = True
         join_struct: Struct = Struct.from_join(left_struct, right_struct)
 
         equals = self.join.predicates[0]
-        col = operator_arg_stringify(equals.left)
-        other_col = operator_arg_stringify(equals.right)
+        left_col = operator_arg_stringify(equals.left)
+        right_col = operator_arg_stringify(equals.right)
         join_t = self.noir_types[type(self.join).__name__]
 
-        result = ""
-        left_keyed_stream = is_keyed_stream(self, self.operators)
-
-        # to discover if right var is a KeyedStream, check if between latest db operator and previous db operator there
-        # were any operators that turn Stream into KeyedStream
-        i, db = find_operators_database(self, self.operators)
-        right_keyed_stream = is_keyed_stream(db, self.operators)
-
-        if left_keyed_stream and not right_keyed_stream:
-            result += f".{join_t}({right_struct.name_short}.group_by(|x| x.{col}.clone()))"
-        elif left_keyed_stream and right_keyed_stream:
-            result += f".{join_t}({right_struct.name_short})"
+        if left_struct.is_keyed_stream and not right_struct.is_keyed_stream:
+            result = f".{join_t}({right_struct.name_short}.group_by(|x| x.{left_col}.clone()))"
+        elif right_struct.is_keyed_stream and right_struct.is_keyed_stream:
+            result = f".{join_t}({right_struct.name_short})"
         else:
-            result += f".{join_t}({right_struct.name_short}, |x| x.{col}, |y| y.{other_col})"
+            result = f".{join_t}({right_struct.name_short}, |x| x.{left_col}, |y| y.{right_col})"
 
         if join_t == "left_join":
             result += ".map(|(_, (x, y))| (x, y.unwrap_or_default()))"
@@ -240,11 +233,11 @@ class JoinOperator(Operator):
 
         result += f".map(|(_, x)| {join_struct.name_struct} {{"
         left_cols = 0
-        for col in left_struct.columns:
-            result += f"{col}: x.0.{col}, "
+        for left_col in left_struct.columns:
+            result += f"{left_col}: x.0.{left_col}, "
             left_cols += 1
-        for col, col_r in zip(join_struct.columns[left_cols:], right_struct.columns):
-            result += f"{col}: x.1.{col_r}, "
+        for left_col, col_r in zip(join_struct.columns[left_cols:], right_struct.columns):
+            result += f"{left_col}: x.1.{col_r}, "
         return result + "})"
 
     def does_add_struct(self) -> bool:
@@ -260,8 +253,8 @@ class DatabaseOperator(Operator):
         # database operator means that previous table's transforms are over
         # will use this to perform joins
         Struct.transform_completed()
-
-        struct = Struct.from_table(self.table)
+        Struct.with_keyed_stream = False
+        struct = Struct.from_relation(self.table)
 
         # need to have count_id of last struct produced by this table's transformations:
         # increment this struct's id counter by the number of operations in this table that produce structs
@@ -283,7 +276,7 @@ class DatabaseOperator(Operator):
 
 # if operand is literal, return its value
 # if operand is table column, return its index in the original table
-def operator_arg_stringify(operand) -> str:
+def operator_arg_stringify(operand: Node) -> str:
     if isinstance(operand, ibis.expr.operations.generic.TableColumn):
         return operand.name
     elif isinstance(operand, ibis.expr.operations.generic.Literal):
@@ -292,37 +285,3 @@ def operator_arg_stringify(operand) -> str:
         return operand.name
     raise Exception("Unsupported operand type")
 
-
-def is_keyed_stream(op: Operator, operators: list[Operator]) -> bool:
-    """
-    Operator receives KeyedStream if between its DatabaseOperator and itself (itself excluded), there is an operation
-    turning the Stream into a KeyedStream: either a GroupReduceOperator or a JoinOperator
-    """
-    curr_op_idx = operators.index(op)
-
-    db_idx, db = find_operators_database(op, operators)
-
-    for o in operators[db_idx:curr_op_idx]:
-        if isinstance(o, GroupReduceOperator) or isinstance(o, JoinOperator):
-            return True
-    return False
-
-
-def find_operators_database(op: Operator, operators: list[Operator]) -> tuple[int, DatabaseOperator]:
-    curr_op_idx = operators.index(op)
-
-    # find last DatabaseOperator instance before the current operator
-    db_idx = 0
-    db = None
-    for i, o in enumerate(operators[:curr_op_idx]):
-        if isinstance(o, DatabaseOperator):
-            db_idx = i
-            db = o
-    return db_idx, db
-
-
-def find_node_database(node: Node) -> DatabaseTable:
-    curr = node
-    while curr and not isinstance(curr, DatabaseTable):
-        curr = curr.table
-    return curr

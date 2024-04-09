@@ -15,7 +15,7 @@ def compile_ibis_to_noir(files_tables: list[tuple[str, Table]],
                          render_query_graph=True):
 
     for file, table in files_tables:
-        utl.TAB_FILES[table._arg.name] = file
+        utl.TAB_FILES[str(id(table._arg))] = file
 
     if render_query_graph:
         to_graph(query).render(utl.ROOT_DIR + "/out/query")
@@ -57,11 +57,11 @@ def gen_noir_code():
         top = f.read()
     top += gen_noir_code_top()
 
-    is_keyed = sop.is_keyed_stream(operators[-1], operators)  # check if last operator is keyed stream
-    if is_keyed:  # if keyed need to drop key to be able to print to file with serde
-        bot = f"; let out = {Struct.structs[-1].name_short}.drop_key().collect_vec();"
+    last_struct = Struct.last()
+    if last_struct.is_keyed_stream:  # if keyed need to drop key to be able to print to file with serde
+        bot = f"; let out = {last_struct.name_short}.drop_key().collect_vec();"
     else:
-        bot = f"; let out = {Struct.structs[-1].name_short}.collect_vec();"
+        bot = f"; let out = {last_struct.name_short}.collect_vec();"
     with open(utl.ROOT_DIR + "/noir-template/main_bot.rs") as f:
         bot += f.read()
 

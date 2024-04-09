@@ -189,7 +189,7 @@ class TestOperators(unittest.TestCase):
         print(query.head(50).to_pandas())
         df_ibis = query.to_pandas()
 
-        df_noir = pd.read_csv(ROOT_DIR + "/out/noir-result.csv", header=None)
+        df_noir = pd.read_csv(ROOT_DIR + "/out/noir-result.csv")
 
         equal_cols = 0
         equal_col_names = []
