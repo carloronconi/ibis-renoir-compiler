@@ -6,7 +6,6 @@ from ibis.expr.visualize import to_graph
 
 import codegen.utils as utl
 from codegen.operators import Operator
-from codegen.struct import Struct
 
 
 def compile_ibis_to_noir(files_tables: list[tuple[str, Table]],
@@ -61,5 +60,4 @@ def gen_noir_code():
         f.write(mid)
         f.write(bot)
 
-    Struct.name_counter = 0  # resetting otherwise tests fail when running sequentially
     print("done generating code")

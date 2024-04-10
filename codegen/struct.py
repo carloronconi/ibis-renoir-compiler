@@ -76,6 +76,13 @@ class Struct(object):
         if cls.some():
             cls.last_complete_transform = cls.last()
 
+    @classmethod
+    def cleanup(cls):
+        cls.name_counter = 0
+        cls.structs = []
+        cls.last_complete_transform = None
+        cls.with_keyed_stream = None
+
     def generate(self) -> str:
         # here the fact that the external struct derives Default, combined with the fact that its fields are optional
         # means that a None struct will be automatically turned, in the next struct with optional fields copying

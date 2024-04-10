@@ -40,6 +40,10 @@ class Operator:
     def new_bot(cls):
         return BotOperator()
 
+    @classmethod
+    def cleanup(cls):
+        cls.operators = []
+
     def generate(self) -> str:
         raise NotImplementedError
 
@@ -287,10 +291,17 @@ class TopOperator(Operator):
         super().__init__()
 
     def generate(self) -> str:
+        # cleanup operators: TopOperator should be the last to generate
+        Operator.cleanup()
+
         with open(utl.ROOT_DIR + "/noir-template/main_top.rs") as f:
             top = f.read()
         for st in Struct.structs:
             top += st.generate()
+
+        # cleanup structs: same reason
+        Struct.cleanup()
+
         top += "\nfn logic(ctx: StreamContext) {\n"
         return top
 
