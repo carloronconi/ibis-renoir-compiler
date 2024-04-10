@@ -34,7 +34,7 @@ fn logic(ctx: StreamContext) {
     let var_1 = ctx
         .stream_csv::<Struct_var_1>("/home/carlo/Projects/ibis-quickstart/data/int-1-string-1.csv");
     let var_2 = var_1
-        .outer_join(var_0, |x| x.int1, |y| y.int1)
+        .outer_join(var_0, |x| x.int1.clone(), |y| y.int1.clone())
         .map(|(_, (x, y))| (x.unwrap_or_default(), y.unwrap_or_default()))
         .map(|(_, x)| Struct_var_2 {
             int1: x.0.int1,

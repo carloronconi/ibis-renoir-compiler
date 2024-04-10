@@ -233,10 +233,10 @@ class JoinOperator(Operator):
 
         if left_struct.is_keyed_stream and not right_struct.is_keyed_stream:
             result = f".{join_t}({right_struct.name_short}.group_by(|x| x.{left_col}.clone()))"
-        elif right_struct.is_keyed_stream and right_struct.is_keyed_stream:
+        elif left_struct.is_keyed_stream and right_struct.is_keyed_stream:
             result = f".{join_t}({right_struct.name_short})"
         else:
-            result = f".{join_t}({right_struct.name_short}, |x| x.{left_col}, |y| y.{right_col})"
+            result = f".{join_t}({right_struct.name_short}, |x| x.{left_col}.clone(), |y| y.{right_col}.clone())"
 
         if join_t == "left_join":
             result += ".map(|(_, (x, y))| (x, y.unwrap_or_default()))"

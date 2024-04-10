@@ -6,7 +6,6 @@ from difflib import unified_diff
 import ibis
 import pandas as pd
 from ibis import _
-from ibis.expr.datatypes import DataType
 
 from codegen import ROOT_DIR
 from codegen import compile_ibis_to_noir
@@ -42,8 +41,8 @@ class TestCompiler(unittest.TestCase):
 
         # dataframes now should be exactly the same aside from row ordering:
         # group by all columns and count occurrences of each row
-        df_ibis = df_ibis.groupby(df_ibis.columns.tolist()).size().reset_index(name="count")
-        df_noir = df_noir.groupby(df_noir.columns.tolist()).size().reset_index(name="count")
+        df_ibis = df_ibis.groupby(df_ibis.columns.tolist(), dropna=False).size().reset_index(name="count")
+        df_noir = df_noir.groupby(df_noir.columns.tolist(), dropna=False).size().reset_index(name="count")
 
         # fast fail if occurrence counts have different lengths
         self.assertEqual(len(df_ibis.index), len(df_noir.index),
@@ -233,9 +232,9 @@ class TestNonNullableOperators(TestCompiler):
         df_non_null_cols_right.to_csv(file_right, index=False)
 
         # creating schema with datatypes from pandas allows to pass nullable=False
-        schema = ibis.schema({"fruit": DataType.from_pandas(pd.StringDtype(), nullable=False),
-                              "weight": DataType.from_pandas(pd.Int64Dtype(), nullable=False),
-                              "price": DataType.from_pandas(pd.Int64Dtype(), nullable=True)})
+        schema = ibis.schema({"fruit": ibis.dtype("!string"),
+                              "weight": ibis.dtype("!int64"),
+                              "price": ibis.dtype("int64")})  # non-nullable types are preceded by "!"
 
         # memtable allows to pass schema explicitly
         tab_non_null_cols_left = ibis.memtable(df_non_null_cols_left, schema=schema)
@@ -269,7 +268,16 @@ class TestNonNullableOperators(TestCompiler):
         compile_ibis_to_noir(zip(self.files, self.tables), query, run_after_gen=True, render_query_graph=False)
 
         self.assert_similarity_noir_output(query)
-        #self.assert_equality_noir_source()
+        self.assert_equality_noir_source()
+
+    def test_non_nullable_left_join(self):
+        query = (self.tables[0]
+                 .left_join(self.tables[1], "fruit"))
+
+        compile_ibis_to_noir(zip(self.files, self.tables), query, run_after_gen=True, render_query_graph=False)
+
+        self.assert_similarity_noir_output(query)
+        self.assert_equality_noir_source()
 
 
 if __name__ == '__main__':

@@ -3,86 +3,86 @@ use serde::{Deserialize, Serialize};
 use std::fs::File;
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
 struct Struct_var_0 {
-    int1: Option<i64>,
-    int2: Option<i64>,
-    int3: Option<i64>,
+    fruit: String,
+    weight: i64,
+    price: Option<i64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
 struct Struct_var_1 {
-    int1: Option<i64>,
-    int2: Option<i64>,
-    int3: Option<i64>,
+    fruit: String,
+    weight: i64,
+    price: Option<i64>,
     sum: Option<i64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
 struct Struct_var_2 {
-    int1: Option<i64>,
-    string1: Option<String>,
-    int4: Option<i64>,
+    fruit: String,
+    weight: i64,
+    price: Option<i64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
 struct Struct_var_3 {
-    int1: Option<i64>,
-    string1: Option<String>,
-    int4: Option<i64>,
+    fruit: String,
+    weight: i64,
+    price: Option<i64>,
     mul: Option<i64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
 struct Struct_var_4 {
-    int1: Option<i64>,
-    string1: Option<String>,
-    int4: Option<i64>,
+    fruit: String,
+    weight: i64,
+    price: Option<i64>,
     mul: Option<i64>,
-    int1_right: Option<i64>,
-    int2: Option<i64>,
-    int3: Option<i64>,
+    fruit_right: String,
+    weight_right: i64,
+    price_right: Option<i64>,
     sum: Option<i64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
 struct Struct_var_5 {
-    string1: Option<String>,
-    int1: Option<i64>,
-    int3: Option<i64>,
+    fruit: Option<String>,
+    weight: Option<i64>,
+    price: Option<i64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
 struct Struct_collect {
-    int1: Option<i64>,
+    fruit: String,
 }
 
 fn logic(ctx: StreamContext) {
     let var_0 =
-        ctx.stream_csv::<Struct_var_0>("/home/carlo/Projects/ibis-quickstart/data/int-3.csv");
+        ctx.stream_csv::<Struct_var_0>("/home/carlo/Projects/ibis-quickstart/data/fruit_right.csv");
     let var_1 = var_0.map(|x| Struct_var_1 {
-        int1: x.int1,
-        int2: x.int2,
-        int3: x.int3,
-        sum: x.int3.map(|v| v + 100),
+        fruit: x.fruit,
+        weight: x.weight,
+        price: x.price,
+        sum: x.price.map(|v| v + 100),
     });
-    let var_2 = ctx
-        .stream_csv::<Struct_var_2>("/home/carlo/Projects/ibis-quickstart/data/int-1-string-1.csv");
+    let var_2 =
+        ctx.stream_csv::<Struct_var_2>("/home/carlo/Projects/ibis-quickstart/data/fruit_left.csv");
     let var_5 = var_2
-        .filter(|x| x.int1.clone().is_some_and(|v| v < 200))
+        .filter(|x| x.weight > 2)
         .map(|x| Struct_var_3 {
-            int1: x.int1,
-            string1: x.string1,
-            int4: x.int4,
-            mul: x.int1.map(|v| v * 20),
+            fruit: x.fruit,
+            weight: x.weight,
+            price: x.price,
+            mul: x.price.map(|v| v + 10),
         })
-        .join(var_1, |x| x.int1.clone(), |y| y.int1.clone())
+        .join(var_1, |x| x.fruit.clone(), |y| y.fruit.clone())
         .map(|(_, x)| Struct_var_4 {
-            int1: x.0.int1,
-            string1: x.0.string1,
-            int4: x.0.int4,
+            fruit: x.0.fruit,
+            weight: x.0.weight,
+            price: x.0.price,
             mul: x.0.mul,
-            int1_right: x.1.int1,
-            int2: x.1.int2,
-            int3: x.1.int3,
+            fruit_right: x.1.fruit,
+            weight_right: x.1.weight,
+            price_right: x.1.price,
             sum: x.1.sum,
         })
         .map(|(_, x)| Struct_var_5 {
-            string1: x.string1,
-            int1: x.int1,
-            int3: x.int3,
+            fruit: x.fruit,
+            weight: x.weight,
+            price: x.price,
         });
     let out = var_5.collect_vec();
     tracing::info!("starting execution");
@@ -90,7 +90,7 @@ fn logic(ctx: StreamContext) {
     let out = out.get().unwrap();
     let out = out
         .iter()
-        .map(|(k, v)| (Struct_collect { int1: k.clone() }, v))
+        .map(|(k, v)| (Struct_collect { fruit: k.clone() }, v))
         .collect::<Vec<_>>();
     let file = File::create("../out/noir-result.csv").unwrap();
     let mut wtr = csv::WriterBuilder::new().from_writer(file);
