@@ -188,39 +188,27 @@ class TestOperators(unittest.TestCase):
     def assert_similarity_noir_output(self, query):
         print(query.head(50).to_pandas())
         df_ibis = query.to_pandas()
+        df_noir = pd.read_csv(ROOT_DIR + "/out/noir-result.csv")
 
-        df_noir = pd.read_csv(ROOT_DIR + "/out/noir-result.csv", header=None)
+        # noir can output duplicate columns and additional columns, so remove duplicates and select those in ibis output
+        df_noir = df_noir.loc[:, ~df_noir.columns.duplicated()][df_ibis.columns.tolist()]
 
-        equal_cols = 0
-        equal_col_names = []
-        for col_ibis_name in df_ibis.columns:
-            col_ibis = df_ibis[col_ibis_name].sort_values().reset_index(drop=True)
-            for col_noir_name in df_noir.columns:
-                col_noir = df_noir[col_noir_name].sort_values().reset_index(drop=True)
-                if col_ibis.equals(col_noir):
-                    equal_col_names.append(col_noir_name)
-                    df_noir.drop(col_noir_name, axis=1, inplace=True)
-                    equal_cols += 1
-                    break
+        # dataframes now should be exactly the same aside from row ordering:
+        # group by all columns and count occurrences of each row
+        df_ibis = df_ibis.groupby(df_ibis.columns.tolist()).size().reset_index(name="count")
+        df_noir = df_noir.groupby(df_noir.columns.tolist()).size().reset_index(name="count")
 
-        # check if all ibis columns are present in noir columns (with elements in any order)
-        self.assertTrue(equal_cols == len(df_ibis.columns))
+        # fast fail if occurrence counts have different lengths
+        self.assertEqual(len(df_ibis.index), len(df_noir.index),
+                         f"Row occurrence count tables must have same length! Got this instead:\n{df_ibis}\n{df_noir}")
 
-        df_noir = pd.read_csv(ROOT_DIR + "/out/noir-result.csv", header=None)
-        for col in df_noir.columns:
-            if col not in equal_col_names:
-                df_noir.drop(col, axis=1, inplace=True)
+        # occurrence count rows could still be in different order so use a join on all columns
+        join = pd.merge(df_ibis, df_noir, how="outer", on=df_ibis.columns.tolist(), indicator=True)
+        both_count = join["_merge"].value_counts()["both"]
 
-        for i, row_ibis in df_ibis.iterrows():
-            row_ibis = set(row_ibis.dropna().to_list())
-            for n, row_noir in df_noir.iterrows():
-                row_noir = set(row_noir.dropna().to_list())
-                if row_noir == row_ibis:
-                    df_noir.drop(n, axis="index", inplace=True)
-                    break
+        self.assertEqual(both_count, len(join.index),
+                         f"Row occurrence count tables must have same values! Got this instead:\n{join}")
 
-        # check if each ibis row contain same set of values as one noir row (set due to strings not being sortable with ints)
-        self.assertTrue(len(df_noir.index) == 0)
         print(f"\033[92m Output similarity: OK\033[00m")
 
 

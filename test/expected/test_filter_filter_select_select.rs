@@ -31,12 +31,9 @@ fn logic(ctx: StreamContext) {
     let out = var_2.collect_vec();
     tracing::info!("starting execution");
     ctx.execute_blocking();
-
     let out = out.get().unwrap();
     let file = File::create("../out/noir-result.csv").unwrap();
-    let mut wtr = csv::WriterBuilder::new()
-        .has_headers(false)
-        .from_writer(file);
+    let mut wtr = csv::WriterBuilder::new().from_writer(file);
 
     for e in out {
         wtr.serialize(e).unwrap();

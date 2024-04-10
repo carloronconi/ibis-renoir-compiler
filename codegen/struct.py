@@ -1,11 +1,14 @@
 import ibis.formats
-from ibis.expr.operations import DatabaseTable, Aggregation
+from ibis.expr.operations import Relation
 
 
 class Struct(object):
     name_counter = 0
     ibis_to_noir_type = {"Int64": "i64", "String": "String"}
     last_complete_transform: "Struct"
+    structs = []
+    # copied when generating new structs: toggle if operator turns to keyed/un-keyed
+    with_keyed_stream = None
 
     @classmethod
     def id_counter_to_name_short(cls, id_c: int) -> str:
@@ -21,23 +24,24 @@ class Struct(object):
             return f"Option<{cls.ibis_to_noir_type[ibis_name]}>"
         return cls.ibis_to_noir_type[ibis_name]
 
-    def __init__(self, name: str, cols_types: dict[str, ibis.expr.datatypes.core.DataType]):
+    def __init__(self, name: str, cols_types: dict[str, ibis.expr.datatypes.core.DataType], with_name_short=None):
         self.name_long = name
         self.id_counter = Struct.name_counter
-        self.name_short = Struct.id_counter_to_name_short(self.id_counter)
+        if with_name_short:
+            self.name_short = with_name_short
+        else:
+            self.name_short = Struct.id_counter_to_name_short(self.id_counter)
         self.name_struct = Struct.name_short_to_name_struct(self.name_short)
         Struct.name_counter += 1
         self.cols_types = cols_types
+        self.is_keyed_stream = Struct.with_keyed_stream
+        Struct.structs.append(self)
 
     @classmethod
-    def from_table(cls, table: DatabaseTable):
-        names = list(table.schema.names)
-        types = list(table.schema.types)
-        return cls(name=table.name, cols_types=dict(zip(names, types)))
-
-    @classmethod
-    def from_aggregation(cls, agg: Aggregation):
-        return cls(name=str(id(agg)), cols_types=dict(zip(list(agg.schema.names), list(agg.schema.types))))
+    def from_relation(cls, node: Relation):
+        names = list(node.schema.names)
+        types = list(node.schema.types)
+        return cls(name=str(id(node)), cols_types=dict(zip(names, types)))
 
     @classmethod
     def from_join(cls, left: "Struct", right: "Struct"):
@@ -54,15 +58,36 @@ class Struct(object):
         return cls(name=n, cols_types=c_t)
 
     @classmethod
-    def from_args(cls, name: str, columns: list, types: list):
-        return cls(name, dict(zip(columns, types)))
+    def from_args(cls, name: str, columns: list, types: list, with_name_short=None):
+        return cls(name, dict(zip(columns, types)), with_name_short=with_name_short)
 
-    def generate(self, to_text: str) -> str:
-        body = to_text
+    @classmethod
+    def last(cls) -> "Struct":
+        if not cls.structs:
+            raise Exception("No struct instances built yet!")
+        return cls.structs[-1]
+
+    @classmethod
+    def some(cls) -> bool:
+        return len(cls.structs) > 0
+
+    @classmethod
+    def transform_completed(cls):
+        if cls.some():
+            cls.last_complete_transform = cls.last()
+
+    @classmethod
+    def cleanup(cls):
+        cls.name_counter = 0
+        cls.structs = []
+        cls.last_complete_transform = None
+        cls.with_keyed_stream = None
+
+    def generate(self) -> str:
         # here the fact that the external struct derives Default, combined with the fact that its fields are optional
         # means that a None struct will be automatically turned, in the next struct with optional fields copying
         # the previous struct's fields into None fields
-        body += f"#[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]\nstruct {self.name_struct} {{"
+        body = f"#[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]\nstruct {self.name_struct} {{"
         for col, typ in self.cols_types.items():
             body += f"{col}: {Struct.type_ibis_to_noir_str(typ.name, typ.nullable)},"
         body += "}\n"
