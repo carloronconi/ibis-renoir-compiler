@@ -7,22 +7,65 @@ import ibis
 import pandas as pd
 from ibis import _
 from ibis.expr.datatypes import DataType
-from ibis.expr.operations import InMemoryTable
 
 from codegen import ROOT_DIR
 from codegen import compile_ibis_to_noir
 
 
-class TestOperators(unittest.TestCase):
+class TestCompiler(unittest.TestCase):
+
+    def setUp(self):
+        try:
+            os.remove(ROOT_DIR + "/out/noir-result.csv")
+        except FileNotFoundError:
+            pass
+
+    def assert_equality_noir_source(self):
+        test_expected_file = "/test/expected/" + sys._getframe().f_back.f_code.co_name + ".rs"
+
+        with open(ROOT_DIR + test_expected_file, "r") as f:
+            expected_lines = f.readlines()
+        with open(ROOT_DIR + "/noir-template/src/main.rs", "r") as f:
+            actual_lines = f.readlines()
+
+        diff = list(unified_diff(expected_lines, actual_lines))
+        self.assertEqual(diff, [], "Differences:\n" + "".join(diff))
+        print("\033[92m Source equality: OK\033[00m")
+
+    def assert_similarity_noir_output(self, query):
+        print(query.head(50).to_pandas())
+        df_ibis = query.to_pandas()
+        df_noir = pd.read_csv(ROOT_DIR + "/out/noir-result.csv")
+
+        # noir can output duplicate columns and additional columns, so remove duplicates and select those in ibis output
+        df_noir = df_noir.loc[:, ~df_noir.columns.duplicated()][df_ibis.columns.tolist()]
+
+        # dataframes now should be exactly the same aside from row ordering:
+        # group by all columns and count occurrences of each row
+        df_ibis = df_ibis.groupby(df_ibis.columns.tolist()).size().reset_index(name="count")
+        df_noir = df_noir.groupby(df_noir.columns.tolist()).size().reset_index(name="count")
+
+        # fast fail if occurrence counts have different lengths
+        self.assertEqual(len(df_ibis.index), len(df_noir.index),
+                         f"Row occurrence count tables must have same length! Got this instead:\n{df_ibis}\n{df_noir}")
+
+        # occurrence count rows could still be in different order so use a join on all columns
+        join = pd.merge(df_ibis, df_noir, how="outer", on=df_ibis.columns.tolist(), indicator=True)
+        both_count = join["_merge"].value_counts()["both"]
+
+        self.assertEqual(both_count, len(join.index),
+                         f"Row occurrence count tables must have same values! Got this instead:\n{join}")
+
+        print(f"\033[92m Output similarity: OK\033[00m")
+
+
+class TestOperators(TestCompiler):
 
     def setUp(self):
         self.files = [ROOT_DIR + "/data/int-1-string-1.csv", ROOT_DIR + "/data/int-3.csv"]
         self.tables = [ibis.read_csv(file) for file in self.files]
 
-        try:
-            os.remove(ROOT_DIR + "/out/noir-result.csv")
-        except FileNotFoundError:
-            pass
+        super().setUp()
 
     def test_filter_select(self):
         query = (self.tables[0]
@@ -175,12 +218,19 @@ class TestOperators(unittest.TestCase):
         self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source()
 
-    def test_non_nullable_cols_filter_group_mutate_reduce(self):
-        df_non_null_cols = pd.DataFrame({'fruit': ["Orange", "Apple", "Kiwi", "Cherry", "Banana", "Grape", "Orange", "Apple"],
-                                         'weight': [2, 15, 3, 24, 5, 16, 2, 17], 'price': [7, 10, 3, 5, 6, 23, 8, 20]})
 
-        file = ROOT_DIR + "/data/fruit.csv"
-        df_non_null_cols.to_csv(file, index=False)
+class TestNonNullableOperators(TestCompiler):
+
+    def setUp(self):
+        df_non_null_cols_left = pd.DataFrame({'fruit': ["Orange", "Apple", "Kiwi", "Cherry", "Banana", "Grape", "Orange", "Apple"],
+                                         'weight': [2, 15, 3, 24, 5, 16, 2, 17], 'price': [7, 10, 3, 5, 6, 23, 8, 20]})
+        df_non_null_cols_right = pd.DataFrame({'fruit': ["Orange", "Apple", "Kiwi", "Apple"],
+                                         'weight': [5, 12, 7, 27], 'price': [5, 11, 2, 8]})
+
+        file_left = ROOT_DIR + "/data/fruit_left.csv"
+        file_right = ROOT_DIR + "/data/fruit_right.csv"
+        df_non_null_cols_left.to_csv(file_left, index=False)
+        df_non_null_cols_right.to_csv(file_right, index=False)
 
         # creating schema with datatypes from pandas allows to pass nullable=False
         schema = ibis.schema({"fruit": DataType.from_pandas(pd.StringDtype(), nullable=False),
@@ -188,56 +238,38 @@ class TestOperators(unittest.TestCase):
                               "price": DataType.from_pandas(pd.Int64Dtype(), nullable=True)})
 
         # memtable allows to pass schema explicitly
-        tab_non_null_cols: InMemoryTable = ibis.memtable(df_non_null_cols, schema=schema)
+        tab_non_null_cols_left = ibis.memtable(df_non_null_cols_left, schema=schema)
+        tab_non_null_cols_right = ibis.memtable(df_non_null_cols_right, schema=schema)
 
-        query = (tab_non_null_cols
+        self.files = [file_left, file_right]
+        self.tables = [tab_non_null_cols_left, tab_non_null_cols_right]
+
+        super().setUp()
+
+    def test_non_nullable_cols_filter_group_mutate_reduce(self):
+        query = (self.tables[0]
                  .filter(_.weight > 4)
                  .mutate(mul=_.price * 20)
                  .group_by("fruit")
                  .aggregate(agg=_.mul.sum()))
 
-        compile_ibis_to_noir([(file, tab_non_null_cols)], query, run_after_gen=True, render_query_graph=False)
+        compile_ibis_to_noir([(self.files[0], self.tables[0])], query, run_after_gen=True, render_query_graph=False)
 
         self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source()
 
-    def assert_equality_noir_source(self):
-        test_expected_file = "/test/expected/" + sys._getframe().f_back.f_code.co_name + ".rs"
+    def test_non_nullable_cols_inner_join_select(self):
+        query = (self.tables[0]
+                 .filter(_.weight > 2)
+                 .mutate(mul=_.price + 10)
+                 .join(self.tables[1]
+                       .mutate(sum=_.price + 100), "fruit")
+                 .select(["fruit", "weight", "price"]))
 
-        with open(ROOT_DIR + test_expected_file, "r") as f:
-            expected_lines = f.readlines()
-        with open(ROOT_DIR + "/noir-template/src/main.rs", "r") as f:
-            actual_lines = f.readlines()
+        compile_ibis_to_noir(zip(self.files, self.tables), query, run_after_gen=True, render_query_graph=True)
 
-        diff = list(unified_diff(expected_lines, actual_lines))
-        self.assertEqual(diff, [], "Differences:\n" + "".join(diff))
-        print("\033[92m Source equality: OK\033[00m")
-
-    def assert_similarity_noir_output(self, query):
-        print(query.head(50).to_pandas())
-        df_ibis = query.to_pandas()
-        df_noir = pd.read_csv(ROOT_DIR + "/out/noir-result.csv")
-
-        # noir can output duplicate columns and additional columns, so remove duplicates and select those in ibis output
-        df_noir = df_noir.loc[:, ~df_noir.columns.duplicated()][df_ibis.columns.tolist()]
-
-        # dataframes now should be exactly the same aside from row ordering:
-        # group by all columns and count occurrences of each row
-        df_ibis = df_ibis.groupby(df_ibis.columns.tolist()).size().reset_index(name="count")
-        df_noir = df_noir.groupby(df_noir.columns.tolist()).size().reset_index(name="count")
-
-        # fast fail if occurrence counts have different lengths
-        self.assertEqual(len(df_ibis.index), len(df_noir.index),
-                         f"Row occurrence count tables must have same length! Got this instead:\n{df_ibis}\n{df_noir}")
-
-        # occurrence count rows could still be in different order so use a join on all columns
-        join = pd.merge(df_ibis, df_noir, how="outer", on=df_ibis.columns.tolist(), indicator=True)
-        both_count = join["_merge"].value_counts()["both"]
-
-        self.assertEqual(both_count, len(join.index),
-                         f"Row occurrence count tables must have same values! Got this instead:\n{join}")
-
-        print(f"\033[92m Output similarity: OK\033[00m")
+        self.assert_similarity_noir_output(query)
+        #self.assert_equality_noir_source()
 
 
 if __name__ == '__main__':
