@@ -6,6 +6,8 @@ from difflib import unified_diff
 import ibis
 import pandas as pd
 from ibis import _
+from ibis.expr.datatypes import DataType
+from ibis.expr.operations import InMemoryTable
 
 from codegen import ROOT_DIR
 from codegen import compile_ibis_to_noir
@@ -169,6 +171,32 @@ class TestOperators(unittest.TestCase):
                              .group_by("int1").aggregate(agg4=_.int4.sum()), "int1"))
 
         compile_ibis_to_noir(zip(self.files, self.tables), query, run_after_gen=True, render_query_graph=False)
+
+        self.assert_similarity_noir_output(query)
+        self.assert_equality_noir_source()
+
+    def test_non_nullable_cols_filter_group_mutate_reduce(self):
+        df_non_null_cols = pd.DataFrame({'fruit': ["Orange", "Apple", "Kiwi", "Cherry", "Banana", "Grape", "Orange", "Apple"],
+                                         'weight': [2, 15, 3, 24, 5, 16, 2, 17], 'price': [7, 10, 3, 5, 6, 23, 8, 20]})
+
+        file = ROOT_DIR + "/data/fruit.csv"
+        df_non_null_cols.to_csv(file, index=False)
+
+        # creating schema with datatypes from pandas allows to pass nullable=False
+        schema = ibis.schema({"fruit": DataType.from_pandas(pd.StringDtype(), nullable=False),
+                              "weight": DataType.from_pandas(pd.Int64Dtype(), nullable=False),
+                              "price": DataType.from_pandas(pd.Int64Dtype(), nullable=True)})
+
+        # memtable allows to pass schema explicitly
+        tab_non_null_cols: InMemoryTable = ibis.memtable(df_non_null_cols, schema=schema)
+
+        query = (tab_non_null_cols
+                 .filter(_.weight > 4)
+                 .mutate(mul=_.price * 20)
+                 .group_by("fruit")
+                 .aggregate(agg=_.mul.sum()))
+
+        compile_ibis_to_noir([(file, tab_non_null_cols)], query, run_after_gen=True, render_query_graph=False)
 
         self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source()

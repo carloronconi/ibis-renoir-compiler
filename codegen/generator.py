@@ -1,15 +1,15 @@
 import subprocess
 
 from ibis.common.graph import Node
-from ibis.expr.types.relations import Table
+from ibis.expr.operations import PhysicalTable
 from ibis.expr.visualize import to_graph
 
 import codegen.utils as utl
 from codegen.operators import Operator
 
 
-def compile_ibis_to_noir(files_tables: list[tuple[str, Table]],
-                         query: Table,
+def compile_ibis_to_noir(files_tables: list[tuple[str, PhysicalTable]],
+                         query: PhysicalTable,
                          run_after_gen=True,
                          render_query_graph=True):
 

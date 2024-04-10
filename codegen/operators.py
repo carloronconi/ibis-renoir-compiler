@@ -15,7 +15,7 @@ class Operator:
     @classmethod
     def from_node(cls, node: Node):
         match node:
-            case ops.DatabaseTable():
+            case ops.PhysicalTable():
                 return DatabaseOperator(node)
             case ops.relations.Join():
                 return JoinOperator(node)

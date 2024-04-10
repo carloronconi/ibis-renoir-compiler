@@ -17,7 +17,10 @@ def update_all_expected_sources():
         t.run()
 
         # replace old expected file with file produced by test
-        os.remove(file)
+        try:
+            os.remove(file)
+        except FileNotFoundError:
+            pass  # ignore: create new file
         shutil.copyfile(ROOT_DIR + "/noir-template/src/main.rs", file)
 
 
