@@ -251,7 +251,17 @@ class JoinOperator(Operator):
             result += "};\nv})"
 
         elif join_t == "outer_join":
-            result += ".map(|(_, (x, y))| (x.unwrap_or_default(), y.unwrap_or_default()))"
+            result += f".map(|(_, x)| {{\nlet mut v = {join_struct.name_struct} {{"
+            result += self.fill_join_struct_fields_with_none(join_struct.columns)
+            result += "};\nif let Some(i) = x.0 {\n"
+            result += self.fill_join_struct_fields_with_join_struct(join_struct.columns, left_struct.columns,
+                                                                    cols_turned_nullable, is_if_let=True)
+            result += "};\nif let Some(i) = x.1 {\n"
+            result += self.fill_join_struct_fields_with_join_struct(join_struct.columns[len(left_struct.columns):],
+                                                                    right_struct.columns, cols_turned_nullable,
+                                                                    is_left=False,
+                                                                    is_if_let=True)
+            result += "};\nv})"
 
         else:  # inner join
             result += f".map(|(_, x)| {join_struct.name_struct} {{"

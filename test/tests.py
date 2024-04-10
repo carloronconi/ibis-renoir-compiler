@@ -279,6 +279,15 @@ class TestNonNullableOperators(TestCompiler):
         self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source()
 
+    def test_non_nullable_outer_join(self):
+        query = (self.tables[0]
+                 .outer_join(self.tables[1], "fruit"))
+
+        compile_ibis_to_noir(zip(self.files, self.tables), query, run_after_gen=True, render_query_graph=False)
+
+        self.assert_similarity_noir_output(query)
+        self.assert_equality_noir_source()
+
 
 if __name__ == '__main__':
     unittest.main()

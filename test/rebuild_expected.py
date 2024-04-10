@@ -3,7 +3,7 @@ import shutil
 from unittest import TestLoader
 
 from codegen import ROOT_DIR
-from test.tests import TestOperators, TestNonNullableOperators
+from test.tests import TestNonNullableOperators
 
 
 def update_all_expected_sources():
