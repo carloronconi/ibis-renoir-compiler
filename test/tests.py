@@ -266,7 +266,7 @@ class TestNonNullableOperators(TestCompiler):
                        .mutate(sum=_.price + 100), "fruit")
                  .select(["fruit", "weight", "price"]))
 
-        compile_ibis_to_noir(zip(self.files, self.tables), query, run_after_gen=True, render_query_graph=True)
+        compile_ibis_to_noir(zip(self.files, self.tables), query, run_after_gen=True, render_query_graph=False)
 
         self.assert_similarity_noir_output(query)
         #self.assert_equality_noir_source()

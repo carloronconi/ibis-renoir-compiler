@@ -1,4 +1,4 @@
-use noir_compute::prelude::*;
+use renoir::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
@@ -25,7 +25,7 @@ struct Struct_collect {
 
 fn logic(ctx: StreamContext) {
     let var_0 =
-        ctx.stream_csv::<Struct_var_0>("/home/carlo/Projects/ibis-quickstart/data/fruit.csv");
+        ctx.stream_csv::<Struct_var_0>("/home/carlo/Projects/ibis-quickstart/data/fruit_left.csv");
     let var_2 = var_0
         .filter(|x| x.weight > 4)
         .map(|x| Struct_var_1 {
@@ -60,7 +60,7 @@ fn main() -> eyre::Result<()> {
     color_eyre::install().ok();
     tracing_subscriber::fmt::init();
 
-    let ctx = StreamContext::default();
+    let ctx = StreamContext::new_local();
 
     tracing::info!("building graph");
     logic(ctx);

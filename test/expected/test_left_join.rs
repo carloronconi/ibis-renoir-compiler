@@ -1,4 +1,4 @@
-use noir_compute::prelude::*;
+use renoir::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
@@ -65,7 +65,7 @@ fn main() -> eyre::Result<()> {
     color_eyre::install().ok();
     tracing_subscriber::fmt::init();
 
-    let ctx = StreamContext::default();
+    let ctx = StreamContext::new_local();
 
     tracing::info!("building graph");
     logic(ctx);
