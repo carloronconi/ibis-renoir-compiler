@@ -29,12 +29,12 @@ struct Struct_var_3 {
 }
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
 struct Struct_var_4 {
-    fruit: String,
-    weight: i64,
+    fruit: Option<String>,
+    weight: Option<i64>,
     price: Option<i64>,
     mul: Option<i64>,
-    fruit_right: String,
-    weight_right: i64,
+    fruit_right: Option<String>,
+    weight_right: Option<i64>,
     price_right: Option<i64>,
     sum: Option<i64>,
 }
@@ -70,12 +70,12 @@ fn logic(ctx: StreamContext) {
         })
         .join(var_1, |x| x.fruit.clone(), |y| y.fruit.clone())
         .map(|(_, x)| Struct_var_4 {
-            fruit: x.0.fruit,
-            weight: x.0.weight,
+            fruit: Some(x.0.fruit),
+            weight: Some(x.0.weight),
             price: x.0.price,
             mul: x.0.mul,
-            fruit_right: x.1.fruit,
-            weight_right: x.1.weight,
+            fruit_right: Some(x.1.fruit),
+            weight_right: Some(x.1.weight),
             price_right: x.1.price,
             sum: x.1.sum,
         })

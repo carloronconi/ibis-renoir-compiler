@@ -229,7 +229,7 @@ class JoinOperator(Operator):
         join_t = self.noir_types[type(self.join).__name__]
 
         Struct.with_keyed_stream = (equals.left.name, equals.left.dtype)
-        join_struct: Struct = Struct.from_join(left_struct, right_struct)
+        join_struct, cols_turned_nullable = Struct.from_join(left_struct, right_struct)
 
         if left_struct.is_keyed_stream and not right_struct.is_keyed_stream:
             result = f".{join_t}({right_struct.name_short}.group_by(|x| x.{left_col}.clone()))"
@@ -246,10 +246,16 @@ class JoinOperator(Operator):
         result += f".map(|(_, x)| {join_struct.name_struct} {{"
         left_cols = 0
         for left_col in left_struct.columns:
-            result += f"{left_col}: x.0.{left_col}, "
+            if left_col in cols_turned_nullable:
+                result += f"{left_col}: Some(x.0.{left_col}), "
+            else:
+                result += f"{left_col}: x.0.{left_col}, "
             left_cols += 1
         for left_col, col_r in zip(join_struct.columns[left_cols:], right_struct.columns):
-            result += f"{left_col}: x.1.{col_r}, "
+            if left_col in cols_turned_nullable:
+                result += f"{left_col}: Some(x.1.{col_r}), "
+            else:
+                result += f"{left_col}: x.1.{col_r}, "
         return result + "})"
 
     def does_add_struct(self) -> bool:

@@ -15,11 +15,11 @@ struct Struct_var_1 {
 }
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
 struct Struct_var_2 {
-    fruit: String,
-    weight: i64,
+    fruit: Option<String>,
+    weight: Option<i64>,
     price: Option<i64>,
-    fruit_right: String,
-    weight_right: i64,
+    fruit_right: Option<String>,
+    weight_right: Option<i64>,
     price_right: Option<i64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
@@ -37,11 +37,11 @@ fn logic(ctx: StreamContext) {
         .left_join(var_0, |x| x.fruit.clone(), |y| y.fruit.clone())
         .map(|(_, (x, y))| (x, y.unwrap_or_default()))
         .map(|(_, x)| Struct_var_2 {
-            fruit: x.0.fruit,
-            weight: x.0.weight,
+            fruit: Some(x.0.fruit),
+            weight: Some(x.0.weight),
             price: x.0.price,
-            fruit_right: x.1.fruit,
-            weight_right: x.1.weight,
+            fruit_right: Some(x.1.fruit),
+            weight_right: Some(x.1.weight),
             price_right: x.1.price,
         });
     let out = var_2.collect_vec();
