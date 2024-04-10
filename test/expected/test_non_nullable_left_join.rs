@@ -35,14 +35,21 @@ fn logic(ctx: StreamContext) {
         ctx.stream_csv::<Struct_var_1>("/home/carlo/Projects/ibis-quickstart/data/fruit_left.csv");
     let var_2 = var_1
         .left_join(var_0, |x| x.fruit.clone(), |y| y.fruit.clone())
-        .map(|(_, (x, y))| (x, y.unwrap_or_default()))
-        .map(|(_, x)| Struct_var_2 {
-            fruit: Some(x.0.fruit),
-            weight: Some(x.0.weight),
-            price: x.0.price,
-            fruit_right: Some(x.1.fruit),
-            weight_right: Some(x.1.weight),
-            price_right: x.1.price,
+        .map(|(_, x)| {
+            let mut v = Struct_var_2 {
+                fruit: Some(x.0.fruit),
+                weight: Some(x.0.weight),
+                price: x.0.price,
+                fruit_right: None,
+                weight_right: None,
+                price_right: None,
+            };
+            if let Some(i) = x.1 {
+                v.fruit_right = Some(i.fruit);
+                v.weight_right = Some(i.weight);
+                v.price_right = i.price;
+            };
+            v
         });
     let out = var_2.collect_vec();
     tracing::info!("starting execution");

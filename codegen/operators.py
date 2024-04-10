@@ -239,24 +239,50 @@ class JoinOperator(Operator):
             result = f".{join_t}({right_struct.name_short}, |x| x.{left_col}.clone(), |y| y.{right_col}.clone())"
 
         if join_t == "left_join":
-            result += ".map(|(_, (x, y))| (x, y.unwrap_or_default()))"
+            result += f".map(|(_, x)| {{\nlet mut v = {join_struct.name_struct} {{"
+            result += self.fill_join_struct_fields_with_join_struct(left_struct.columns, left_struct.columns,
+                                                                    cols_turned_nullable)
+            result += self.fill_join_struct_fields_with_none(join_struct.columns[len(left_struct.columns):])
+            result += "};\nif let Some(i) = x.1 {\n"
+            result += self.fill_join_struct_fields_with_join_struct(join_struct.columns[len(left_struct.columns):],
+                                                                    right_struct.columns, cols_turned_nullable,
+                                                                    is_left=False,
+                                                                    is_if_let=True)
+            result += "};\nv})"
+
         elif join_t == "outer_join":
             result += ".map(|(_, (x, y))| (x.unwrap_or_default(), y.unwrap_or_default()))"
 
-        result += f".map(|(_, x)| {join_struct.name_struct} {{"
-        left_cols = 0
-        for left_col in left_struct.columns:
-            if left_col in cols_turned_nullable:
-                result += f"{left_col}: Some(x.0.{left_col}), "
+        else:  # inner join
+            result += f".map(|(_, x)| {join_struct.name_struct} {{"
+            result += self.fill_join_struct_fields_with_join_struct(left_struct.columns, left_struct.columns,
+                                                                    cols_turned_nullable)
+            result += self.fill_join_struct_fields_with_join_struct(join_struct.columns[len(left_struct.columns):],
+                                                                    right_struct.columns, cols_turned_nullable,
+                                                                    is_left=False)
+            result += "})"
+        return result
+
+    @staticmethod
+    def fill_join_struct_fields_with_join_struct(struct_cols, joined_cols, cols_turned_nullable, is_left=True, is_if_let=False) -> str:
+        result = ""
+        s_col_pref = "v." if is_if_let else ""
+        j_col_pref = "i." if is_if_let else "x.0." if is_left else "x.1."
+        assign_symbol = "=" if is_if_let else ":"
+        sep_symbol = ";" if is_if_let else ","
+        for s_col, j_col in zip(struct_cols, joined_cols):
+            if s_col in cols_turned_nullable:
+                result += f"{s_col_pref}{s_col} {assign_symbol} Some({j_col_pref}{j_col}){sep_symbol} "
             else:
-                result += f"{left_col}: x.0.{left_col}, "
-            left_cols += 1
-        for left_col, col_r in zip(join_struct.columns[left_cols:], right_struct.columns):
-            if left_col in cols_turned_nullable:
-                result += f"{left_col}: Some(x.1.{col_r}), "
-            else:
-                result += f"{left_col}: x.1.{col_r}, "
-        return result + "})"
+                result += f"{s_col_pref}{s_col} {assign_symbol} {j_col_pref}{j_col}{sep_symbol} "
+        return result
+
+    @staticmethod
+    def fill_join_struct_fields_with_none(struct_cols) -> str:
+        result = ""
+        for s_col in struct_cols:
+            result += f"{s_col}: None, "
+        return result
 
     def does_add_struct(self) -> bool:
         return True
