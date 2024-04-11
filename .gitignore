@@ -1,6 +1,8 @@
 .idea
+.vscode
 /out
 /noir-template/target
 /noir-template/Cargo.lock
 /noir-template/src/main.rs
 /test/expected/ibis-result.csv
+__pycache__
