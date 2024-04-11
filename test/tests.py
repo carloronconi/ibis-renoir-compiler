@@ -311,6 +311,41 @@ class TestNonNullableOperators(TestCompiler):
         self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source()
 
+    def test_non_nullable_group_reduce_join_mutate(self):
+        query = (self.tables[1]
+                 .group_by("fruit")
+                 .aggregate(agg2=_.weight.sum())
+                 .inner_join(self.tables[0], "fruit")
+                 .mutate(mut4=_.price + 100))
+
+        compile_ibis_to_noir(zip(self.files, self.tables), query, run_after_gen=True, render_query_graph=True)
+
+        self.assert_similarity_noir_output(query)
+        self.assert_equality_noir_source()
+
+    def test_non_nullable_group_reduce_group_reduce_join(self):
+        query = (self.tables[1]
+                 .group_by("fruit")
+                 .aggregate(agg2=_.price.sum())
+                 .inner_join(self.tables[0]
+                             .group_by("fruit").aggregate(agg4=_.weight.sum()), "fruit"))
+
+        compile_ibis_to_noir(zip(self.files, self.tables), query, run_after_gen=True, render_query_graph=False)
+
+        self.assert_similarity_noir_output(query)
+        self.assert_equality_noir_source()
+
+    def test_non_nullable_join_group_reduce(self):
+        query = (self.tables[1]
+                 .inner_join(self.tables[0]
+                             .group_by("fruit")
+                             .aggregate(agg4=_.price.sum()), "fruit"))
+
+        compile_ibis_to_noir(zip(self.files, self.tables), query, run_after_gen=True, render_query_graph=False)
+
+        self.assert_similarity_noir_output(query)
+        self.assert_equality_noir_source()
+
 
 if __name__ == '__main__':
     unittest.main()

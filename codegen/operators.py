@@ -190,7 +190,8 @@ class GroupReduceOperator(Operator):
 
         col = operator_arg_stringify(self.reducer.__children__[0])
 
-        if Struct.last().is_col_nullable(col):
+        is_reduced_col_nullable = Struct.last().is_col_nullable(col)
+        if is_reduced_col_nullable:
             op = self.aggr_ops[type(self.reducer).__name__]
             mid += f".reduce(|a, b| {{a.{col} = a.{col}.zip(b.{col}).map(|(x, y)| {op});}})"
         else:
@@ -203,7 +204,12 @@ class GroupReduceOperator(Operator):
         Struct.with_keyed_stream = (self.bys[0].name, self.bys[0].dtype)
         new_struct = Struct.from_args(str(id(self.alias)), [last_col_name], [last_col_type])
 
-        mid += f".map(|(_, x)| {new_struct.name_struct}{{{new_struct.columns[0]}: x.{col}}})"
+        # when reducing, ibis turns results of non-nullable types to nullable! So new_struct will always have nullable
+        # field while reduced col could have been either nullable or non-nullable
+        if is_reduced_col_nullable:
+            mid += f".map(|(_, x)| {new_struct.name_struct}{{{new_struct.columns[0]}: x.{col}}})"
+        else:
+            mid += f".map(|(_, x)| {new_struct.name_struct}{{{new_struct.columns[0]}: Some(x.{col})}})"
 
         return mid
 
