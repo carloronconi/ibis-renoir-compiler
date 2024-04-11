@@ -52,10 +52,18 @@ class Struct(object):
             if c not in left.columns:
                 right_to_append[c] = t
             else:
-                right_to_append[c + "_right"] = t
+                right_to_append[c + "_right"] = t  # overlapping column names are renamed according to ibis convention
         c_t.update(right_to_append)
-        # overlapping column names are renamed according to ibis convention
-        return cls(name=n, cols_types=c_t)
+
+        # following ibis behaviour: after join, all non-nullable cols are cast to nullable
+        cols_turned_nullable = set()
+        for c, t in c_t.items():
+            if not t.nullable:
+                # make t nullable (type is immutable so creating new one defaulting to nullable)
+                c_t[c] = ibis.dtype(t.name)
+                cols_turned_nullable.add(c)
+
+        return cls(name=n, cols_types=c_t), cols_turned_nullable
 
     @classmethod
     def from_args(cls, name: str, columns: list, types: list, with_name_short=None):

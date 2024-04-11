@@ -3,51 +3,56 @@ use serde::{Deserialize, Serialize};
 use std::fs::File;
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
 struct Struct_var_0 {
-    int1: Option<i64>,
-    int2: Option<i64>,
-    int3: Option<i64>,
+    fruit: String,
+    weight: i64,
+    price: Option<i64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
 struct Struct_var_1 {
-    int1: Option<i64>,
-    string1: Option<String>,
-    int4: Option<i64>,
+    fruit: String,
+    weight: i64,
+    price: Option<i64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
 struct Struct_var_2 {
-    int1: Option<i64>,
-    string1: Option<String>,
-    int4: Option<i64>,
-    int1_right: Option<i64>,
-    int2: Option<i64>,
-    int3: Option<i64>,
+    fruit: Option<String>,
+    weight: Option<i64>,
+    price: Option<i64>,
+    fruit_right: Option<String>,
+    weight_right: Option<i64>,
+    price_right: Option<i64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
 struct Struct_collect {
-    int1: Option<i64>,
+    fruit: String,
 }
 
 fn logic(ctx: StreamContext) {
     let var_0 =
-        ctx.stream_csv::<Struct_var_0>("/home/carlo/Projects/ibis-quickstart/data/int-3.csv");
+        ctx.stream_csv::<Struct_var_0>("/home/carlo/Projects/ibis-quickstart/data/fruit_right.csv");
     let var_0 = var_0;
-    let var_1 = ctx
-        .stream_csv::<Struct_var_1>("/home/carlo/Projects/ibis-quickstart/data/int-1-string-1.csv");
+    let var_1 =
+        ctx.stream_csv::<Struct_var_1>("/home/carlo/Projects/ibis-quickstart/data/fruit_left.csv");
     let var_2 = var_1
-        .left_join(var_0, |x| x.int1.clone(), |y| y.int1.clone())
+        .outer_join(var_0, |x| x.fruit.clone(), |y| y.fruit.clone())
         .map(|(_, x)| {
             let mut v = Struct_var_2 {
-                int1: x.0.int1,
-                string1: x.0.string1,
-                int4: x.0.int4,
-                int1_right: None,
-                int2: None,
-                int3: None,
+                fruit: None,
+                weight: None,
+                price: None,
+                fruit_right: None,
+                weight_right: None,
+                price_right: None,
+            };
+            if let Some(i) = x.0 {
+                v.fruit = Some(i.fruit);
+                v.weight = Some(i.weight);
+                v.price = i.price;
             };
             if let Some(i) = x.1 {
-                v.int1_right = i.int1;
-                v.int2 = i.int2;
-                v.int3 = i.int3;
+                v.fruit_right = Some(i.fruit);
+                v.weight_right = Some(i.weight);
+                v.price_right = i.price;
             };
             v
         });
@@ -57,7 +62,7 @@ fn logic(ctx: StreamContext) {
     let out = out.get().unwrap();
     let out = out
         .iter()
-        .map(|(k, v)| (Struct_collect { int1: k.clone() }, v))
+        .map(|(k, v)| (Struct_collect { fruit: k.clone() }, v))
         .collect::<Vec<_>>();
     let file = File::create("../out/noir-result.csv").unwrap();
     let mut wtr = csv::WriterBuilder::new().from_writer(file);
