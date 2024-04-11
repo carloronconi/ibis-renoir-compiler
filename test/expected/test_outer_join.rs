@@ -35,7 +35,27 @@ fn logic(ctx: StreamContext) {
         .stream_csv::<Struct_var_1>("/home/carlo/Projects/ibis-quickstart/data/int-1-string-1.csv");
     let var_2 = var_1
         .outer_join(var_0, |x| x.int1.clone(), |y| y.int1.clone())
-        .map(|(_, (x, y))| (x.unwrap_or_default(), y.unwrap_or_default()));
+        .map(|(_, x)| {
+            let mut v = Struct_var_2 {
+                int1: None,
+                string1: None,
+                int4: None,
+                int1_right: None,
+                int2: None,
+                int3: None,
+            };
+            if let Some(i) = x.0 {
+                v.int1 = i.int1;
+                v.string1 = i.string1;
+                v.int4 = i.int4;
+            };
+            if let Some(i) = x.1 {
+                v.int1_right = i.int1;
+                v.int2 = i.int2;
+                v.int3 = i.int3;
+            };
+            v
+        });
     let out = var_2.collect_vec();
     tracing::info!("starting execution");
     ctx.execute_blocking();

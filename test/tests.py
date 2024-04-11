@@ -36,6 +36,15 @@ class TestCompiler(unittest.TestCase):
         df_ibis = query.to_pandas()
         df_noir = pd.read_csv(ROOT_DIR + "/out/noir-result.csv")
 
+        # with keyed streams, noir preserves the key column with its original name
+        # with joins, both the key column and the corresponding cols in joined tables are preserved
+        # with outer joins, the left preserved col could have NaNs that the key doesn't have, so drop the key col and
+        # preserve left joined col instead
+        noir_cols = list(df_noir.columns)
+        if len(noir_cols) > 1 and noir_cols[1] == noir_cols[0] + ".1":
+            df_noir.drop(noir_cols[0], axis=1, inplace=True)
+            df_noir.rename(columns={noir_cols[1]: noir_cols[0]}, inplace=True)
+
         # noir can output duplicate columns and additional columns, so remove duplicates and select those in ibis output
         df_noir = df_noir.loc[:, ~df_noir.columns.duplicated()][df_ibis.columns.tolist()]
 
