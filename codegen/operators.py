@@ -151,7 +151,8 @@ class LoneReduceOperator(Operator):
         col = operator_arg_stringify(self.reducer.__children__[0])
         op = self.aggr_ops[type(self.reducer).__name__]
 
-        if Struct.last().is_col_nullable(col):
+        is_reduced_col_nullable = Struct.last().is_col_nullable(col)
+        if is_reduced_col_nullable:
             mid = (f".reduce(|a, b| {Struct.last().name_struct}{{"
                    f"{col}: a.{col}.zip(b.{col}).map(|(x, y)| x {op} y), ..a }} )")
         else:
@@ -160,7 +161,10 @@ class LoneReduceOperator(Operator):
         # map after the reduce to conform to ibis renaming reduced column!
         new_struct = Struct.from_relation(self.node)
 
-        mid += f".map(|x| {new_struct.name_struct}{{{new_struct.columns[0]}: x.{col}}})"
+        if is_reduced_col_nullable:
+            mid += f".map(|x| {new_struct.name_struct}{{{new_struct.columns[0]}: x.{col}}})"
+        else:
+            mid += f".map(|x| {new_struct.name_struct}{{{new_struct.columns[0]}: Some(x.{col})}})"
 
         return mid
 

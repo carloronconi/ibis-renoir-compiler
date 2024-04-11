@@ -75,7 +75,7 @@ class TestOperators(TestCompiler):
 
         super().setUp()
 
-    def test_filter_select(self):
+    def test_nullable_filter_select(self):
         query = (self.tables[0]
                  .filter(_.string1 == "unduetre")
                  .select("int1"))
@@ -85,7 +85,7 @@ class TestOperators(TestCompiler):
         self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source()
 
-    def test_filter_filter_select_select(self):
+    def test_nullable_filter_filter_select_select(self):
         query = (self.tables[0]
                  .filter(_.int1 == 123)
                  .filter(_.string1 == "unduetre")
@@ -97,7 +97,7 @@ class TestOperators(TestCompiler):
         self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source()
 
-    def test_filter_group_select(self):
+    def test_nullable_filter_group_select(self):
         query = (self.tables[0]
                  .filter(_.string1 == "unduetre")
                  .group_by("string1")
@@ -109,7 +109,7 @@ class TestOperators(TestCompiler):
         self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source()
 
-    def test_filter_group_mutate(self):
+    def test_nullable_filter_group_mutate(self):
         query = (self.tables[0]
                  .filter(_.string1 == "unduetre")
                  .group_by("string1")
@@ -121,7 +121,7 @@ class TestOperators(TestCompiler):
         self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source()
 
-    def test_filter_reduce(self):
+    def test_nullable_filter_reduce(self):
         query = (self.tables[0]
                  .filter(_.string1 == "unduetre")
                  .aggregate(int1_agg=_["int1"].sum()))
@@ -132,7 +132,7 @@ class TestOperators(TestCompiler):
         self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source()
 
-    def test_filter_group_mutate_reduce(self):
+    def test_nullable_filter_group_mutate_reduce(self):
         query = (self.tables[0]
                  .filter(_.int1 > 200)
                  .mutate(mul=_.int1 * 20)
@@ -163,7 +163,7 @@ class TestOperators(TestCompiler):
         self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source()
 
-    def test_inner_join_select(self):
+    def test_nullable_inner_join_select(self):
         query = (self.tables[0]
                  .filter(_.int1 < 200)
                  .mutate(mul=_.int1 * 20)
@@ -176,7 +176,7 @@ class TestOperators(TestCompiler):
         self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source()
 
-    def test_outer_join(self):
+    def test_nullable_outer_join(self):
         query = (self.tables[0]
                  .outer_join(self.tables[1], "int1"))
 
@@ -185,7 +185,7 @@ class TestOperators(TestCompiler):
         self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source()
 
-    def test_left_join(self):
+    def test_nullable_left_join(self):
         query = (self.tables[0]
                  .left_join(self.tables[1], "int1"))
 
@@ -194,7 +194,7 @@ class TestOperators(TestCompiler):
         self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source()
 
-    def test_group_reduce_join_mutate(self):
+    def test_nullable_group_reduce_join_mutate(self):
         """
         Tests two cases:
         - mutate (could also be select) after join (which produces a KeyedStream of a tuple of joined structs)
@@ -211,7 +211,7 @@ class TestOperators(TestCompiler):
         self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source()
 
-    def test_group_reduce_group_reduce_join(self):
+    def test_nullable_group_reduce_group_reduce_join(self):
         """
         Tests joining KeyedStream with other var which is KeyedStream already
         """
@@ -226,7 +226,7 @@ class TestOperators(TestCompiler):
         self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source()
 
-    def test_join_group_reduce(self):
+    def test_nullable_join_group_reduce(self):
         """
         Tests joining left non-KeyedStream with right KeyedStream
         """
@@ -244,10 +244,11 @@ class TestOperators(TestCompiler):
 class TestNonNullableOperators(TestCompiler):
 
     def setUp(self):
-        df_non_null_cols_left = pd.DataFrame({'fruit': ["Orange", "Apple", "Kiwi", "Cherry", "Banana", "Grape", "Orange", "Apple"],
-                                         'weight': [2, 15, 3, 24, 5, 16, 2, 17], 'price': [7, 10, 3, 5, 6, 23, 8, 20]})
+        df_non_null_cols_left = pd.DataFrame(
+            {'fruit': ["Orange", "Apple", "Kiwi", "Cherry", "Banana", "Grape", "Orange", "Apple"],
+             'weight': [2, 15, 3, 24, 5, 16, 2, 17], 'price': [7, 10, 3, 5, 6, 23, 8, 20]})
         df_non_null_cols_right = pd.DataFrame({'fruit': ["Orange", "Apple", "Kiwi", "Apple"],
-                                         'weight': [5, 12, 7, 27], 'price': [5, 11, 2, 8]})
+                                               'weight': [5, 12, 7, 27], 'price': [5, 11, 2, 8]})
 
         file_left = ROOT_DIR + "/data/fruit_left.csv"
         file_right = ROOT_DIR + "/data/fruit_right.csv"
@@ -268,7 +269,63 @@ class TestNonNullableOperators(TestCompiler):
 
         super().setUp()
 
-    def test_non_nullable_cols_filter_group_mutate_reduce(self):
+    def test_non_nullable_filter_select(self):
+        query = (self.tables[0]
+                 .filter(_.fruit == "Apple")
+                 .select("price"))
+
+        compile_ibis_to_noir([(self.files[0], self.tables[0])], query, run_after_gen=True, render_query_graph=False)
+
+        self.assert_similarity_noir_output(query)
+        self.assert_equality_noir_source()
+
+    def test_non_nullable_filter_filter_select_select(self):
+        query = (self.tables[0]
+                 .filter(_.price > 3)
+                 .filter(_.fruit == "Apple")
+                 .select("fruit", "weight")
+                 .select("fruit"))
+
+        compile_ibis_to_noir([(self.files[0], self.tables[0])], query, run_after_gen=True, render_query_graph=False)
+
+        self.assert_similarity_noir_output(query)
+        self.assert_equality_noir_source()
+
+    def test_non_nullable_filter_group_select(self):
+        query = (self.tables[0]
+                 .filter(_.fruit == "Orange")
+                 .group_by("fruit")
+                 .aggregate(int1_agg=_["price"].first())
+                 .select(["int1_agg"]))
+
+        compile_ibis_to_noir([(self.files[0], self.tables[0])], query, run_after_gen=True, render_query_graph=False)
+
+        self.assert_similarity_noir_output(query)
+        self.assert_equality_noir_source()
+
+    def test_non_nullable_filter_group_mutate(self):
+        query = (self.tables[0]
+                 .filter(_.fruit == "Orange")
+                 .group_by("fruit")
+                 .aggregate(int1_agg=_["price"].first())
+                 .mutate(mul=_.int1_agg * 20))
+
+        compile_ibis_to_noir([(self.files[0], self.tables[0])], query, run_after_gen=True, render_query_graph=False)
+
+        self.assert_similarity_noir_output(query)
+        self.assert_equality_noir_source()
+
+    def test_non_nullable_filter_reduce(self):
+        query = (self.tables[0]
+                 .filter(_.fruit == "Orange")
+                 .aggregate(int1_agg=_["weight"].sum()))
+
+        compile_ibis_to_noir([(self.files[0], self.tables[0])], query, run_after_gen=True, render_query_graph=False)
+
+        self.assert_similarity_noir_output(query)
+        self.assert_equality_noir_source()
+
+    def test_non_nullable_filter_group_mutate_reduce(self):
         query = (self.tables[0]
                  .filter(_.weight > 4)
                  .mutate(mul=_.price * 20)
@@ -280,7 +337,7 @@ class TestNonNullableOperators(TestCompiler):
         self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source()
 
-    def test_non_nullable_cols_inner_join_select(self):
+    def test_non_nullable_inner_join_select(self):
         query = (self.tables[0]
                  .filter(_.weight > 2)
                  .mutate(mul=_.price + 10)
@@ -318,7 +375,7 @@ class TestNonNullableOperators(TestCompiler):
                  .inner_join(self.tables[0], "fruit")
                  .mutate(mut4=_.price + 100))
 
-        compile_ibis_to_noir(zip(self.files, self.tables), query, run_after_gen=True, render_query_graph=True)
+        compile_ibis_to_noir(zip(self.files, self.tables), query, run_after_gen=True, render_query_graph=False)
 
         self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source()
