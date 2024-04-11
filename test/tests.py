@@ -226,6 +226,20 @@ class TestOperators(TestCompiler):
         self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source()
 
+    def test_join_group_reduce(self):
+        """
+        Tests joining left non-KeyedStream with right KeyedStream
+        """
+        query = (self.tables[1]
+                 .inner_join(self.tables[0]
+                             .group_by("int1")
+                             .aggregate(agg4=_.int4.sum()), "int1"))
+
+        compile_ibis_to_noir(zip(self.files, self.tables), query, run_after_gen=True, render_query_graph=False)
+
+        self.assert_similarity_noir_output(query)
+        self.assert_equality_noir_source()
+
 
 class TestNonNullableOperators(TestCompiler):
 

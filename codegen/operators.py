@@ -231,11 +231,13 @@ class JoinOperator(Operator):
         Struct.with_keyed_stream = (equals.left.name, equals.left.dtype)
         join_struct, cols_turned_nullable = Struct.from_join(left_struct, right_struct)
 
-        if left_struct.is_keyed_stream and not right_struct.is_keyed_stream:
-            result = f".{join_t}({right_struct.name_short}.group_by(|x| x.{left_col}.clone()))"
+        if left_struct.is_keyed_stream and not right_struct.is_keyed_stream:  # make right struct KS
+            result = f".{join_t}({right_struct.name_short}.group_by(|x| x.{right_col}.clone()))"
+        elif not left_struct.is_keyed_stream and right_struct.is_keyed_stream:  # make left struct KS
+            result = f".group_by(|x| x.{left_col}.clone()).{join_t}({right_struct.name_short})"
         elif left_struct.is_keyed_stream and right_struct.is_keyed_stream:
             result = f".{join_t}({right_struct.name_short})"
-        else:
+        else:  # neither is keyed stream
             result = f".{join_t}({right_struct.name_short}, |x| x.{left_col}.clone(), |y| y.{right_col}.clone())"
 
         if join_t == "left_join":
