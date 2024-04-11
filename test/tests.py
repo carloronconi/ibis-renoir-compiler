@@ -240,6 +240,37 @@ class TestOperators(TestCompiler):
         self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source()
 
+    def test_nullable_windowing_implicit(self):
+        query = (self
+                 .tables[0]
+                 .mutate(int4_demean=_.int4 - _.int4.mean()))
+        
+        compile_ibis_to_noir(zip(self.files, self.tables), query, run_after_gen=True, render_query_graph=False)
+
+        self.assert_similarity_noir_output(query)
+        self.assert_equality_noir_source()
+
+    def test_nullable_windowing_implicit_group(self):
+        query = (self
+                 .tables[0]
+                 .group_by("string1")
+                 .mutate(int4_demean=_.int4 - _.int4.mean()))
+        
+        compile_ibis_to_noir(zip(self.files, self.tables), query, run_after_gen=True, render_query_graph=False)
+
+        self.assert_similarity_noir_output(query)
+        self.assert_equality_noir_source()
+
+    def test_nullable_windowing_explicit(self):
+        w = ibis.window(group_by="int1", preceding=2, following=2)
+        query = (self.tables[0]
+                 .mutate(group_demeaned=_.int1 - _.int1.mean().over(w)))
+
+        compile_ibis_to_noir(zip(self.files, self.tables), query, run_after_gen=True, render_query_graph=True)
+
+        self.assert_similarity_noir_output(query)
+        self.assert_equality_noir_source()
+
 
 class TestNonNullableOperators(TestCompiler):
 

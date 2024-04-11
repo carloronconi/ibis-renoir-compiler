@@ -389,4 +389,4 @@ def operator_arg_stringify(operand: Node) -> str:
         if operand.dtype.name == "String":
             return "\"" + ''.join(filter(str.isalnum, operand.name)) + "\""
         return operand.name
-    raise Exception("Unsupported operand type")
+    raise Exception(f"Unsupported operand type: {operand}")
