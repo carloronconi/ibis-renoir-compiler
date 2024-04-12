@@ -26,11 +26,15 @@ class Operator:
                     return LoneReduceOperator(node)
             case ops.logical.Comparison() if any(isinstance(c, ops.Literal) for c in node.__children__):
                 return FilterOperator(node)
-            case ops.core.Alias() if any(isinstance(c, ops.numeric.NumericBinary) for c in node.__children__):
+            case ops.core.Alias() if any(isinstance(c, ops.numeric.NumericBinary) 
+                                         and not any(isinstance(cc, ops.WindowFunction) for cc in c.__children__)
+                                         for c in node.__children__):
                 return MapOperator(node)
-            case ops.relations.Selection() if (any(isinstance(c, ops.TableColumn) for c in node.__children__) and
-                                               not any(isinstance(c, ops.Join) for c in node.__children__)):
+            case ops.relations.Selection() if (any(isinstance(c, ops.TableColumn) for c in node.__children__)
+                                               and not any(isinstance(c, ops.Join) for c in node.__children__)):
                 return SelectOperator(node)
+            case ops.core.Alias() if any(isinstance(c, ops.WindowFunction) for c in node.__children__): 
+                return WindowOperator(node)
 
     @classmethod
     def new_top(cls):
@@ -308,6 +312,47 @@ class JoinOperator(Operator):
 
     def does_add_struct(self) -> bool:
         return True
+    
+
+class WindowOperator(Operator):
+    fold_func_map = {"Sum": "+"}
+    def __init__(self, node: ops.WindowFunction):
+        self.alias = node
+        super().__init__()
+
+    def generate(self) -> str:
+        window = self.alias.arg
+        frame = window.frame
+        if frame.start.following:
+            raise Exception("Following window frames are not supported in noir!")
+        
+        text = ""
+        
+        # generate .group_by if needed
+        if (group_by := frame.group_by):
+            col = operator_arg_stringify(group_by[0])
+            text += f".group_by(|x| x.{col}.clone())"
+        
+        # generate .window with size depending on how many preceding rows are included
+        # and fixed step of 1 and exact framing
+        size = frame.start.value.value + 1
+        text += f".window(CountWindow::new({size}, 1, true))"
+
+        # generate .fold to apply the rediction function while maintaining other row fields
+        prev_struct = Struct.last()
+        new_cols_types = dict(prev_struct.cols_types)
+        new_cols_types[self.alias.name] = self.alias.dtype
+        new_struct = Struct.from_args_dict(str(id(window)), new_cols_types)
+        text += f".fold({new_struct.name_struct}{{"
+        for col in prev_struct.columns:
+            text += f"{col}: None, "
+        text += f"{self.alias.name}: Some(0), }}, |acc, x| {{"
+        for col in prev_struct.columns:
+            text += f"acc.{col} = x.{col}; "
+        op = self.fold_func_map[type(window.func).__name__]
+        text += f"acc.{self.alias.name} = acc.{self.alias.name}.zip(x.{self.alias.name}).map(|(a, b)| a {op} b);}})"
+        
+        return text
 
 
 class DatabaseOperator(Operator):
@@ -389,4 +434,6 @@ def operator_arg_stringify(operand: Node) -> str:
         if operand.dtype.name == "String":
             return "\"" + ''.join(filter(str.isalnum, operand.name)) + "\""
         return operand.name
+    #elif isinstance(operand, ops.WindowFunction):
+    #    return ""
     raise Exception(f"Unsupported operand type: {operand}")

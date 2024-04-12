@@ -28,8 +28,8 @@ fn logic(ctx: StreamContext) {
     let var_1 = var_0
         .group_by(|x| x.string1.clone())
         .window(CountWindow::new(2, 1, true))
-        .fold(Struct_var_new{
-                int1: None,
+        .fold(Struct_var_new{ // in realtà non fare tutto in una botta sola ma fai prima fold e poi map per calcolo percentuale
+                int1: None, // così rimane giusto il riconoscimento del MapOperator
                 string1: None,
                 int4: None,
                 sum: Some(0),

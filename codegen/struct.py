@@ -68,6 +68,10 @@ class Struct(object):
     @classmethod
     def from_args(cls, name: str, columns: list, types: list, with_name_short=None):
         return cls(name, dict(zip(columns, types)), with_name_short=with_name_short)
+    
+    @classmethod
+    def from_args_dict(cls, name: str, cols_types: dict, with_name_short=None):
+        return cls(name, cols_types, with_name_short=with_name_short)
 
     @classmethod
     def last(cls) -> "Struct":
