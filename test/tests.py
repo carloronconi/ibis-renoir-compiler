@@ -32,7 +32,7 @@ class TestCompiler(unittest.TestCase):
         self.assertEqual(diff, [], "Differences:\n" + "".join(diff))
         print("\033[92m Source equality: OK\033[00m")
 
-    def assert_similarity_noir_output(self, query):
+    def assert_similarity_noir_output(self, query, noir_subset_ibis=False):
         print(query.head(50).to_pandas())
         df_ibis = query.to_pandas()
         df_noir = pd.read_csv(ROOT_DIR + "/out/noir-result.csv")
@@ -58,16 +58,28 @@ class TestCompiler(unittest.TestCase):
         ), dropna=False).size().reset_index(name="count")
 
         # fast fail if occurrence counts have different lengths
-        self.assertEqual(len(df_ibis.index), len(df_noir.index),
-                         f"Row occurrence count tables must have same length! Got this instead:\n{df_ibis}\n{df_noir}")
+        if not noir_subset_ibis:
+            self.assertEqual(len(df_ibis.index), len(df_noir.index),
+                             f"Row occurrence count tables must have same length! Got this instead:\n{df_ibis}\n{df_noir}")
 
         # occurrence count rows could still be in different order so use a join on all columns
         join = pd.merge(df_ibis, df_noir, how="outer",
                         on=df_ibis.columns.tolist(), indicator=True)
         both_count = join["_merge"].value_counts()["both"]
 
-        self.assertEqual(both_count, len(join.index),
-                         f"Row occurrence count tables must have same values! Got this instead:\n{join}")
+        if not noir_subset_ibis:
+            self.assertEqual(both_count, len(join.index),
+                             f"Row occurrence count tables must have same values! Got this instead:\n{join}")
+        else:
+            # here we allow for noir to output fewer rows than ibis
+            # used for windowing, where ibis semantics don't include windows with size 
+            # smaller than specified, while noir does
+            left_count = join["_merge"].value_counts()["left_only"]
+            right_count = join["_merge"].value_counts()["right_only"]
+            message = f"Noir output must be a subset of ibis output! Got this instead:\n{join}"
+            self.assertGreaterEqual(left_count, 0, message)
+            self.assertEqual(right_count, 0, message)
+            self.assertGreaterEqual(both_count, 0, message)
 
         print(f"\033[92m Output similarity: OK\033[00m")
 
@@ -269,7 +281,7 @@ class TestOperators(TestCompiler):
         compile_ibis_to_noir(zip(self.files, self.tables),
                              query, run_after_gen=True, render_query_graph=True)
 
-        self.assert_similarity_noir_output(query)
+        self.assert_similarity_noir_output(query, noir_subset_ibis=True)
         self.assert_equality_noir_source()
 
     def test_nullable_windowing_implicit_group(self):
@@ -284,7 +296,7 @@ class TestOperators(TestCompiler):
         compile_ibis_to_noir(zip(self.files, self.tables),
                              query, run_after_gen=True, render_query_graph=False)
 
-        self.assert_similarity_noir_output(query)
+        self.assert_similarity_noir_output(query, noir_subset_ibis=True)
         self.assert_equality_noir_source()
 
     def test_nullable_windowing_explicit(self):
@@ -302,7 +314,7 @@ class TestOperators(TestCompiler):
         compile_ibis_to_noir(zip(self.files, self.tables),
                              query, run_after_gen=True, render_query_graph=True)
 
-        self.assert_similarity_noir_output(query)
+        self.assert_similarity_noir_output(query, noir_subset_ibis=True)
         self.assert_equality_noir_source()
 
     def test_nullable_windowing_compatible_group(self):
@@ -316,7 +328,7 @@ class TestOperators(TestCompiler):
         compile_ibis_to_noir(zip(self.files, self.tables),
                              query, run_after_gen=True, render_query_graph=True)
 
-        self.assert_similarity_noir_output(query)
+        self.assert_similarity_noir_output(query, noir_subset_ibis=True)
         self.assert_equality_noir_source()
 
     def test_nullable_windowing_compatible(self):
@@ -329,7 +341,7 @@ class TestOperators(TestCompiler):
         compile_ibis_to_noir(zip(self.files, self.tables),
                              query, run_after_gen=True, render_query_graph=True)
 
-        self.assert_similarity_noir_output(query)
+        self.assert_similarity_noir_output(query, noir_subset_ibis=True)
         self.assert_equality_noir_source()    
 
 
