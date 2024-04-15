@@ -305,7 +305,7 @@ class TestOperators(TestCompiler):
         self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source()
 
-    def test_nullable_windowing_compatible(self):
+    def test_nullable_windowing_compatible_group(self):
         # noir doesn't support both preceding and following, only preceding, careful: with preceding 1 sums preceding and itself, so step 2!
         # semantic difference: ibis takes up to 1 preceding row and itself, for a total of 2, while noir takes exactly 2 so produces fewer result rows
         w = ibis.window(group_by="string1", preceding=1, following=0)
@@ -318,6 +318,19 @@ class TestOperators(TestCompiler):
 
         self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source()
+
+    def test_nullable_windowing_compatible(self):
+        # same as previous but without group_by
+        w = ibis.window(preceding=1, following=0)
+        query = (self.tables[0]
+                 .mutate(group_percent=_.int4 * 100 / _.int4.sum().over(w), group_sum=_.int4.sum().over(w)))
+
+        ib_res = query.to_pandas()
+        compile_ibis_to_noir(zip(self.files, self.tables),
+                             query, run_after_gen=True, render_query_graph=True)
+
+        self.assert_similarity_noir_output(query)
+        self.assert_equality_noir_source()    
 
 
 class TestNonNullableOperators(TestCompiler):

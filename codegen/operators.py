@@ -326,7 +326,7 @@ class WindowOperator(Operator):
     def generate(self) -> str:
         window = self.alias.arg
         frame = window.frame
-        if frame.start.following:
+        if frame.start and frame.start.following:
             raise Exception(
                 "Following window frames are not supported in noir!")
 
@@ -345,7 +345,10 @@ class WindowOperator(Operator):
         # generate .window with size depending on how many preceding rows are included
         # and fixed step of 1 and exact framing
         size = frame.start.value.value + 1
-        text += f".window(CountWindow::new({size}, 1, true))"
+        if frame.group_by:
+            text += f".window(CountWindow::new({size}, 1, true))"
+        else:
+            text += f".window_all(CountWindow::new({size}, 1, true))"
 
         # generate .fold to apply the reduction function while maintaining other row fields
         prev_struct = Struct.last()
@@ -361,6 +364,11 @@ class WindowOperator(Operator):
         op = self.fold_func_map[type(window.func).__name__]
         arg = window.func.args[0].name
         text += f"acc.{self.alias.name} = acc.{self.alias.name}.zip(x.{arg}).map(|(a, b)| a {op} b);}})"
+
+        # folding a WindowedStream without group_by still produces a KeyedStream, with unit tuple () as key
+        # so discard it in that case
+        if not frame.group_by:
+            text += ".drop_key()"
 
         return text
 

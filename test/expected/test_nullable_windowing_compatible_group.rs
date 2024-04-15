@@ -22,12 +22,17 @@ struct Struct_var_2 {
     group_sum: Option<i64>,
     group_percent: Option<f64>,
 }
+#[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
+struct Struct_collect {
+    string1: Option<String>,
+}
 
 fn logic(ctx: StreamContext) {
     let var_0 = ctx
         .stream_csv::<Struct_var_0>("/home/carlo/Projects/ibis-quickstart/data/int-1-string-1.csv");
     let var_2 = var_0
-        .window_all(CountWindow::new(2, 1, true))
+        .group_by(|x| x.string1.clone())
+        .window(CountWindow::new(2, 1, true))
         .fold(
             Struct_var_1 {
                 int1: None,
@@ -42,8 +47,7 @@ fn logic(ctx: StreamContext) {
                 acc.group_sum = acc.group_sum.zip(x.int4).map(|(a, b)| a + b);
             },
         )
-        .drop_key()
-        .map(|x| Struct_var_2 {
+        .map(|(_, x)| Struct_var_2 {
             int1: x.int1,
             string1: x.string1,
             int4: x.int4,
@@ -58,6 +62,10 @@ fn logic(ctx: StreamContext) {
     tracing::info!("starting execution");
     ctx.execute_blocking();
     let out = out.get().unwrap();
+    let out = out
+        .iter()
+        .map(|(k, v)| (Struct_collect { string1: k.clone() }, v))
+        .collect::<Vec<_>>();
     let file = File::create("../out/noir-result.csv").unwrap();
     let mut wtr = csv::WriterBuilder::new().from_writer(file);
 
