@@ -102,7 +102,6 @@ class FilterOperator(Operator):
 
 
 class MapOperator(Operator):
-    math_ops = {"Multiply": "*", "Add": "+", "Subtract": "-", "Divide": "/"}
 
     def __init__(self, node: ops.core.Alias):
         self.mapper = node.__children__[0]
@@ -118,14 +117,6 @@ class MapOperator(Operator):
 
         new_struct = Struct.from_args(str(id(self.node)), cols, typs)
 
-        op = self.math_ops[type(self.mapper).__name__]
-        # left could be chain of binary operations, so it will be recursively resolved
-        # and we want optionals to be unwrapped
-        left = operator_arg_stringify(
-            self.mapper.left, resolve_optionals_to_some=True, struct_name="x")  # TODO: same logic of left/right nullable done below should also be done inside this func instead of just unwrapping
-        right = operator_arg_stringify(
-            self.mapper.right, resolve_optionals_to_some=True, struct_name="x")
-
         mid = ""
         if new_struct.is_keyed_stream:
             mid += ".map(|(_, x)|"
@@ -136,17 +127,8 @@ class MapOperator(Operator):
         for new_col, prev_col in zip(new_struct.columns, prev_struct.columns):
             mid += f"{new_col}: x.{prev_col}, "
 
-        is_left_nullable = self.mapper.left.dtype.nullable
-        is_right_nullable = self.mapper.right.dtype.nullable
-        if is_left_nullable and not is_right_nullable:
-            mid += f"{self.node.name}: {left}.map(|v| v {op} {right}),"
-        elif not is_left_nullable and is_right_nullable:
-            mid += f"{self.node.name}: {right}.map(|v| {left} {op} v),"
-        elif is_left_nullable and is_right_nullable:
-            mid += f"{self.node.name}: {left}.zip({right}).map(|(a, b)| a {op} b),"
-        else:
-            mid += f"{self.node.name}: {left} {op} {right},"
-        mid += "})"
+        num_ops = operator_arg_stringify(self.mapper, True, "x")
+        mid += f"{self.node.name}: {num_ops},}})"
 
         return mid
 
@@ -461,11 +443,11 @@ class BotOperator(Operator):
 # if operand is literal, return its value
 # if operand is table column, return its index in the original table
 # if resolve_optionals_to_some we're recursively resolving a binary operation and also need struct_name
-def operator_arg_stringify(operand: Node, resolve_optionals_to_some=False, struct_name=None) -> str:
+def operator_arg_stringify(operand: Node, recursively=False, struct_name=None) -> str:
     math_ops = {"Multiply": "*", "Add": "+", "Subtract": "-", "Divide": "/"}
     if isinstance(operand, ibis.expr.operations.generic.TableColumn):
-        if resolve_optionals_to_some and operand.dtype.nullable:
-            return f"{struct_name}.{operand.name}.unwrap()"
+        if recursively:
+            return f"{struct_name}.{operand.name}"
         return operand.name
     elif isinstance(operand, ibis.expr.operations.generic.Literal):
         if operand.dtype.name == "String":
@@ -473,11 +455,35 @@ def operator_arg_stringify(operand: Node, resolve_optionals_to_some=False, struc
         return operand.name
     elif isinstance(operand, ops.numeric.NumericBinary):
         # resolve recursively
-        return f"{operator_arg_stringify(operand.left, resolve_optionals_to_some)} {math_ops[type(operand).__name__]} {operator_arg_stringify(operand.right, resolve_optionals_to_some)}"
+        # careful: ibis considers literals as optionals, while in noir a numeric literal is not an Option<T>
+        is_left_nullable = operand.left.dtype.nullable and not isinstance(operand.left, ops.Literal)
+        is_right_nullable = operand.right.dtype.nullable and not isinstance(operand.right, ops.Literal)
+        if is_left_nullable and is_right_nullable:
+            result = f"{operator_arg_stringify(operand.left, recursively, struct_name)}\
+                    .zip({operator_arg_stringify(operand.right, recursively, struct_name)})\
+                    .map(|(a, b)| a {math_ops[type(operand).__name__]} b)"
+        elif is_left_nullable and not is_right_nullable:
+            result = f"{operator_arg_stringify(operand.left, recursively, struct_name)}\
+                    .map(|v| v {math_ops[type(operand).__name__]} {operator_arg_stringify(operand.right, recursively, struct_name)})"
+        elif not is_left_nullable and is_right_nullable:
+            result = f"{operator_arg_stringify(operand.right, recursively, struct_name)}\
+                    .map(|v| {operator_arg_stringify(operand.left, recursively, struct_name)} {math_ops[type(operand).__name__]} v)"
+        else:
+            result = f"{operator_arg_stringify(operand.left, recursively, struct_name)} {math_ops[type(operand).__name__]} {operator_arg_stringify(operand.right, recursively, struct_name)}"
+        
+        # for ibis, dividing two int64 results in a float64, but for noir it's still int64
+        # so we need to cast the result in different ways depending if it's nullable
+        if type(operand).__name__ == "Divide":
+            if operand.dtype.nullable:
+                result += ".map(|v| v as f64)"
+            else:
+                result += " as f64"
+
+        return result
     elif isinstance(operand, ops.WindowFunction):
         # alias is above WindowFunction and not dependency, but because .map follows .fold
         # in this case, we can get the column added by the DatabaseOperator in the struct
         # it just created, which is second to last (last is new col added by MapOperator)
         # since python 3.7, dict maintains insertion order
-        return Struct.last().columns[-2]
+        return f"{struct_name}.{Struct.last().columns[-2]}"
     raise Exception(f"Unsupported operand type: {operand}")
