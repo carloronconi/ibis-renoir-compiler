@@ -338,7 +338,7 @@ class WindowOperator(Operator):
         size = frame.start.value.value + 1
         text += f".window(CountWindow::new({size}, 1, true))"
 
-        # generate .fold to apply the rediction function while maintaining other row fields
+        # generate .fold to apply the reduction function while maintaining other row fields
         prev_struct = Struct.last()
         new_cols_types = dict(prev_struct.cols_types)
         new_cols_types[self.alias.name] = self.alias.dtype
@@ -350,9 +350,13 @@ class WindowOperator(Operator):
         for col in prev_struct.columns:
             text += f"acc.{col} = x.{col}; "
         op = self.fold_func_map[type(window.func).__name__]
-        text += f"acc.{self.alias.name} = acc.{self.alias.name}.zip(x.{self.alias.name}).map(|(a, b)| a {op} b);}})"
+        arg = window.func.args[0].name
+        text += f"acc.{self.alias.name} = acc.{self.alias.name}.zip(x.{arg}).map(|(a, b)| a {op} b);}})"
         
         return text
+    
+    def does_add_struct(self) -> bool:
+        return True
 
 
 class DatabaseOperator(Operator):
