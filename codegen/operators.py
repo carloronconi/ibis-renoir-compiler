@@ -26,14 +26,14 @@ class Operator:
                     return LoneReduceOperator(node)
             case ops.logical.Comparison() if any(isinstance(c, ops.Literal) for c in node.__children__):
                 return FilterOperator(node)
-            case ops.core.Alias() if any(isinstance(c, ops.numeric.NumericBinary) 
-                                         and not any(isinstance(cc, ops.WindowFunction) for cc in c.__children__)
+            case ops.core.Alias() if any(isinstance(c, ops.numeric.NumericBinary)
+                                         # and not any(isinstance(cc, ops.WindowFunction) for cc in c.__children__)
                                          for c in node.__children__):
                 return MapOperator(node)
             case ops.relations.Selection() if (any(isinstance(c, ops.TableColumn) for c in node.__children__)
                                                and not any(isinstance(c, ops.Join) for c in node.__children__)):
                 return SelectOperator(node)
-            case ops.core.Alias() if any(isinstance(c, ops.WindowFunction) for c in node.__children__): 
+            case ops.core.Alias() if any(isinstance(c, ops.WindowFunction) for c in node.__children__):
                 return WindowOperator(node)
 
     @classmethod
@@ -85,7 +85,8 @@ class SelectOperator(Operator):
 
 
 class FilterOperator(Operator):
-    bin_ops = {"Equals": "==", "Greater": ">", "GreaterEqual": ">=", "Less": "<", "LessEqual": "<="}
+    bin_ops = {"Equals": "==", "Greater": ">",
+               "GreaterEqual": ">=", "Less": "<", "LessEqual": "<="}
 
     def __init__(self, node: ops.logical.Comparison):
         self.comparator = node
@@ -101,7 +102,7 @@ class FilterOperator(Operator):
 
 
 class MapOperator(Operator):
-    math_ops = {"Multiply": "*", "Add": "+", "Subtract": "-"}
+    math_ops = {"Multiply": "*", "Add": "+", "Subtract": "-", "Divide": "/"}
 
     def __init__(self, node: ops.core.Alias):
         self.mapper = node.__children__[0]
@@ -118,8 +119,12 @@ class MapOperator(Operator):
         new_struct = Struct.from_args(str(id(self.node)), cols, typs)
 
         op = self.math_ops[type(self.mapper).__name__]
-        left = operator_arg_stringify(self.mapper.left)
-        right = operator_arg_stringify(self.mapper.right)
+        # left could be chain of binary operations, so it will be recursively resolved
+        # and we want optionals to be unwrapped
+        left = operator_arg_stringify(
+            self.mapper.left, resolve_optionals_to_some=True, struct_name="x")  # TODO: same logic of left/right nullable done below should also be done inside this func instead of just unwrapping
+        right = operator_arg_stringify(
+            self.mapper.right, resolve_optionals_to_some=True, struct_name="x")
 
         mid = ""
         if new_struct.is_keyed_stream:
@@ -130,10 +135,17 @@ class MapOperator(Operator):
         mid += f"{new_struct.name_struct}{{"
         for new_col, prev_col in zip(new_struct.columns, prev_struct.columns):
             mid += f"{new_col}: x.{prev_col}, "
-        if prev_struct.is_col_nullable(left):
-            mid += f"{self.node.name}: x.{left}.map(|v| v {op} {right}),"
+
+        is_left_nullable = self.mapper.left.dtype.nullable
+        is_right_nullable = self.mapper.right.dtype.nullable
+        if is_left_nullable and not is_right_nullable:
+            mid += f"{self.node.name}: {left}.map(|v| v {op} {right}),"
+        elif not is_left_nullable and is_right_nullable:
+            mid += f"{self.node.name}: {right}.map(|v| {left} {op} v),"
+        elif is_left_nullable and is_right_nullable:
+            mid += f"{self.node.name}: {left}.zip({right}).map(|(a, b)| a {op} b),"
         else:
-            mid += f"{self.node.name}: x.{left} {op} {right},"
+            mid += f"{self.node.name}: {left} {op} {right},"
         mid += "})"
 
         return mid
@@ -146,7 +158,8 @@ class LoneReduceOperator(Operator):
     aggr_ops = {"Sum": "+"}
 
     def __init__(self, node: ops.Aggregation):
-        alias = next(filter(lambda c: isinstance(c, ops.Alias), node.__children__))
+        alias = next(filter(lambda c: isinstance(
+            c, ops.Alias), node.__children__))
         self.reducer = alias.__children__[0]
         self.node = node
         super().__init__()
@@ -184,7 +197,8 @@ class GroupReduceOperator(Operator):
                      "First": "a.{0} = a.{0}"}
 
     def __init__(self, node: ops.Aggregation):
-        self.alias = next(filter(lambda c: isinstance(c, ops.Alias), node.__children__))
+        self.alias = next(
+            filter(lambda c: isinstance(c, ops.Alias), node.__children__))
         self.reducer = self.alias.__children__[0]
         self.bys = node.by
         self.node = node
@@ -210,7 +224,8 @@ class GroupReduceOperator(Operator):
         last_col_type = self.node.schema.types[-1]
 
         Struct.with_keyed_stream = (self.bys[0].name, self.bys[0].dtype)
-        new_struct = Struct.from_args(str(id(self.alias)), [last_col_name], [last_col_type])
+        new_struct = Struct.from_args(
+            str(id(self.alias)), [last_col_name], [last_col_type])
 
         # when reducing, ibis turns results of non-nullable types to nullable! So new_struct will always have nullable
         # field while reduced col could have been either nullable or non-nullable
@@ -226,8 +241,10 @@ class GroupReduceOperator(Operator):
 
 
 class JoinOperator(Operator):
-    noir_types = {"InnerJoin": "join", "OuterJoin": "outer_join", "LeftJoin": "left_join"}
-    ibis_types = {"InnerJoin": "join", "OuterJoin": "outer_join", "LeftJoin": "left_join"}
+    noir_types = {"InnerJoin": "join",
+                  "OuterJoin": "outer_join", "LeftJoin": "left_join"}
+    ibis_types = {"InnerJoin": "join",
+                  "OuterJoin": "outer_join", "LeftJoin": "left_join"}
 
     def __init__(self, node: ops.relations.Join):
         self.join = node
@@ -243,7 +260,8 @@ class JoinOperator(Operator):
         join_t = self.noir_types[type(self.join).__name__]
 
         Struct.with_keyed_stream = (equals.left.name, equals.left.dtype)
-        join_struct, cols_turned_nullable = Struct.from_join(left_struct, right_struct)
+        join_struct, cols_turned_nullable = Struct.from_join(
+            left_struct, right_struct)
 
         if left_struct.is_keyed_stream and not right_struct.is_keyed_stream:  # make right struct KS
             result = f".{join_t}({right_struct.name_short}.group_by(|x| x.{right_col}.clone()))"
@@ -258,7 +276,8 @@ class JoinOperator(Operator):
             result += f".map(|(_, x)| {{\nlet mut v = {join_struct.name_struct} {{"
             result += self.fill_join_struct_fields_with_join_struct(left_struct.columns, left_struct.columns,
                                                                     cols_turned_nullable)
-            result += self.fill_join_struct_fields_with_none(join_struct.columns[len(left_struct.columns):])
+            result += self.fill_join_struct_fields_with_none(
+                join_struct.columns[len(left_struct.columns):])
             result += "};\nif let Some(i) = x.1 {\n"
             result += self.fill_join_struct_fields_with_join_struct(join_struct.columns[len(left_struct.columns):],
                                                                     right_struct.columns, cols_turned_nullable,
@@ -268,7 +287,8 @@ class JoinOperator(Operator):
 
         elif join_t == "outer_join":
             result += f".map(|(_, x)| {{\nlet mut v = {join_struct.name_struct} {{"
-            result += self.fill_join_struct_fields_with_none(join_struct.columns)
+            result += self.fill_join_struct_fields_with_none(
+                join_struct.columns)
             result += "};\nif let Some(i) = x.0 {\n"
             result += self.fill_join_struct_fields_with_join_struct(join_struct.columns, left_struct.columns,
                                                                     cols_turned_nullable, is_if_let=True)
@@ -312,10 +332,11 @@ class JoinOperator(Operator):
 
     def does_add_struct(self) -> bool:
         return True
-    
+
 
 class WindowOperator(Operator):
     fold_func_map = {"Sum": "+"}
+
     def __init__(self, node: ops.WindowFunction):
         self.alias = node
         super().__init__()
@@ -324,15 +345,21 @@ class WindowOperator(Operator):
         window = self.alias.arg
         frame = window.frame
         if frame.start.following:
-            raise Exception("Following window frames are not supported in noir!")
-        
+            raise Exception(
+                "Following window frames are not supported in noir!")
+
         text = ""
-        
+
         # generate .group_by if needed
         if (group_by := frame.group_by):
-            col = operator_arg_stringify(group_by[0])
+            by = group_by[0]
+            col = operator_arg_stringify(by)
             text += f".group_by(|x| x.{col}.clone())"
-        
+            # if we have group_by, .fold will generate a KeyedStream so
+            # we set Struct.with_keyed_stream with key's name/type so following
+            # map knows how to handle it
+            Struct.with_keyed_stream = (by.name, by.dtype)
+
         # generate .window with size depending on how many preceding rows are included
         # and fixed step of 1 and exact framing
         size = frame.start.value.value + 1
@@ -352,9 +379,9 @@ class WindowOperator(Operator):
         op = self.fold_func_map[type(window.func).__name__]
         arg = window.func.args[0].name
         text += f"acc.{self.alias.name} = acc.{self.alias.name}.zip(x.{arg}).map(|(a, b)| a {op} b);}})"
-        
+
         return text
-    
+
     def does_add_struct(self) -> bool:
         return True
 
@@ -380,7 +407,8 @@ class DatabaseOperator(Operator):
             if isinstance(op, DatabaseOperator):
                 break
             end_idx += 1
-        count_structs = len(list(filter(lambda o: o.does_add_struct(), self.operators[this_idx + 1:end_idx])))
+        count_structs = len(list(
+            filter(lambda o: o.does_add_struct(), self.operators[this_idx + 1:end_idx])))
 
         return (f";\nlet {struct.name_short} = ctx.stream_csv::<{struct.name_struct}>(\"{utl.TAB_FILES[struct.name_long]}\");\n" +
                 f"let var_{struct.id_counter + count_structs} = {struct.name_short}")
@@ -420,7 +448,8 @@ class BotOperator(Operator):
 
         if last_struct.is_keyed_stream:
             col_name, col_type = Struct.last().with_keyed_stream
-            new_struct = Struct.from_args(str(id(self)), [col_name], [col_type], with_name_short="collect")
+            new_struct = Struct.from_args(str(id(self)), [col_name], [
+                                          col_type], with_name_short="collect")
             bot += (f"let out = out.iter().map(|(k, v)| ({new_struct.name_struct}{{{col_name}: k.clone()}}, "
                     f"v)).collect::<Vec<_>>();")
 
@@ -431,13 +460,24 @@ class BotOperator(Operator):
 
 # if operand is literal, return its value
 # if operand is table column, return its index in the original table
-def operator_arg_stringify(operand: Node) -> str:
+# if resolve_optionals_to_some we're recursively resolving a binary operation and also need struct_name
+def operator_arg_stringify(operand: Node, resolve_optionals_to_some=False, struct_name=None) -> str:
+    math_ops = {"Multiply": "*", "Add": "+", "Subtract": "-", "Divide": "/"}
     if isinstance(operand, ibis.expr.operations.generic.TableColumn):
+        if resolve_optionals_to_some and operand.dtype.nullable:
+            return f"{struct_name}.{operand.name}.unwrap()"
         return operand.name
     elif isinstance(operand, ibis.expr.operations.generic.Literal):
         if operand.dtype.name == "String":
             return "\"" + ''.join(filter(str.isalnum, operand.name)) + "\""
         return operand.name
-    #elif isinstance(operand, ops.WindowFunction):
-    #    return ""
+    elif isinstance(operand, ops.numeric.NumericBinary):
+        # resolve recursively
+        return f"{operator_arg_stringify(operand.left, resolve_optionals_to_some)} {math_ops[type(operand).__name__]} {operator_arg_stringify(operand.right, resolve_optionals_to_some)}"
+    elif isinstance(operand, ops.WindowFunction):
+        # alias is above WindowFunction and not dependency, but because .map follows .fold
+        # in this case, we can get the column added by the DatabaseOperator in the struct
+        # it just created, which is second to last (last is new col added by MapOperator)
+        # since python 3.7, dict maintains insertion order
+        return Struct.last().columns[-2]
     raise Exception(f"Unsupported operand type: {operand}")
