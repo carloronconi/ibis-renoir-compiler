@@ -317,7 +317,11 @@ class JoinOperator(Operator):
 
 
 class WindowOperator(Operator):
-    fold_func_map = {"Sum": "+"}
+    class FoldFunc:
+        def __init__(self, struct_fields={}, fold_actions={}, map_actions={}):
+            self.struct_fields = struct_fields
+            self.fold_actions = fold_actions
+            self.map_actions = map_actions
 
     def __init__(self, node: ops.WindowFunction):
         self.alias = node
@@ -342,16 +346,32 @@ class WindowOperator(Operator):
             # map knows how to handle it
             Struct.with_keyed_stream = (by.name, by.dtype)
 
+        # if no start, it means we need to aggregate over all values within each group,
+        # so no window is required
         # generate .window with size depending on how many preceding rows are included
         # and fixed step of 1 and exact framing
-        size = frame.start.value.value + 1
-        if frame.group_by:
-            text += f".window(CountWindow::new({size}, 1, true))"
-        else:
-            text += f".window_all(CountWindow::new({size}, 1, true))"
+        if frame.start:
+            size = frame.start.value.value + 1
+            if frame.group_by:
+                text += f".window(CountWindow::new({size}, 1, true))"
+            else:
+                text += f".window_all(CountWindow::new({size}, 1, true))"
 
         # generate .fold to apply the reduction function while maintaining other row fields
         prev_struct = Struct.last()
+
+        match type(window.func).__name__:
+            case "Sum":
+                op = WindowOperator.FoldFunc(struct_fields={self.alias.name: self.alias.dtype},
+                                              fold_actions={self.alias.name: "acc.{0} = acc.{0}.zip(x.{1}).map(|(a, b)| a + b);})"})
+            case "Mean":
+                op = WindowOperator.FoldFunc(struct_fields={self.alias.name: self.alias.dtype,
+                                                            "grp_sum": ibis.dtype("int64"),
+                                                            "grp_count": ibis.dtype("int64")},
+                                              fold_actions={"grp_sum": "acc.grp_sum = acc.grp_sum.zip(x.{1}).map(|(a, b)| a + b);",
+                                                            "grp_count": "acc.group_count.map(|v| v + 1);"},
+                                              map_actions={self.alias.name: "{0}: x.{1}.zip(x.{2}).map(|(a, b)| a as f64 / b as f64),"})
+
         new_cols_types = dict(prev_struct.cols_types)
         new_cols_types[self.alias.name] = self.alias.dtype
         new_struct = Struct.from_args_dict(str(id(window)), new_cols_types)
@@ -367,7 +387,7 @@ class WindowOperator(Operator):
 
         # folding a WindowedStream without group_by still produces a KeyedStream, with unit tuple () as key
         # so discard it in that case
-        if not frame.group_by:
+        if frame.start and not frame.group_by:
             text += ".drop_key()"
 
         return text
