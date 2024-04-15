@@ -1,30 +1,30 @@
 use renoir::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
-#[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
 struct Struct_var_0 {
     fruit: String,
     weight: i64,
     price: Option<i64>,
 }
-#[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
 struct Struct_var_1 {
     fruit: String,
     weight: i64,
     price: Option<i64>,
 }
-#[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
 struct Struct_var_2 {
     agg2: Option<i64>,
 }
-#[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
 struct Struct_var_3 {
     agg2: Option<i64>,
     fruit: Option<String>,
     weight: Option<i64>,
     price: Option<i64>,
 }
-#[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
 struct Struct_var_4 {
     agg2: Option<i64>,
     fruit: Option<String>,
@@ -32,7 +32,7 @@ struct Struct_var_4 {
     price: Option<i64>,
     mut4: Option<i64>,
 }
-#[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
 struct Struct_collect {
     fruit: String,
 }
