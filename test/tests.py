@@ -299,27 +299,15 @@ class TestOperators(TestCompiler):
         self.assert_similarity_noir_output(query, noir_subset_ibis=True)
         self.assert_equality_noir_source()
 
-    def test_nullable_windowing_explicit(self):
-        # this window first groups by string1, then, keeping original ordering within groups, computes aggregation (mean)
-        # over the current row, the preceding 2 and following 2 rows (5 rows)
-        # if the group the preceding/following rows are finished the  mean is computed over fewer rows
-        #
-        # Emulate with sliding window
-        # CountWindow::new(size: 5, slide: 1, exact: false)
-        w = ibis.window(group_by="string1", preceding=2, following=2)
-        query = (self.tables[0]
-                 .mutate(group_percent=_.int4 / _.int4.sum().over(w), group_sum=_.int4.sum().over(w)))
-
-        ib_res = query.to_pandas()
-        compile_ibis_to_noir(zip(self.files, self.tables),
-                             query, run_after_gen=True, render_query_graph=True)
-
-        self.assert_similarity_noir_output(query, noir_subset_ibis=True)
-        self.assert_equality_noir_source()
-
     def test_nullable_windowing_compatible_group(self):
-        # noir doesn't support both preceding and following, only preceding, careful: with preceding 1 sums preceding and itself, so step 2!
+        # this window first groups by string1, then, keeping original ordering within groups, computes aggregation (mean)
+        # over the current row, and the preceding 1 row (2 rows total)
+        # if the group the preceding/following rows are finished the mean is computed over fewer rows
+        #
+        # noir semantics only support following=0
+        # ibis with preceding 1 aggregates preceding and itself, so translated to step=2
         # semantic difference: ibis takes up to 1 preceding row and itself, for a total of 2, while noir takes exactly 2 so produces fewer result rows
+        # i.e. ibis takes all windows with size 2 and below, while noir only takes windows with size 2
         w = ibis.window(group_by="string1", preceding=1, following=0)
         query = (self.tables[0]
                  .mutate(group_percent=_.int4 * 100 / _.int4.sum().over(w), group_sum=_.int4.sum().over(w)))
