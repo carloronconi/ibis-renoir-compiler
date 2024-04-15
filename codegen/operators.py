@@ -455,29 +455,28 @@ def operator_arg_stringify(operand: Node, recursively=False, struct_name=None) -
         return operand.name
     elif isinstance(operand, ops.numeric.NumericBinary):
         # resolve recursively
+
+        # for ibis, dividing two int64 results in a float64, but for noir it's still int64
+        # so we need to cast the operands
+        cast = ""
+        if type(operand).__name__ == "Divide":
+            cast = "as f64"
+
         # careful: ibis considers literals as optionals, while in noir a numeric literal is not an Option<T>
         is_left_nullable = operand.left.dtype.nullable and not isinstance(operand.left, ops.Literal)
         is_right_nullable = operand.right.dtype.nullable and not isinstance(operand.right, ops.Literal)
         if is_left_nullable and is_right_nullable:
             result = f"{operator_arg_stringify(operand.left, recursively, struct_name)}\
                     .zip({operator_arg_stringify(operand.right, recursively, struct_name)})\
-                    .map(|(a, b)| a {math_ops[type(operand).__name__]} b)"
+                    .map(|(a, b)| a {cast} {math_ops[type(operand).__name__]} b {cast})"
         elif is_left_nullable and not is_right_nullable:
             result = f"{operator_arg_stringify(operand.left, recursively, struct_name)}\
-                    .map(|v| v {math_ops[type(operand).__name__]} {operator_arg_stringify(operand.right, recursively, struct_name)})"
+                    .map(|v| v {cast} {math_ops[type(operand).__name__]} {operator_arg_stringify(operand.right, recursively, struct_name)} {cast})"
         elif not is_left_nullable and is_right_nullable:
             result = f"{operator_arg_stringify(operand.right, recursively, struct_name)}\
-                    .map(|v| {operator_arg_stringify(operand.left, recursively, struct_name)} {math_ops[type(operand).__name__]} v)"
+                    .map(|v| {operator_arg_stringify(operand.left, recursively, struct_name)} {cast} {math_ops[type(operand).__name__]} v {cast})"
         else:
-            result = f"{operator_arg_stringify(operand.left, recursively, struct_name)} {math_ops[type(operand).__name__]} {operator_arg_stringify(operand.right, recursively, struct_name)}"
-        
-        # for ibis, dividing two int64 results in a float64, but for noir it's still int64
-        # so we need to cast the result in different ways depending if it's nullable
-        if type(operand).__name__ == "Divide":
-            if operand.dtype.nullable:
-                result += ".map(|v| v as f64)"
-            else:
-                result += " as f64"
+            result = f"{operator_arg_stringify(operand.left, recursively, struct_name)} {cast} {math_ops[type(operand).__name__]} {operator_arg_stringify(operand.right, recursively, struct_name)} {cast}"
 
         return result
     elif isinstance(operand, ops.WindowFunction):
