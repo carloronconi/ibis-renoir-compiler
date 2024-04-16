@@ -72,7 +72,7 @@ class TestCompiler(unittest.TestCase):
                              f"Row occurrence count tables must have same values! Got this instead:\n{join}")
         else:
             # here we allow for noir to output fewer rows than ibis
-            # used for windowing, where ibis semantics don't include windows with size 
+            # used for windowing, where ibis semantics don't include windows with size
             # smaller than specified, while noir does
             left_count = join["_merge"].value_counts()["left_only"]
             right_count = join["_merge"].value_counts()["right_only"]
@@ -284,6 +284,10 @@ class TestOperators(TestCompiler):
         self.assert_similarity_noir_output(query, noir_subset_ibis=True)
         self.assert_equality_noir_source()
 
+    # THIS IS ALSO WRONG EVEN IF IT PASSES:
+    # in noir we're not using any window so rows in groups are squashed into single
+    # result
+    # what should happen is windows corresponding to each group are created
     def test_nullable_windowing_implicit_group(self):
         # here windowing is implicit over the whole group that was grouped before the mutate aggregation
         # so group_mean is actually the mean of the whole group having same string1
@@ -330,7 +334,7 @@ class TestOperators(TestCompiler):
                              query, run_after_gen=True, render_query_graph=False)
 
         self.assert_similarity_noir_output(query, noir_subset_ibis=True)
-        self.assert_equality_noir_source()    
+        self.assert_equality_noir_source()
 
 
 class TestNonNullableOperators(TestCompiler):
