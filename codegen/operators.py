@@ -317,6 +317,8 @@ class JoinOperator(Operator):
 
 
 class WindowOperator(Operator):
+    fold_func_type_init = {ibis.dtype("int64"): "Some(0)", ibis.dtype("float64"): "Some(0.0)"}
+
     class FoldFunc:
         def __init__(self, struct_fields={}, fold_actions={}, map_actions={}):
             self.struct_fields = struct_fields
@@ -357,34 +359,53 @@ class WindowOperator(Operator):
             else:
                 text += f".window_all(CountWindow::new({size}, 1, true))"
 
-        # generate .fold to apply the reduction function while maintaining other row fields
         prev_struct = Struct.last()
 
         match type(window.func).__name__:
             case "Sum":
                 op = WindowOperator.FoldFunc(struct_fields={self.alias.name: self.alias.dtype},
-                                              fold_actions={self.alias.name: "acc.{0} = acc.{0}.zip(x.{1}).map(|(a, b)| a + b);})"})
+                                              fold_actions={self.alias.name: "acc.{0} = acc.{0}.zip(x.{1}).map(|(a, b)| a + b);"})
             case "Mean":
-                op = WindowOperator.FoldFunc(struct_fields={self.alias.name: self.alias.dtype,
-                                                            "grp_sum": ibis.dtype("int64"),
-                                                            "grp_count": ibis.dtype("int64")},
+                op = WindowOperator.FoldFunc(struct_fields={"grp_sum": ibis.dtype("int64"),
+                                                            "grp_count": ibis.dtype("int64"),
+                                                            self.alias.name: self.alias.dtype},
                                               fold_actions={"grp_sum": "acc.grp_sum = acc.grp_sum.zip(x.{1}).map(|(a, b)| a + b);",
-                                                            "grp_count": "acc.group_count.map(|v| v + 1);"},
-                                              map_actions={self.alias.name: "{0}: x.{1}.zip(x.{2}).map(|(a, b)| a as f64 / b as f64),"})
+                                                            "grp_count": "acc.grp_count = acc.grp_count.map(|v| v + 1);"},
+                                              map_actions={self.alias.name: "{0}: x.grp_sum.zip(x.grp_count).map(|(a, b)| a as f64 / b as f64),"})
 
+        # create the new struct by adding struct_fields to previous struct's columns
         new_cols_types = dict(prev_struct.cols_types)
-        new_cols_types[self.alias.name] = self.alias.dtype
+        for n, t in op.struct_fields.items():
+            new_cols_types[n] = t
         new_struct = Struct.from_args_dict(str(id(window)), new_cols_types)
+
+        # generate .fold to apply the reduction function while maintaining other row fields
         text += f".fold({new_struct.name_struct}{{"
+        # fold accumulator initialization
         for col in prev_struct.columns:
             text += f"{col}: None, "
-        text += f"{self.alias.name}: Some(0), }}, |acc, x| {{"
+        for col, typ in op.struct_fields.items():
+            text += f"{col}: {self.fold_func_type_init[typ]}, "
+        # fold update step
+        text += "}, |acc, x| {"
         for col in prev_struct.columns:
             text += f"acc.{col} = x.{col}; "
-        op = self.fold_func_map[type(window.func).__name__]
         arg = window.func.args[0].name
-        text += f"acc.{self.alias.name} = acc.{self.alias.name}.zip(x.{arg}).map(|(a, b)| a {op} b);}})"
+        for col, action in op.fold_actions.items():
+            text += action.format(col, arg)
+        text += "},)"
 
+        # generate .map required by some window functions
+        if op.map_actions:
+            if new_struct.is_keyed_stream:
+                text += ".map(|(_, x)| "
+            else:
+                text += ".map(|x| "
+            text += f"{new_struct.name_struct}{{"
+            for col, action in op.map_actions.items():
+                text += action.format(col)
+            text += "..x })"
+        
         # folding a WindowedStream without group_by still produces a KeyedStream, with unit tuple () as key
         # so discard it in that case
         if frame.start and not frame.group_by:
@@ -488,6 +509,10 @@ def operator_arg_stringify(operand: Node, recursively=False, struct_name=None) -
         # so we need to cast the operands
         cast = ""
         if type(operand).__name__ == "Divide":
+            cast = "as f64"
+        # for ibis, any operation including a float64 (e.g. a int64 with a float64) produces a float64
+        # so any time the result is a float64, we cast all its operands (casting f64 to f64 has no effect)
+        if operand.dtype.name == "Float64":
             cast = "as f64"
 
         # careful: ibis considers literals as optionals, while in noir a numeric literal is not an Option<T>

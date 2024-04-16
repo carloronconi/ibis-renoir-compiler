@@ -314,7 +314,7 @@ class TestOperators(TestCompiler):
 
         ib_res = query.to_pandas()
         compile_ibis_to_noir(zip(self.files, self.tables),
-                             query, run_after_gen=True, render_query_graph=True)
+                             query, run_after_gen=True, render_query_graph=False)
 
         self.assert_similarity_noir_output(query, noir_subset_ibis=True)
         self.assert_equality_noir_source()
@@ -327,7 +327,7 @@ class TestOperators(TestCompiler):
 
         ib_res = query.to_pandas()
         compile_ibis_to_noir(zip(self.files, self.tables),
-                             query, run_after_gen=True, render_query_graph=True)
+                             query, run_after_gen=True, render_query_graph=False)
 
         self.assert_similarity_noir_output(query, noir_subset_ibis=True)
         self.assert_equality_noir_source()    
