@@ -1,19 +1,19 @@
 use renoir::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
-#[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
 struct Struct_var_0 {
     fruit: String,
     weight: i64,
     price: Option<i64>,
 }
-#[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
 struct Struct_var_1 {
     fruit: String,
     weight: i64,
     price: Option<i64>,
 }
-#[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
 struct Struct_var_2 {
     fruit: Option<String>,
     weight: Option<i64>,
@@ -22,7 +22,7 @@ struct Struct_var_2 {
     weight_right: Option<i64>,
     price_right: Option<i64>,
 }
-#[derive(Clone, Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Default)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
 struct Struct_collect {
     fruit: String,
 }
