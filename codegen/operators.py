@@ -14,27 +14,10 @@ class Operator:
 
     @classmethod
     def from_node(cls, node: Node):
-        match node:
-            case ops.PhysicalTable():
-                return DatabaseOperator(node)
-            case ops.relations.Join():
-                return JoinOperator(node)
-            case ops.relations.Aggregation() if any(isinstance(x, ops.core.Alias) for x in node.__children__):
-                if any(isinstance(x, ops.TableColumn) for x in node.__children__):
-                    return GroupReduceOperator(node)  # group_by().reduce()
-                else:
-                    return LoneReduceOperator(node)
-            case ops.logical.Comparison() if any(isinstance(c, ops.Literal) for c in node.__children__):
-                return FilterOperator(node)
-            case ops.core.Alias() if any(isinstance(c, ops.numeric.NumericBinary)
-                                         # and not any(isinstance(cc, ops.WindowFunction) for cc in c.__children__)
-                                         for c in node.__children__):
-                return MapOperator(node)
-            case ops.relations.Selection() if (any(isinstance(c, ops.TableColumn) for c in node.__children__)
-                                               and not any(isinstance(c, ops.Join) for c in node.__children__)):
-                return SelectOperator(node)
-            case ops.core.Alias() if any(isinstance(c, ops.WindowFunction) for c in node.__children__):
-                return WindowOperator(node)
+        operator_classes = cls.__subclasses__()
+
+        for Op in operator_classes:
+            Op.recognize(node)
 
     @classmethod
     def new_top(cls):
@@ -53,6 +36,10 @@ class Operator:
 
     def does_add_struct(self) -> bool:
         return False
+
+    @classmethod
+    def recognize(cls, node: Node):
+        return
 
 
 class SelectOperator(Operator):
@@ -83,6 +70,13 @@ class SelectOperator(Operator):
     def does_add_struct(self) -> bool:
         return True
 
+    @classmethod
+    def recognize(cls, node: Node):
+        if (isinstance(node, ops.relations.Selection) and
+                (any(isinstance(c, ops.TableColumn) for c in node.__children__) and
+                 not any(isinstance(c, ops.Join) for c in node.__children__))):
+            return cls(node)
+
 
 class FilterOperator(Operator):
     bin_ops = {"Equals": "==", "Greater": ">",
@@ -99,6 +93,24 @@ class FilterOperator(Operator):
         if Struct.last().is_col_nullable(left):
             return f".filter(|x| x.{left}.clone().is_some_and(|v| v {op} {right}))"
         return f".filter(|x| x.{left} {op} {right})"
+
+    @classmethod
+    def recognize(cls, node: Node):
+
+        def is_equals_literal(node: Node) -> bool:
+            return isinstance(node, ops.logical.Comparison) and any(isinstance(c, ops.Literal) for c in node.__children__)
+
+        if not (isinstance(node, ops.Selection) or isinstance(node, ops.Aggregation)):
+            return
+        equalses = list(filter(is_equals_literal, node.__children__))
+        log_bins = list(filter((lambda c: isinstance(c, ops.logical.LogicalBinary) and any(
+            is_equals_literal(cc) for cc in c.__children__)), node.__children__))
+
+        for eq in equalses:
+            cls(eq)
+
+        for lb in log_bins:
+            cls(lb)
 
 
 class MapOperator(Operator):
@@ -135,6 +147,14 @@ class MapOperator(Operator):
     def does_add_struct(self) -> bool:
         return True
 
+    @classmethod
+    def recognize(cls, node: Node):
+        if (isinstance(node, ops.core.Alias) and
+                any(isinstance(c, ops.numeric.NumericBinary)
+                    # and not any(isinstance(cc, ops.WindowFunction) for cc in c.__children__)
+                    for c in node.__children__)):
+            return cls(node)
+
 
 class LoneReduceOperator(Operator):
     aggr_ops = {"Sum": "+"}
@@ -169,6 +189,13 @@ class LoneReduceOperator(Operator):
 
     def does_add_struct(self) -> bool:
         return True
+
+    @classmethod
+    def recognize(cls, node: Node):
+        if (isinstance(node, ops.relations.Aggregation) and
+                any(isinstance(x, ops.core.Alias) for x in node.__children__) and
+                not any(isinstance(x, ops.TableColumn) for x in node.__children__)):
+            return cls(node)
 
 
 class GroupReduceOperator(Operator):
@@ -220,6 +247,13 @@ class GroupReduceOperator(Operator):
 
     def does_add_struct(self) -> bool:
         return True
+
+    @classmethod
+    def recognize(cls, node: Node):
+        if (isinstance(node, ops.relations.Aggregation) and
+                any(isinstance(x, ops.core.Alias) for x in node.__children__) and
+                any(isinstance(x, ops.TableColumn) for x in node.__children__)):
+            return cls(node)
 
 
 class JoinOperator(Operator):
@@ -314,6 +348,11 @@ class JoinOperator(Operator):
 
     def does_add_struct(self) -> bool:
         return True
+
+    @classmethod
+    def recognize(cls, node: Node):
+        if isinstance(node, ops.relations.Join):
+            return cls(node)
 
 
 class WindowOperator(Operator):
@@ -421,6 +460,11 @@ class WindowOperator(Operator):
     def does_add_struct(self) -> bool:
         return True
 
+    @classmethod
+    def recognize(cls, node: Node):
+        if isinstance(node, ops.core.Alias) and any(isinstance(c, ops.WindowFunction) for c in node.__children__):
+            return cls(node)
+
 
 class DatabaseOperator(Operator):
     def __init__(self, node: ops.DatabaseTable):
@@ -451,6 +495,11 @@ class DatabaseOperator(Operator):
 
     def does_add_struct(self) -> bool:
         return True
+
+    @classmethod
+    def recognize(cls, node: Node):
+        if isinstance(node, ops.PhysicalTable):
+            return cls(node)
 
 
 class TopOperator(Operator):

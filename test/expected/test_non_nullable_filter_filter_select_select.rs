@@ -21,8 +21,8 @@ fn logic(ctx: StreamContext) {
     let var_0 =
         ctx.stream_csv::<Struct_var_0>("/home/carlo/Projects/ibis-quickstart/data/fruit_left.csv");
     let var_2 = var_0
-        .filter(|x| x.fruit == "Apple")
         .filter(|x| x.price.clone().is_some_and(|v| v > 3))
+        .filter(|x| x.fruit == "Apple")
         .map(|x| Struct_var_1 {
             fruit: x.fruit,
             weight: x.weight,
