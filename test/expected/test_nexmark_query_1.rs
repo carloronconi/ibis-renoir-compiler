@@ -3,31 +3,55 @@ use serde::{Deserialize, Serialize};
 use std::fs::File;
 #[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
 struct Struct_var_0 {
-    fruit: String,
-    weight: i64,
+    auction: Option<i64>,
+    bidder: Option<i64>,
     price: Option<i64>,
+    channel: Option<String>,
+    url: Option<String>,
+    date_time: Option<i64>,
+    extra: Option<String>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
 struct Struct_var_1 {
-    fruit: String,
-    weight: i64,
+    auction: Option<i64>,
+    bidder: Option<i64>,
+    price: Option<i64>,
+    channel: Option<String>,
+    url: Option<String>,
+    date_time: Option<i64>,
+    extra: Option<String>,
+    dol_price: Option<f64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
 struct Struct_var_2 {
-    fruit: String,
+    auction: Option<i64>,
+    price: Option<i64>,
+    dol_price: Option<f64>,
+    bidder: Option<i64>,
+    date_time: Option<i64>,
 }
 
 fn logic(ctx: StreamContext) {
     let var_0 =
-        ctx.stream_csv::<Struct_var_0>("/home/carlo/Projects/ibis-quickstart/data/fruit_left.csv");
+        ctx.stream_csv::<Struct_var_0>("/home/carlo/Projects/ibis-quickstart/data/nexmark/bid.csv");
     let var_2 = var_0
-        .filter(|x| x.price.clone().is_some_and(|v| v > 3))
-        .filter(|x| x.fruit == "Apple")
         .map(|x| Struct_var_1 {
-            fruit: x.fruit,
-            weight: x.weight,
+            auction: x.auction,
+            bidder: x.bidder,
+            price: x.price,
+            channel: x.channel,
+            url: x.url,
+            date_time: x.date_time,
+            extra: x.extra,
+            dol_price: x.price.map(|v| v as f64 * 0.85 as f64),
         })
-        .map(|x| Struct_var_2 { fruit: x.fruit });
+        .map(|x| Struct_var_2 {
+            auction: x.auction,
+            price: x.price,
+            dol_price: x.dol_price,
+            bidder: x.bidder,
+            date_time: x.date_time,
+        });
     let out = var_2.collect_vec();
     tracing::info!("starting execution");
     ctx.execute_blocking();

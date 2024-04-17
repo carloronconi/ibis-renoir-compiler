@@ -35,6 +35,7 @@ class TestCompiler(unittest.TestCase):
     def assert_similarity_noir_output(self, query, noir_subset_ibis=False):
         print(query.head(50).to_pandas())
         df_ibis = query.to_pandas()
+        df_ibis.to_csv(ROOT_DIR + "/out/ibis-result.csv")
         df_noir = pd.read_csv(ROOT_DIR + "/out/noir-result.csv")
 
         # with keyed streams, noir preserves the key column with its original name
@@ -66,6 +67,7 @@ class TestCompiler(unittest.TestCase):
         join = pd.merge(df_ibis, df_noir, how="outer",
                         on=df_ibis.columns.tolist(), indicator=True)
         both_count = join["_merge"].value_counts()["both"]
+        join.to_csv(ROOT_DIR + "/out/ibis-noir-comparison.csv")
 
         if not noir_subset_ibis:
             self.assertEqual(both_count, len(join.index),

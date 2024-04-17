@@ -14,27 +14,10 @@ class Operator:
 
     @classmethod
     def from_node(cls, node: Node):
-        match node:
-            case ops.PhysicalTable():
-                return DatabaseOperator(node)
-            case ops.relations.Join():
-                return JoinOperator(node)
-            case ops.relations.Aggregation() if any(isinstance(x, ops.core.Alias) for x in node.__children__):
-                if any(isinstance(x, ops.TableColumn) for x in node.__children__):
-                    return GroupReduceOperator(node)  # group_by().reduce()
-                else:
-                    return LoneReduceOperator(node)
-            case ops.logical.Comparison() if any(isinstance(c, ops.Literal) for c in node.__children__):
-                return FilterOperator(node)
-            case ops.core.Alias() if any(isinstance(c, ops.numeric.NumericBinary)
-                                         # and not any(isinstance(cc, ops.WindowFunction) for cc in c.__children__)
-                                         for c in node.__children__):
-                return MapOperator(node)
-            case ops.relations.Selection() if (any(isinstance(c, ops.TableColumn) for c in node.__children__)
-                                               and not any(isinstance(c, ops.Join) for c in node.__children__)):
-                return SelectOperator(node)
-            case ops.core.Alias() if any(isinstance(c, ops.WindowFunction) for c in node.__children__):
-                return WindowOperator(node)
+        operator_classes = cls.__subclasses__()
+
+        for Op in operator_classes:
+            Op.recognize(node)
 
     @classmethod
     def new_top(cls):
@@ -53,6 +36,10 @@ class Operator:
 
     def does_add_struct(self) -> bool:
         return False
+
+    @classmethod
+    def recognize(cls, node: Node):
+        return
 
 
 class SelectOperator(Operator):
@@ -83,22 +70,41 @@ class SelectOperator(Operator):
     def does_add_struct(self) -> bool:
         return True
 
+    @classmethod
+    def recognize(cls, node: Node):
+        if (isinstance(node, ops.relations.Selection) and
+                (any(isinstance(c, ops.TableColumn) for c in node.__children__) and
+                 not any(isinstance(c, ops.Join) for c in node.__children__))):
+            return cls(node)
+
 
 class FilterOperator(Operator):
-    bin_ops = {"Equals": "==", "Greater": ">",
-               "GreaterEqual": ">=", "Less": "<", "LessEqual": "<="}
 
     def __init__(self, node: ops.logical.Comparison):
         self.comparator = node
         super().__init__()
 
     def generate(self) -> str:
-        op = self.bin_ops[type(self.comparator).__name__]
-        left = operator_arg_stringify(self.comparator.left)
-        right = operator_arg_stringify(self.comparator.right)
-        if Struct.last().is_col_nullable(left):
-            return f".filter(|x| x.{left}.clone().is_some_and(|v| v {op} {right}))"
-        return f".filter(|x| x.{left} {op} {right})"
+        filter_expr = operator_arg_stringify(self.comparator, "x")
+        return f".filter(|x| {filter_expr})"
+
+    @classmethod
+    def recognize(cls, node: Node):
+
+        def is_equals_literal(node: Node) -> bool:
+            return isinstance(node, ops.logical.Comparison) and any(isinstance(c, ops.Literal) for c in node.__children__)
+
+        if not (isinstance(node, ops.Selection) or isinstance(node, ops.Aggregation)):
+            return
+        equalses = list(filter(is_equals_literal, node.__children__))
+        log_bins = list(filter((lambda c: isinstance(c, ops.logical.LogicalBinary) and any(
+            is_equals_literal(cc) for cc in c.__children__)), node.__children__))
+
+        for eq in equalses:
+            cls(eq)
+
+        for lb in log_bins:
+            cls(lb)
 
 
 class MapOperator(Operator):
@@ -127,13 +133,21 @@ class MapOperator(Operator):
         for new_col, prev_col in zip(new_struct.columns, prev_struct.columns):
             mid += f"{new_col}: x.{prev_col}, "
 
-        num_ops = operator_arg_stringify(self.mapper, True, "x")
+        num_ops = operator_arg_stringify(self.mapper, "x")
         mid += f"{self.node.name}: {num_ops},}})"
 
         return mid
 
     def does_add_struct(self) -> bool:
         return True
+
+    @classmethod
+    def recognize(cls, node: Node):
+        if (isinstance(node, ops.core.Alias) and
+                any(isinstance(c, ops.numeric.NumericBinary)
+                    # and not any(isinstance(cc, ops.WindowFunction) for cc in c.__children__)
+                    for c in node.__children__)):
+            return cls(node)
 
 
 class LoneReduceOperator(Operator):
@@ -169,6 +183,13 @@ class LoneReduceOperator(Operator):
 
     def does_add_struct(self) -> bool:
         return True
+
+    @classmethod
+    def recognize(cls, node: Node):
+        if (isinstance(node, ops.relations.Aggregation) and
+                any(isinstance(x, ops.core.Alias) for x in node.__children__) and
+                not any(isinstance(x, ops.TableColumn) for x in node.__children__)):
+            return cls(node)
 
 
 class GroupReduceOperator(Operator):
@@ -220,6 +241,13 @@ class GroupReduceOperator(Operator):
 
     def does_add_struct(self) -> bool:
         return True
+
+    @classmethod
+    def recognize(cls, node: Node):
+        if (isinstance(node, ops.relations.Aggregation) and
+                any(isinstance(x, ops.core.Alias) for x in node.__children__) and
+                any(isinstance(x, ops.TableColumn) for x in node.__children__)):
+            return cls(node)
 
 
 class JoinOperator(Operator):
@@ -314,6 +342,11 @@ class JoinOperator(Operator):
 
     def does_add_struct(self) -> bool:
         return True
+
+    @classmethod
+    def recognize(cls, node: Node):
+        if isinstance(node, ops.relations.Join):
+            return cls(node)
 
 
 class WindowOperator(Operator):
@@ -421,6 +454,11 @@ class WindowOperator(Operator):
     def does_add_struct(self) -> bool:
         return True
 
+    @classmethod
+    def recognize(cls, node: Node):
+        if isinstance(node, ops.core.Alias) and any(isinstance(c, ops.WindowFunction) for c in node.__children__):
+            return cls(node)
+
 
 class DatabaseOperator(Operator):
     def __init__(self, node: ops.DatabaseTable):
@@ -451,6 +489,11 @@ class DatabaseOperator(Operator):
 
     def does_add_struct(self) -> bool:
         return True
+
+    @classmethod
+    def recognize(cls, node: Node):
+        if isinstance(node, ops.PhysicalTable):
+            return cls(node)
 
 
 class TopOperator(Operator):
@@ -497,16 +540,31 @@ class BotOperator(Operator):
 # if operand is literal, return its value
 # if operand is table column, return its index in the original table
 # if resolve_optionals_to_some we're recursively resolving a binary operation and also need struct_name
-def operator_arg_stringify(operand: Node, recursively=False, struct_name=None) -> str:
+def operator_arg_stringify(operand: Node, struct_name=None) -> str:
     math_ops = {"Multiply": "*", "Add": "+", "Subtract": "-", "Divide": "/"}
+    comp_ops = {"Equals": "==", "Greater": ">",
+                "GreaterEqual": ">=", "Less": "<", "LessEqual": "<="}
+    log_ops = {"And": "&", "Or": "|"}
     if isinstance(operand, ibis.expr.operations.generic.TableColumn):
-        if recursively:
+        if struct_name:
             return f"{struct_name}.{operand.name}"
         return operand.name
     elif isinstance(operand, ibis.expr.operations.generic.Literal):
         if operand.dtype.name == "String":
             return "\"" + ''.join(filter(str.isalnum, operand.name)) + "\""
         return operand.name
+    elif isinstance(operand, ops.logical.Comparison):
+        # right is always a literal, which is always nullable
+        left = operator_arg_stringify(operand.left, struct_name)
+        right = operator_arg_stringify(operand.right, struct_name)
+        op = comp_ops[type(operand).__name__]
+        if operand.left.dtype.nullable:
+            return f"{left}.clone().is_some_and(|v| v {op} {right})"
+        return f"{left} {op} {right}"
+    elif isinstance(operand, ops.LogicalBinary):
+        left = operator_arg_stringify(operand.left, struct_name)
+        right = operator_arg_stringify(operand.right, struct_name)
+        return f"{left} {log_ops[type(operand).__name__]} {right}"
     elif isinstance(operand, ops.numeric.NumericBinary):
         # resolve recursively
 
@@ -526,17 +584,17 @@ def operator_arg_stringify(operand: Node, recursively=False, struct_name=None) -
         is_right_nullable = operand.right.dtype.nullable and not isinstance(
             operand.right, ops.Literal)
         if is_left_nullable and is_right_nullable:
-            result = f"{operator_arg_stringify(operand.left, recursively, struct_name)}\
-                    .zip({operator_arg_stringify(operand.right, recursively, struct_name)})\
+            result = f"{operator_arg_stringify(operand.left, struct_name)}\
+                    .zip({operator_arg_stringify(operand.right, struct_name)})\
                     .map(|(a, b)| a {cast} {math_ops[type(operand).__name__]} b {cast})"
         elif is_left_nullable and not is_right_nullable:
-            result = f"{operator_arg_stringify(operand.left, recursively, struct_name)}\
-                    .map(|v| v {cast} {math_ops[type(operand).__name__]} {operator_arg_stringify(operand.right, recursively, struct_name)} {cast})"
+            result = f"{operator_arg_stringify(operand.left, struct_name)}\
+                    .map(|v| v {cast} {math_ops[type(operand).__name__]} {operator_arg_stringify(operand.right, struct_name)} {cast})"
         elif not is_left_nullable and is_right_nullable:
-            result = f"{operator_arg_stringify(operand.right, recursively, struct_name)}\
-                    .map(|v| {operator_arg_stringify(operand.left, recursively, struct_name)} {cast} {math_ops[type(operand).__name__]} v {cast})"
+            result = f"{operator_arg_stringify(operand.right, struct_name)}\
+                    .map(|v| {operator_arg_stringify(operand.left, struct_name)} {cast} {math_ops[type(operand).__name__]} v {cast})"
         else:
-            result = f"{operator_arg_stringify(operand.left, recursively, struct_name)} {cast} {math_ops[type(operand).__name__]} {operator_arg_stringify(operand.right, recursively, struct_name)} {cast}"
+            result = f"{operator_arg_stringify(operand.left, struct_name)} {cast} {math_ops[type(operand).__name__]} {operator_arg_stringify(operand.right, struct_name)} {cast}"
 
         return result
     elif isinstance(operand, ops.WindowFunction):
