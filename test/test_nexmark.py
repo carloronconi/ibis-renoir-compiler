@@ -17,12 +17,10 @@ class TestNexmark(TestCompiler):
 
     def test_nexmark_query_1(self):
         """
-        Query 1
-        ```
         SELECT Istream(auction, DOLTOEUR(price), bidder, datetime)
         FROM bid [ROWS UNBOUNDED];
-        ```
         """
+
         bid = self.tables["bid"]
         query = (bid
                  .mutate(dol_price=bid["price"] * 0.85)
@@ -46,8 +44,28 @@ class TestNexmark(TestCompiler):
         query = (bid
                  .filter((bid["auction"] == 1007) | (bid["auction"] == 1020) | (bid["auction"] == 2001) | (bid["auction"] == 2019) | (bid["auction"] == 2087))
                  .select(["auction", "price"]))
-        
+
         compile_ibis_to_noir([(self.files["bid"], bid)],
+                             query, run_after_gen=True, render_query_graph=False)
+
+        self.assert_similarity_noir_output(query)
+        self.assert_equality_noir_source()
+
+    def test_nexmark_query_3(self):
+        """
+        SELECT Istream(P.name, P.city, P.state, A.id)
+        FROM Auction A [ROWS UNBOUNDED], Person P [ROWS UNBOUNDED]
+        WHERE A.seller = P.id AND (P.state = `OR' OR P.state = `ID' OR P.state = `CA') AND A.category = 10;
+        """
+
+        auction = self.tables["auction"]
+        person = self.tables["person"]
+        query = (auction
+                 .join(person, auction["seller"] == person["id"])
+                 .filter((person["state"] == "OR") | (person["state"] == "ID") | (person["state"] == "CA"))
+                 .filter(auction["category"] == 10)
+                 .select(["name", "city", "state", "id"]))
+        compile_ibis_to_noir([(self.files["auction"], auction), (self.files["person"], person)],
                              query, run_after_gen=True, render_query_graph=False)
         
         self.assert_similarity_noir_output(query)

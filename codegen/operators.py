@@ -86,6 +86,8 @@ class FilterOperator(Operator):
 
     def generate(self) -> str:
         filter_expr = operator_arg_stringify(self.comparator, "x")
+        if Struct.last().is_keyed_stream:
+            return f".filter(|(_, x)| {filter_expr})"
         return f".filter(|x| {filter_expr})"
 
     @classmethod
@@ -265,8 +267,8 @@ class JoinOperator(Operator):
         left_struct = Struct.last()
 
         equals = self.join.predicates[0]
-        left_col = operator_arg_stringify(equals.left)
-        right_col = operator_arg_stringify(equals.right)
+        left_col = operator_arg_stringify(equals.right) # ibis has left and right switched
+        right_col = operator_arg_stringify(equals.left)
         join_t = self.noir_types[type(self.join).__name__]
 
         Struct.with_keyed_stream = (equals.left.name, equals.left.dtype)
@@ -484,7 +486,7 @@ class DatabaseOperator(Operator):
         count_structs = len(list(
             filter(lambda o: o.does_add_struct(), self.operators[this_idx + 1:end_idx])))
 
-        return (f";\nlet {struct.name_short} = ctx.stream_csv::<{struct.name_struct}>(\"{utl.TAB_FILES[struct.name_long]}\");\n" +
+        return (f";\nlet {struct.name_short} = ctx.stream_csv::<{struct.name_struct}>(\"{utl.TAB_FILES[self.table.name]}\");\n" +
                 f"let var_{struct.id_counter + count_structs} = {struct.name_short}")
 
     def does_add_struct(self) -> bool:

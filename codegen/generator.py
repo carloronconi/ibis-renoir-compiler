@@ -14,7 +14,7 @@ def compile_ibis_to_noir(files_tables: list[tuple[str, PhysicalTable]],
                          render_query_graph=True):
 
     for file, table in files_tables:
-        utl.TAB_FILES[str(id(table._arg))] = file
+        utl.TAB_FILES[str(table._arg.name)] = file
 
     if render_query_graph:
         to_graph(query).render(utl.ROOT_DIR + "/out/query")
