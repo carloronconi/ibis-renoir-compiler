@@ -367,7 +367,6 @@ class TestOperators(TestCompiler):
         self.assert_equality_noir_source()
 
     def test_nullable_windowing_compatible_window_far(self):
-        # TODO: fix recognition
         # same as previous but testing complex aggregation function that 
         # makes WindowFunction not direct __children__ of Alias but child of child
         # so for now not recognized as ExplicitWindowOperator
@@ -377,7 +376,7 @@ class TestOperators(TestCompiler):
 
         ib_res = query.to_pandas()
         compile_ibis_to_noir(zip(self.files, self.tables),
-                             query, run_after_gen=True, render_query_graph=True)
+                             query, run_after_gen=True, render_query_graph=False)
 
         self.assert_similarity_noir_output(query, noir_subset_ibis=True)
         self.assert_equality_noir_source()
@@ -446,7 +445,7 @@ class TestNonNullableOperators(TestCompiler):
                  .select(["int1_agg"]))
 
         compile_ibis_to_noir([(self.files[0], self.tables[0])],
-                             query, run_after_gen=True, render_query_graph=False)
+                             query, run_after_gen=True, render_query_graph=True)
 
         self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source()

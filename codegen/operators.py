@@ -15,7 +15,19 @@ class Operator:
 
     @classmethod
     def from_node(cls, node: Node):
-        operator_classes = cls.__subclasses__()
+        # recursively find subclasses to include only leaves
+        # TODO: check below true and if true assign priority to operators instead
+        # pop(0) to perform search as queue because breaks priority of recognition less
+        # but seems still broken for some
+        operator_classes = []
+        stack = [cls]
+        while stack:
+            curr = stack.pop(0)
+            subclasses = curr.__subclasses__()
+            if subclasses:
+                stack.extend(subclasses)
+            else:
+                operator_classes.append(curr)
 
         for Op in operator_classes:
             Op.recognize(node)
@@ -133,10 +145,19 @@ class MapOperator(Operator):
             mid += ".map(|x| "
 
         mid += f"{new_struct.name_struct}{{"
-        for new_col, prev_col in zip(new_struct.columns, prev_struct.columns):
-            mid += f"{new_col}: x.{prev_col}, "
 
-        num_ops = operator_arg_stringify(self.mapper, "x")
+        cols_to_copy = prev_struct.columns.copy()
+        # when WindowFunction is below same alias as map's, it produces struct with col with the same name
+        # so we need to use that as the argument for the map's calculation and avoid copying it
+        if len(prev_struct.columns) == len(new_struct.columns):
+            cols_to_copy.pop()
+
+        for col in cols_to_copy:
+            mid += f"{col}: x.{col}, "
+
+        # override WindowFunction node resolution, so in case WindowFunction is below mapper, it will be resolved
+        # to the alias's name for reason above
+        num_ops = operator_arg_stringify(self.mapper, "x", window_resolve=self.node)
         mid += f"{self.node.name}: {num_ops},}})"
 
         return mid
@@ -353,14 +374,37 @@ class JoinOperator(Operator):
             return cls(node)
 
 
-class ExplicitWindowOperator(Operator):
+class WindowOperator(Operator):
+
+    def generate(self) -> str:
+        # abstract class so should not actually be used
+        raise NotImplementedError
 
     def __init__(self, node: ops.WindowFunction):
         self.alias = node
         super().__init__()
 
+    def does_add_struct(self) -> bool:
+        return True
+
+    @staticmethod
+    def find_window_func_from_alias(alias: ops.core.Alias) -> ops.WindowFunction:
+        stack = []
+        stack.append(alias)
+
+        while stack:
+            curr = stack.pop()
+            for child in curr.__children__:
+                if isinstance(child, ops.WindowFunction):
+                    return child
+                if isinstance(child, ops.numeric.NumericBinary):
+                    stack.append(child)
+
+
+class ExplicitWindowOperator(WindowOperator):
+
     def generate(self) -> str:
-        window = self.alias.arg
+        window = self.find_window_func_from_alias(self.alias)
         frame = window.frame
         if frame.start and frame.start.following:
             raise Exception(
@@ -445,30 +489,31 @@ class ExplicitWindowOperator(Operator):
 
         return text
 
-    def does_add_struct(self) -> bool:
-        return True
-
     @classmethod
     def recognize(cls, node: Node):
-        # node should be Alias, Alias should have WindowFunction arg attribute
+        # node should be Alias, Alias should have WindowFunction successor, either direct or
+        # through a chain of NumericBinary operations
         # WindowFunctions have RowsWindowFrame frame attribute, and
         # the window operator is Explicit only if the RowsWindowFrame has a start attribute
         # with value not None
-        if (isinstance(node, ops.core.Alias) and
-            hasattr(node, "arg") and
-            hasattr(node.arg, "frame") and
-            hasattr(node.arg.frame, "start") and
-                node.arg.frame.start):
+        if not isinstance(node, ops.core.Alias):
+            return
+
+        window_func = cls.find_window_func_from_alias(node)
+
+        if not window_func:
+            return
+
+        if (hasattr(window_func, "frame") and
+            hasattr(window_func.frame, "start") and
+                window_func.frame.start):
             return cls(node)
 
 
-class ImplicitWindowOperator(Operator):
-    def __init__(self, node: ops.WindowFunction):
-        self.alias = node
-        super().__init__()
+class ImplicitWindowOperator(WindowOperator):
 
     def generate(self) -> str:
-        window = self.alias.arg
+        window = self.find_window_func_from_alias(self.alias)
         frame = window.frame
         text = ""
 
@@ -494,7 +539,8 @@ class ImplicitWindowOperator(Operator):
             case "Mean":
                 op = WindowFuncGen(
                     [WindowFuncGen.Func("sum", ibis.dtype("!int64"), init_action="x.{1}.unwrap_or(0)", fold_action="a_sum + b_sum"),
-                     WindowFuncGen.Func("count", ibis.dtype("!int64"), init_action="1", fold_action="a_count + b_count"),
+                     WindowFuncGen.Func("count", ibis.dtype(
+                         "!int64"), init_action="1", fold_action="a_count + b_count"),
                      WindowFuncGen.Func(self.alias.name, self.alias.dtype, map_action="{0}: Some(*sum as f64 / *count as f64),")])
 
         # create the new struct by adding struct_fields to previous struct's columns
@@ -539,20 +585,23 @@ class ImplicitWindowOperator(Operator):
 
         return text
 
-    def does_add_struct(self) -> bool:
-        return True
-
     @classmethod
     def recognize(cls, node: Node):
         # node should be Alias, Alias should have WindowFunction arg attribute
         # WindowFunctions have RowsWindowFrame frame attribute, and
         # the window operator is Implicit only if the RowsWindowFrame has a start attribute
         # with value None
-        if (isinstance(node, ops.core.Alias) and
-            hasattr(node, "arg") and
-            hasattr(node.arg, "frame") and
-            hasattr(node.arg.frame, "start")
-                and node.arg.frame.start is None):
+        if not isinstance(node, ops.core.Alias):
+            return
+
+        window_func = cls.find_window_func_from_alias(node)
+
+        if not window_func:
+            return
+
+        if (hasattr(window_func, "frame") and
+            hasattr(window_func.frame, "start")
+                and window_func.frame.start is None):
             return cls(node)
 
 
@@ -667,7 +716,7 @@ class WindowFuncGen:
 # if operand is literal, return its value
 # if operand is table column, return its index in the original table
 # if resolve_optionals_to_some we're recursively resolving a binary operation and also need struct_name
-def operator_arg_stringify(operand: Node, struct_name=None) -> str:
+def operator_arg_stringify(operand: Node, struct_name=None, window_resolve=None) -> str:
     math_ops = {"Multiply": "*", "Add": "+", "Subtract": "-", "Divide": "/"}
     comp_ops = {"Equals": "==", "Greater": ">",
                 "GreaterEqual": ">=", "Less": "<", "LessEqual": "<="}
@@ -678,19 +727,19 @@ def operator_arg_stringify(operand: Node, struct_name=None) -> str:
         return operand.name
     elif isinstance(operand, ibis.expr.operations.generic.Literal):
         if operand.dtype.name == "String":
-            return "\"" + ''.join(filter(str.isalnum, operand.name)) + "\""
+            return f"\"{operand.value}\""
         return operand.name
     elif isinstance(operand, ops.logical.Comparison):
         # right is always a literal, which is always nullable
-        left = operator_arg_stringify(operand.left, struct_name)
-        right = operator_arg_stringify(operand.right, struct_name)
+        left = operator_arg_stringify(operand.left, struct_name, window_resolve)
+        right = operator_arg_stringify(operand.right, struct_name, window_resolve)
         op = comp_ops[type(operand).__name__]
         if operand.left.dtype.nullable:
             return f"{left}.clone().is_some_and(|v| v {op} {right})"
         return f"{left} {op} {right}"
     elif isinstance(operand, ops.LogicalBinary):
-        left = operator_arg_stringify(operand.left, struct_name)
-        right = operator_arg_stringify(operand.right, struct_name)
+        left = operator_arg_stringify(operand.left, struct_name, window_resolve)
+        right = operator_arg_stringify(operand.right, struct_name, window_resolve)
         return f"{left} {log_ops[type(operand).__name__]} {right}"
     elif isinstance(operand, ops.numeric.NumericBinary):
         # resolve recursively
@@ -711,20 +760,23 @@ def operator_arg_stringify(operand: Node, struct_name=None) -> str:
         is_right_nullable = operand.right.dtype.nullable and not isinstance(
             operand.right, ops.Literal)
         if is_left_nullable and is_right_nullable:
-            result = f"{operator_arg_stringify(operand.left, struct_name)}\
-                    .zip({operator_arg_stringify(operand.right, struct_name)})\
+            result = f"{operator_arg_stringify(operand.left, struct_name, window_resolve)}\
+                    .zip({operator_arg_stringify(operand.right, struct_name, window_resolve)})\
                     .map(|(a, b)| a {cast} {math_ops[type(operand).__name__]} b {cast})"
         elif is_left_nullable and not is_right_nullable:
-            result = f"{operator_arg_stringify(operand.left, struct_name)}\
-                    .map(|v| v {cast} {math_ops[type(operand).__name__]} {operator_arg_stringify(operand.right, struct_name)} {cast})"
+            result = f"{operator_arg_stringify(operand.left, struct_name, window_resolve)}\
+                    .map(|v| v {cast} {math_ops[type(operand).__name__]} {operator_arg_stringify(operand.right, struct_name, window_resolve)} {cast})"
         elif not is_left_nullable and is_right_nullable:
-            result = f"{operator_arg_stringify(operand.right, struct_name)}\
-                    .map(|v| {operator_arg_stringify(operand.left, struct_name)} {cast} {math_ops[type(operand).__name__]} v {cast})"
+            result = f"{operator_arg_stringify(operand.right, struct_name, window_resolve)}\
+                    .map(|v| {operator_arg_stringify(operand.left, struct_name, window_resolve)} {cast} {math_ops[type(operand).__name__]} v {cast})"
         else:
-            result = f"{operator_arg_stringify(operand.left, struct_name)} {cast} {math_ops[type(operand).__name__]} {operator_arg_stringify(operand.right, struct_name)} {cast}"
+            result = f"{operator_arg_stringify(operand.left, struct_name, window_resolve)} {cast} {math_ops[type(operand).__name__]} {operator_arg_stringify(operand.right, struct_name, window_resolve)} {cast}"
 
         return result
     elif isinstance(operand, ops.WindowFunction):
+        # window resolve case: map is preceded by WindowFunction which used same name as map's result for its result
+        if window_resolve:
+            return f"{struct_name}.{window_resolve.name}"
         # alias is above WindowFunction and not dependency, but because .map follows .fold
         # in this case, we can get the column added by the DatabaseOperator in the struct
         # it just created, which is second to last (last is new col added by MapOperator)
