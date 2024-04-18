@@ -35,6 +35,7 @@ class TestCompiler(unittest.TestCase):
     def assert_similarity_noir_output(self, query, noir_subset_ibis=False):
         print(query.head(50).to_pandas())
         df_ibis = query.to_pandas()
+        self.round_float_cols(df_ibis)
         df_ibis.to_csv(ROOT_DIR + "/out/ibis-result.csv")
         
         noir_path = ROOT_DIR + "/out/noir-result.csv"
@@ -46,6 +47,7 @@ class TestCompiler(unittest.TestCase):
             return
         
         df_noir = pd.read_csv(noir_path)
+        self.round_float_cols(df_noir)
 
         # with keyed streams, noir preserves the key column with its original name
         # with joins, both the key column and the corresponding cols in joined tables are preserved
@@ -93,6 +95,12 @@ class TestCompiler(unittest.TestCase):
             self.assertGreaterEqual(both_count, 0, message)
 
         print(f"\033[92m Output similarity: OK\033[00m")
+
+    @staticmethod
+    def round_float_cols(df: pd.DataFrame, decimals=3):
+        for i, t in enumerate(df.dtypes):
+            if t == "float64":
+                df.iloc[:, i] = df.iloc[:, i].round(decimals)
 
 
 class TestOperators(TestCompiler):
@@ -292,8 +300,7 @@ class TestOperators(TestCompiler):
         compile_ibis_to_noir(zip(self.files, self.tables),
                              query, run_after_gen=True, render_query_graph=True)
 
-        # TODO: assert fails due to float precision, fix
-        # self.assert_similarity_noir_output(query, noir_subset_ibis=True)
+        self.assert_similarity_noir_output(query, noir_subset_ibis=True)
         self.assert_equality_noir_source()
 
     # THIS IS ALSO WRONG EVEN IF IT PASSES:
