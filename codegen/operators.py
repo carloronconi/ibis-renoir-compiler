@@ -493,10 +493,9 @@ class ImplicitWindowOperator(Operator):
                      WindowFuncGen.Func(self.alias.name, self.alias.dtype, map_action="{0}: sum,")])
             case "Mean":
                 op = WindowFuncGen(
-                    [WindowFuncGen.Func("grp_sum", ibis.dtype("int64"), fold_action="acc.grp_sum = acc.grp_sum.zip(x.{1}).map(|(a, b)| a + b);"),
-                     WindowFuncGen.Func("grp_count", ibis.dtype(
-                         "int64"), fold_action="acc.grp_count = acc.grp_count.map(|v| v + 1);"),
-                     WindowFuncGen.Func(self.alias.name, self.alias.dtype, map_action="{0}: x.grp_sum.zip(x.grp_count).map(|(a, b)| a as f64 / b as f64),")])
+                    [WindowFuncGen.Func("sum", ibis.dtype("!int64"), init_action="x.{1}.unwrap_or(0)", fold_action="a_sum + b_sum"),
+                     WindowFuncGen.Func("count", ibis.dtype("!int64"), init_action="1", fold_action="a_count + b_count"),
+                     WindowFuncGen.Func(self.alias.name, self.alias.dtype, map_action="{0}: Some(*sum as f64 / *count as f64),")])
 
         # create the new struct by adding struct_fields to previous struct's columns
         new_cols_types = dict(prev_struct.cols_types)
@@ -504,38 +503,39 @@ class ImplicitWindowOperator(Operator):
             new_cols_types[n] = t
         new_struct = Struct.from_args_dict(str(id(window)), new_cols_types)
 
-        # generate .fold to apply the reduction function while maintaining other row fields
-        text += f".fold({new_struct.name_struct}{{"
-        # fold accumulator initialization
-        for col in prev_struct.columns:
-            text += f"{col}: None, "
-        for col, typ in op.fields():
-            text += f"{col}: {op.type_init(typ)}, "
-        # fold update step
-        text += "}, |acc, x| {"
-        for col in prev_struct.columns:
-            text += f"acc.{col} = x.{col}; "
+        # generate initialization (aka first_map) within .reduce_scan
+        text += f"|x| ("
         arg = window.func.args[0].name
-        for col, action in op.fold_actions():
-            text += action.format(col, arg)
-        text += "},)"
+        for col, init in op.init_actions():
+            text += init.format(col, arg) + ", "
+        text += "),\n"
 
-        # generate .map required by some window functions
-        map_actions = op.map_actions()
-        if map_actions:
-            if new_struct.is_keyed_stream:
-                text += ".map(|(_, x)| "
-            else:
-                text += ".map(|x| "
-            text += f"{new_struct.name_struct}{{"
-            for col, action in map_actions:
-                text += action.format(col)
-            text += "..x })"
+        # generate folding within .reduce_scan
+        fold_tup_fields = op.fields()
+        fold_tup_fields.remove((self.alias.name, self.alias.dtype))
+        text += "|("
+        for col, _ in fold_tup_fields:
+            text += f"a_{col}, "
+        text += "), ("
+        for col, _ in fold_tup_fields:
+            text += f"b_{col}, "
+        text += ")| ("
+        for _, act in op.fold_actions():
+            text += act + ", "
+        text += "),\n"
 
-        # folding a WindowedStream without group_by still produces a KeyedStream, with unit tuple () as key
-        # so discard it in that case
-        if frame.start and not frame.group_by:
-            text += ".drop_key()"
+        # generate second_map within .reduce_scan
+        text += "|x, ("
+        for col, _ in fold_tup_fields:
+            text += f"{col}, "
+        text += f")| {new_struct.name_struct}{{"
+        for col in prev_struct.columns:
+            text += f"{col}: x.{col}, "
+        for col, _ in fold_tup_fields:
+            text += f"{col}: *{col}, "
+        for col, act in op.map_actions():
+            text += act.format(col)
+        text += "})"
 
         return text
 
