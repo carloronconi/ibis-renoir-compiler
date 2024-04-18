@@ -336,16 +336,34 @@ class TestOperators(TestCompiler):
 
     def test_nullable_windowing_compatible(self):
         # same as previous but without group_by
+        # here we test mean aggregation function instead of sum
         w = ibis.window(preceding=1, following=0)
         query = (self.tables[0]
-                 .mutate(group_percent=_.int4 * 100 / _.int4.sum().over(w), group_sum=_.int4.sum().over(w)))
+                 .mutate(group_mean=_.int4.mean().over(w)))
 
         ib_res = query.to_pandas()
         compile_ibis_to_noir(zip(self.files, self.tables),
-                             query, run_after_gen=True, render_query_graph=False)
+                             query, run_after_gen=True, render_query_graph=True)
 
         self.assert_similarity_noir_output(query, noir_subset_ibis=True)
         self.assert_equality_noir_source()
+
+    def test_nullable_windowing_compatible_window_far(self):
+        # TODO: fix recognition
+        # same as previous but testing complex aggregation function that 
+        # makes WindowFunction not direct __children__ of Alias but child of child
+        # so for now not recognized as ExplicitWindowOperator
+        w = ibis.window(preceding=1, following=0)
+        query = (self.tables[0]
+                 .mutate(group_perc=_.int4 * 100 / _.int4.mean().over(w)))
+
+        ib_res = query.to_pandas()
+        compile_ibis_to_noir(zip(self.files, self.tables),
+                             query, run_after_gen=True, render_query_graph=True)
+
+        self.assert_similarity_noir_output(query, noir_subset_ibis=True)
+        self.assert_equality_noir_source()
+
 
 
 class TestNonNullableOperators(TestCompiler):

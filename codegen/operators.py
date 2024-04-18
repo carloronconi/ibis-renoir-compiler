@@ -378,6 +378,9 @@ class ExplicitWindowOperator(Operator):
             # map knows how to handle it
             Struct.with_keyed_stream = (by.name, by.dtype)
 
+        # .fold still generates a KeyedStream, but the key in this case
+        # is a unit tuple () and we will discard it before the next operation
+
         # if no start, it means we need to aggregate over all values within each group,
         # so no window is required - ImplicitWindowOperator handles that case
         # generate .window with size depending on how many preceding rows are included
@@ -397,7 +400,102 @@ class ExplicitWindowOperator(Operator):
             case "Mean":
                 op = WindowFuncGen(
                     [WindowFuncGen.Func("grp_sum", ibis.dtype("int64"), fold_action="acc.grp_sum = acc.grp_sum.zip(x.{1}).map(|(a, b)| a + b);"),
-                     WindowFuncGen.Func("grp_count", ibis.dtype("int64"), fold_action="acc.grp_count = acc.grp_count.map(|v| v + 1);"),
+                     WindowFuncGen.Func("grp_count", ibis.dtype(
+                         "int64"), fold_action="acc.grp_count = acc.grp_count.map(|v| v + 1);"),
+                     WindowFuncGen.Func(self.alias.name, self.alias.dtype, map_action="{0}: x.grp_sum.zip(x.grp_count).map(|(a, b)| a as f64 / b as f64),")])
+
+        # create the new struct by adding struct_fields to previous struct's columns
+        new_cols_types = dict(prev_struct.cols_types)
+        for n, t in op.fields():
+            new_cols_types[n] = t
+        new_struct = Struct.from_args_dict(str(id(window)), new_cols_types)
+
+        # generate .fold to apply the reduction function while maintaining other row fields
+        text += f".fold({new_struct.name_struct}{{"
+        # fold accumulator initialization
+        for col in prev_struct.columns:
+            text += f"{col}: None, "
+        for col, typ in op.fields():
+            text += f"{col}: {op.type_init(typ)}, "
+        # fold update step
+        text += "}, |acc, x| {"
+        for col in prev_struct.columns:
+            text += f"acc.{col} = x.{col}; "
+        arg = window.func.args[0].name
+        for col, action in op.fold_actions():
+            text += action.format(col, arg)
+        text += "},)"
+
+        # folding a WindowedStream without group_by still produces a KeyedStream, with unit tuple () as key
+        # so discard it in that case
+        if frame.start and not frame.group_by:
+            text += ".drop_key()"
+
+        # generate .map required by some window functions
+        map_actions = op.map_actions()
+        if map_actions:
+            if new_struct.is_keyed_stream:
+                text += ".map(|(_, x)| "
+            else:
+                text += ".map(|x| "
+            text += f"{new_struct.name_struct}{{"
+            for col, action in map_actions:
+                text += action.format(col)
+            text += "..x })"
+
+        return text
+
+    def does_add_struct(self) -> bool:
+        return True
+
+    @classmethod
+    def recognize(cls, node: Node):
+        # node should be Alias, Alias should have WindowFunction arg attribute
+        # WindowFunctions have RowsWindowFrame frame attribute, and
+        # the window operator is Explicit only if the RowsWindowFrame has a start attribute
+        # with value not None
+        if (isinstance(node, ops.core.Alias) and
+            hasattr(node, "arg") and
+            hasattr(node.arg, "frame") and
+            hasattr(node.arg.frame, "start") and
+                node.arg.frame.start):
+            return cls(node)
+
+
+class ImplicitWindowOperator(Operator):
+    def __init__(self, node: ops.WindowFunction):
+        self.alias = node
+        super().__init__()
+
+    def generate(self) -> str:
+        window = self.alias.arg
+        frame = window.frame
+        text = ""
+
+        # generate .group_by if needed
+        if (group_by := frame.group_by):
+            by = group_by[0]
+            col = operator_arg_stringify(by)
+            text += f".group_by(|x| x.{col}.clone())"
+            # if we have group_by, .fold will generate a KeyedStream so
+            # we set Struct.with_keyed_stream with key's name/type so following
+            # map knows how to handle it
+            Struct.with_keyed_stream = (by.name, by.dtype)
+
+        # here no .window, just use .reduce_scan to reduce while actually keeping a row for each row
+        text += ".reduce_scan("
+        prev_struct = Struct.last()
+
+        match type(window.func).__name__:
+            case "Sum":
+                op = WindowFuncGen(
+                    [WindowFuncGen.Func("sum", ibis.dtype("!int64"), init_action="x.{1}.unwrap_or(0)", fold_action="a_sum + b_sum"),
+                     WindowFuncGen.Func(self.alias.name, self.alias.dtype, map_action="{0}: sum,")])
+            case "Mean":
+                op = WindowFuncGen(
+                    [WindowFuncGen.Func("grp_sum", ibis.dtype("int64"), fold_action="acc.grp_sum = acc.grp_sum.zip(x.{1}).map(|(a, b)| a + b);"),
+                     WindowFuncGen.Func("grp_count", ibis.dtype(
+                         "int64"), fold_action="acc.grp_count = acc.grp_count.map(|v| v + 1);"),
                      WindowFuncGen.Func(self.alias.name, self.alias.dtype, map_action="{0}: x.grp_sum.zip(x.grp_count).map(|(a, b)| a as f64 / b as f64),")])
 
         # create the new struct by adding struct_fields to previous struct's columns
@@ -448,34 +546,13 @@ class ExplicitWindowOperator(Operator):
     def recognize(cls, node: Node):
         # node should be Alias, Alias should have WindowFunction arg attribute
         # WindowFunctions have RowsWindowFrame frame attribute, and
-        # the window operator is Explicit only if the RowsWindowFrame has a start attribute
-        if (isinstance(node, ops.core.Alias) and 
-            hasattr(node, "arg") and 
-            hasattr(node.arg, "frame") and 
-            hasattr(node.arg.frame, "start")):
-            return cls(node)
-
-
-class ImplicitWindowOperator(Operator):
-    def __init__(self, node: ops.WindowFunction):
-        self.alias = node
-        super().__init__()
-
-    def generate(self) -> str:
-        return ""
-
-    def does_add_struct(self) -> bool:
-        return True
-
-    @classmethod
-    def recognize(cls, node: Node):
-        # node should be Alias, Alias should have WindowFunction arg attribute
-        # WindowFunctions have RowsWindowFrame frame attribute, and
-        # the window operator is Implicit only if the RowsWindowFrame doesn't have a start attribute
-        if (isinstance(node, ops.core.Alias) and 
-            hasattr(node, "arg") and 
-            hasattr(node.arg, "frame") and 
-            not hasattr(node.arg.frame, "start")):
+        # the window operator is Implicit only if the RowsWindowFrame has a start attribute
+        # with value None
+        if (isinstance(node, ops.core.Alias) and
+            hasattr(node, "arg") and
+            hasattr(node.arg, "frame") and
+            hasattr(node.arg.frame, "start")
+                and node.arg.frame.start is None):
             return cls(node)
 
 
@@ -557,12 +634,14 @@ class BotOperator(Operator):
 
 
 class WindowFuncGen:
-    func_type_init = {ibis.dtype("int64"): "Some(0)", ibis.dtype("float64"): "Some(0.0)"}
+    func_type_init = {ibis.dtype("int64"): "Some(0)",
+                      ibis.dtype("float64"): "Some(0.0)"}
 
     class Func:
-        def __init__(self, name: str, type: DataType, fold_action: str = None, map_action: str = None):
+        def __init__(self, name: str, type: DataType, init_action: str = None, fold_action: str = None, map_action: str = None):
             self.name = name
             self.type = type
+            self.init_action = init_action
             self.fold_action = fold_action
             self.map_action = map_action
 
@@ -572,12 +651,15 @@ class WindowFuncGen:
     def fields(self) -> list[tuple[str, DataType]]:
         return [(f.name, f.type) for f in self.funcs]
 
+    def init_actions(self) -> list[tuple[str, str]]:
+        return [(f.name, f.init_action) for f in self.funcs if f.init_action]
+
     def fold_actions(self) -> list[tuple[str, str]]:
         return [(f.name, f.fold_action) for f in self.funcs if f.fold_action]
 
     def map_actions(self) -> list[tuple[str, str]]:
         return [(f.name, f.map_action) for f in self.funcs if f.map_action]
-    
+
     def type_init(self, type: DataType):
         return self.func_type_init[type]
 
