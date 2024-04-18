@@ -303,10 +303,7 @@ class TestOperators(TestCompiler):
         self.assert_similarity_noir_output(query, noir_subset_ibis=True)
         self.assert_equality_noir_source()
 
-    # THIS IS ALSO WRONG EVEN IF IT PASSES:
-    # in noir we're not using any window so rows in groups are squashed into single
-    # result
-    # what should happen is windows corresponding to each group are created
+    # TODO: doesn't pass yet because .reduce_scan() is not implemented for KeyedStream, but it will be soon
     def test_nullable_windowing_implicit_group(self):
         # here windowing is implicit over the whole group that was grouped before the mutate aggregation
         # so group_mean is actually the mean of the whole group having same string1
