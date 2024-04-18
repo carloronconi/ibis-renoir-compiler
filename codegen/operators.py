@@ -490,7 +490,7 @@ class ImplicitWindowOperator(Operator):
             case "Sum":
                 op = WindowFuncGen(
                     [WindowFuncGen.Func("sum", ibis.dtype("!int64"), init_action="x.{1}.unwrap_or(0)", fold_action="a_sum + b_sum"),
-                     WindowFuncGen.Func(self.alias.name, self.alias.dtype, map_action="{0}: sum,")])
+                     WindowFuncGen.Func(self.alias.name, self.alias.dtype, map_action="{0}: Some(*sum),")])
             case "Mean":
                 op = WindowFuncGen(
                     [WindowFuncGen.Func("sum", ibis.dtype("!int64"), init_action="x.{1}.unwrap_or(0)", fold_action="a_sum + b_sum"),

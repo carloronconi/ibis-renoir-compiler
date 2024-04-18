@@ -289,7 +289,7 @@ class TestOperators(TestCompiler):
         self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source()
 
-    def test_nullable_windowing_implicit(self):
+    def test_nullable_windowing_implicit_mean(self):
         # here implicit windowing takes all the rows in the table, because no group_by is performed before the mutate
         # and the window is not explicitly defined
         query = (self
@@ -298,8 +298,21 @@ class TestOperators(TestCompiler):
 
         ib_res = query.to_pandas()
         compile_ibis_to_noir(zip(self.files, self.tables),
-                             query, run_after_gen=True, render_query_graph=True)
+                             query, run_after_gen=True, render_query_graph=False)
 
+        self.assert_similarity_noir_output(query, noir_subset_ibis=True)
+        self.assert_equality_noir_source()
+
+    def test_nullable_windowing_implicit_sum(self):
+        # here implicit windowing takes all the rows in the table, because no group_by is performed before the mutate
+        # and the window is not explicitly defined
+        query = (self
+                 .tables[0]
+                 .mutate(int4_sum=_.int4.sum()))
+        
+        ib_res = query.to_pandas()
+        compile_ibis_to_noir(zip(self.files, self.tables),
+                             query, run_after_gen=True, render_query_graph=True)
         self.assert_similarity_noir_output(query, noir_subset_ibis=True)
         self.assert_equality_noir_source()
 
