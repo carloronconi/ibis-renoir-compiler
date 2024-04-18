@@ -12,62 +12,38 @@ struct Struct_var_1 {
     int1: Option<i64>,
     string1: Option<String>,
     int4: Option<i64>,
-    group_sum: Option<i64>,
-
-    group_count: Option<i64>,
-    group_mean: Option<f64>,
+    int4_mean: Option<f64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
 struct Struct_var_2 {
     int1: Option<i64>,
     string1: Option<String>,
     int4: Option<i64>,
-    group_sum: Option<i64>,
-    group_percent: Option<f64>,
+    int4_mean: Option<f64>,
+    int4_demean: Option<f64>,
 }
 
 fn logic(ctx: StreamContext) {
     let var_0 = ctx
         .stream_csv::<Struct_var_0>("/home/carlo/Projects/ibis-quickstart/data/int-1-string-1.csv");
     let var_2 = var_0
-        // .window_all(CountWindow::new(2, 1, true))
-        .fold(
-            Struct_var_1 {
-                int1: None,
-                string1: None,
-                int4: None,
-                group_sum: Some(0),
-
-                group_count: Some(0),
-                group_mean: Some(0.0),
-            },
-            |acc, x| {
-                acc.int1 = x.int1;
-                acc.string1 = x.string1;
-                acc.int4 = x.int4;
-                acc.group_sum = acc.group_sum.zip(x.int4).map(|(a, b)| a + b);
-
-                acc.group_count.map(|v| v + 1);
+        .reduce_scan(
+            |x| (x.int4.unwrap_or(0), 1), // none values sum to 0
+            |(a_sum, a_count), (b_sum, b_count)| 
+                (a_sum + b_sum, a_count + b_count),
+            |x, (sum, count)| Struct_var_1 {
+                int1: x.int1,
+                string1: x.string1,
+                int4: x.int4,
+                int4_mean: Some(*sum as f64 / *count as f64),
             },
         )
-
-        .map(|x| 
-            Struct_var_1 {
-                group_mean: x.group_sum.zip(x.group_count).map(|(a, b)| a as f64 / b as f64),
-                ..x
-            })
-            
-        //.drop_key()
         .map(|x| Struct_var_2 {
             int1: x.int1,
             string1: x.string1,
             int4: x.int4,
-            group_sum: x.group_sum,
-            group_percent: x
-                .int4
-                .map(|v| v * 100)
-                .zip(x.group_sum)
-                .map(|(a, b)| a as f64 / b as f64),
+            int4_mean: x.int4_mean,
+            int4_demean: x.int4.zip(x.int4_mean).map(|(a, b)| a as f64 - b as f64),
         });
     let out = var_2.collect_vec();
     tracing::info!("starting execution");
