@@ -23,7 +23,8 @@ class Operator:
         stack = [cls]
         while stack:
             curr = stack.pop()
-            subclasses = sorted(curr.__subclasses__(), key=lambda x: x.priority)
+            subclasses = sorted(curr.__subclasses__(),
+                                key=lambda x: x.priority)
             if subclasses:
                 stack.extend(subclasses)
             else:
@@ -158,7 +159,8 @@ class MapOperator(Operator):
 
         # override WindowFunction node resolution, so in case WindowFunction is below mapper, it will be resolved
         # to prev struct's last col name for reason above
-        num_ops = operator_arg_stringify(self.mapper, "x", window_resolve=prev_struct.columns[-1])
+        num_ops = operator_arg_stringify(
+            self.mapper, "x", window_resolve=prev_struct.columns[-1])
         mid += f"{self.node.name}: {num_ops},}})"
 
         return mid
@@ -234,26 +236,44 @@ class GroupReduceOperator(Operator):
 
     def generate(self) -> str:
         mid = ""
-        for by in self.bys:
-            by = operator_arg_stringify(by)
-            mid += ".group_by(|x| x." + by + ".clone())"
-
+        aggr_name = type(self.reducer).__name__
+        bys = [operator_arg_stringify(by) for by in self.bys]
         col = operator_arg_stringify(self.reducer.__children__[0])
-
         is_reduced_col_nullable = Struct.last().is_col_nullable(col)
-        if is_reduced_col_nullable:
-            op = self.aggr_ops[type(self.reducer).__name__]
-            mid += f".reduce(|a, b| {{a.{col} = a.{col}.zip(b.{col}).map(|(x, y)| {op});}})"
+
+        # for Mean we use specific `.group_by_avg` method, to avoid needing to keep sum and count and
+        # then divide them in the end and map to new struct
+        if aggr_name == "Mean":
+            mid += ".group_by_avg(|x| ("
+            for by in bys:
+                mid += f"x.{by}.clone()"
+            mid += "), |x| "
+            if is_reduced_col_nullable:
+                mid += f"x.{col}.unwrap_or(0) as f64)"
+            else:
+                mid += f"x.{col} as f64)"
+
+        # simple cases with only one accumulator required
         else:
-            op = self.aggr_ops_form[type(self.reducer).__name__].format(col)
-            mid += f".reduce(|a, b| {op})"
+            for by in bys:
+                mid += f".group_by(|x| x.{by}.clone())"
 
-        last_col_name = self.node.schema.names[-1]
-        last_col_type = self.node.schema.types[-1]
+            if is_reduced_col_nullable:
+                op = self.aggr_ops[aggr_name]
+                mid += f".reduce(|a, b| {{a.{col} = a.{col}.zip(b.{col}).map(|(x, y)| {op});}})"
+            else:
+                op = self.aggr_ops_form[aggr_name].format(col)
+                mid += f".reduce(|a, b| {op})"
 
-        Struct.with_keyed_stream = (self.bys[0].name, self.bys[0].dtype)
+        bys_n_t = {b.name: b.dtype for b in self.bys}
+        aggr_col_name = self.node.schema.names[-1]
+        aggr_col_type = self.node.schema.types[-1]
+
+        Struct.with_keyed_stream = bys_n_t
+        # new struct will only contain the aggregated field, while the "by" fields are preserved by
+        # the key of the keyed stream
         new_struct = Struct.from_args(
-            str(id(self.alias)), [last_col_name], [last_col_type])
+            str(id(self.alias)), [aggr_col_name], [aggr_col_type])
 
         # when reducing, ibis turns results of non-nullable types to nullable! So new_struct will always have nullable
         # field while reduced col could have been either nullable or non-nullable
@@ -295,7 +315,7 @@ class JoinOperator(Operator):
         right_col = operator_arg_stringify(equals.left)
         join_t = self.noir_types[type(self.join).__name__]
 
-        Struct.with_keyed_stream = (equals.left.name, equals.left.dtype)
+        Struct.with_keyed_stream = {equals.left.name: equals.left.dtype}
         join_struct, cols_turned_nullable = Struct.from_join(
             left_struct, right_struct)
 
@@ -423,7 +443,7 @@ class ExplicitWindowOperator(WindowOperator):
             # if we have group_by, .fold will generate a KeyedStream so
             # we set Struct.with_keyed_stream with key's name/type so following
             # map knows how to handle it
-            Struct.with_keyed_stream = (by.name, by.dtype)
+            Struct.with_keyed_stream = {by.name: by.dtype}
 
         # .fold still generates a KeyedStream, but the key in this case
         # is a unit tuple () and we will discard it before the next operation
@@ -532,7 +552,7 @@ class ImplicitWindowOperator(WindowOperator):
             # if we have group_by, .fold will generate a KeyedStream so
             # we set Struct.with_keyed_stream with key's name/type so following
             # map knows how to handle it
-            Struct.with_keyed_stream = (by.name, by.dtype)
+            Struct.with_keyed_stream = {by.name: by.dtype}
 
         # here no .window, just use .reduce_scan to reduce while actually keeping a row for each row
         text += ".reduce_scan("
@@ -604,7 +624,7 @@ class ImplicitWindowOperator(WindowOperator):
         window_func = cls.find_window_func_from_alias(node)
         if not window_func:
             return
-        
+
         # check if window function has already been used by other WindowOperator to avoid duplicates
         # when WindowFunction has >1 aliases above
         if window_func in [op.window for op in Operator.operators if isinstance(op, WindowOperator)]:
@@ -682,11 +702,13 @@ class BotOperator(Operator):
         bot += "\ntracing::info!(\"starting execution\");\nctx.execute_blocking();\nlet out = out.get().unwrap();\n"
 
         if last_struct.is_keyed_stream:
-            col_name, col_type = Struct.last().with_keyed_stream
-            new_struct = Struct.from_args(str(id(self)), [col_name], [
-                                          col_type], with_name_short="collect")
-            bot += (f"let out = out.iter().map(|(k, v)| ({new_struct.name_struct}{{{col_name}: k.clone()}}, "
-                    f"v)).collect::<Vec<_>>();")
+            names_types = Struct.last().with_keyed_stream
+            new_struct = Struct.from_args(str(id(self)), list(names_types.keys()), list(
+                names_types.values()), with_name_short="collect")
+            bot += f"let out = out.iter().map(|(k, v)| ({new_struct.name_struct}{{"
+            for name in names_types:
+                bot += f"{name}: k.clone()," 
+            bot += "}, v)).collect::<Vec<_>>();"
 
         with open(utl.ROOT_DIR + "/noir-template/main_bot.rs") as f:
             bot += f.read()
@@ -742,15 +764,19 @@ def operator_arg_stringify(operand: Node, struct_name=None, window_resolve=None)
         return operand.name
     elif isinstance(operand, ops.logical.Comparison):
         # right is always a literal, which is always nullable
-        left = operator_arg_stringify(operand.left, struct_name, window_resolve)
-        right = operator_arg_stringify(operand.right, struct_name, window_resolve)
+        left = operator_arg_stringify(
+            operand.left, struct_name, window_resolve)
+        right = operator_arg_stringify(
+            operand.right, struct_name, window_resolve)
         op = comp_ops[type(operand).__name__]
         if operand.left.dtype.nullable:
             return f"{left}.clone().is_some_and(|v| v {op} {right})"
         return f"{left} {op} {right}"
     elif isinstance(operand, ops.LogicalBinary):
-        left = operator_arg_stringify(operand.left, struct_name, window_resolve)
-        right = operator_arg_stringify(operand.right, struct_name, window_resolve)
+        left = operator_arg_stringify(
+            operand.left, struct_name, window_resolve)
+        right = operator_arg_stringify(
+            operand.right, struct_name, window_resolve)
         return f"{left} {log_ops[type(operand).__name__]} {right}"
     elif isinstance(operand, ops.numeric.NumericBinary):
         # resolve recursively

@@ -2,9 +2,12 @@ import ibis
 from codegen.generator import compile_ibis_to_noir
 from test.test_operators import TestCompiler
 from codegen import ROOT_DIR
+from ibis import _
 
 
 class TestNexmark(TestCompiler):
+    CURRENT_TIME = 2330277279926
+
     def setUp(self):
         names = ["auction", "bid", "person"]
         file_prefix = ROOT_DIR + "/data/nexmark/"
@@ -66,6 +69,36 @@ class TestNexmark(TestCompiler):
                  .select(["name", "city", "state", "id"]))
         compile_ibis_to_noir([(self.files["auction"], auction), (self.files["person"], person)],
                              query, run_after_gen=True, render_query_graph=False)
-        
+
+        self.assert_similarity_noir_output(query)
+        self.assert_equality_noir_source()
+
+    def test_nexmark_query_4(self):
+        """
+        SELECT Istream(AVG(Q.final))
+        FROM Category C, (SELECT Rstream(MAX(B.price) AS final, A.category)
+                          FROM Auction A [ROWS UNBOUNDED], Bid B [ROWS UNBOUNDED]
+                          WHERE A.id=B.auction AND B.datetime < A.expires AND A.expires < CURRENT_TIME
+                          GROUP BY A.id, A.category) Q
+        WHERE Q.category = C.id
+        GROUP BY C.id;
+        """
+
+        auction = self.tables["auction"]
+        bid = self.tables["bid"]
+        query = (auction
+                 .join(bid, auction["id"] == bid["auction"])
+                 .filter(bid["date_time"] < auction["expires"])
+                 .filter(auction["expires"] < self.CURRENT_TIME)
+                 # > 1 by's not required by semantics of query, as done in noir nexmark test
+                 .group_by([auction["id"], auction["category"]])
+                 .aggregate(final_p=bid["price"].max())
+                 # .join(auction, auction["category"] == auction["id"])
+                 .group_by(auction["category"])
+                 .aggregate(avg_final_p=_.final_p.mean()))
+
+        compile_ibis_to_noir([(self.files["auction"], auction), (self.files["bid"], bid)],
+                            query, run_after_gen=True, render_query_graph=False)
+
         self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source()
