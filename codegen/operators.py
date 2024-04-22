@@ -9,6 +9,9 @@ from ibis.expr.datatypes.core import DataType
 
 class Operator:
     operators = []
+    # when two operators use the same root node for recognition, increase this
+    # value to prioritize one over the other and change ordeding of operators in noir code
+    priority = 0
 
     def __init__(self):
         Operator.operators.append(self)
@@ -22,8 +25,8 @@ class Operator:
         operator_classes = []
         stack = [cls]
         while stack:
-            curr = stack.pop(0)
-            subclasses = curr.__subclasses__()
+            curr = stack.pop()
+            subclasses = sorted(curr.__subclasses__(), key=lambda x: x.priority)
             if subclasses:
                 stack.extend(subclasses)
             else:
@@ -92,6 +95,7 @@ class SelectOperator(Operator):
 
 
 class FilterOperator(Operator):
+    priority = 1
 
     def __init__(self, node: ops.logical.Comparison):
         self.comparator = node
@@ -156,8 +160,8 @@ class MapOperator(Operator):
             mid += f"{col}: x.{col}, "
 
         # override WindowFunction node resolution, so in case WindowFunction is below mapper, it will be resolved
-        # to the alias's name for reason above
-        num_ops = operator_arg_stringify(self.mapper, "x", window_resolve=self.node)
+        # to prev struct's last col name for reason above
+        num_ops = operator_arg_stringify(self.mapper, "x", window_resolve=prev_struct.columns[-1])
         mid += f"{self.node.name}: {num_ops},}})"
 
         return mid
@@ -375,6 +379,7 @@ class JoinOperator(Operator):
 
 
 class WindowOperator(Operator):
+    priority = 1
 
     def generate(self) -> str:
         # abstract class so should not actually be used
@@ -382,6 +387,7 @@ class WindowOperator(Operator):
 
     def __init__(self, node: ops.WindowFunction):
         self.alias = node
+        self.window = self.find_window_func_from_alias(node)
         super().__init__()
 
     def does_add_struct(self) -> bool:
@@ -404,7 +410,7 @@ class WindowOperator(Operator):
 class ExplicitWindowOperator(WindowOperator):
 
     def generate(self) -> str:
-        window = self.find_window_func_from_alias(self.alias)
+        window = self.window
         frame = window.frame
         if frame.start and frame.start.following:
             raise Exception(
@@ -500,8 +506,12 @@ class ExplicitWindowOperator(WindowOperator):
             return
 
         window_func = cls.find_window_func_from_alias(node)
-
         if not window_func:
+            return
+
+        # check if window function has already been used by other WindowOperator to avoid duplicates
+        # when WindowFunction has >1 aliases above
+        if window_func in [op.window for op in Operator.operators if isinstance(op, WindowOperator)]:
             return
 
         if (hasattr(window_func, "frame") and
@@ -513,7 +523,7 @@ class ExplicitWindowOperator(WindowOperator):
 class ImplicitWindowOperator(WindowOperator):
 
     def generate(self) -> str:
-        window = self.find_window_func_from_alias(self.alias)
+        window = self.window
         frame = window.frame
         text = ""
 
@@ -595,8 +605,12 @@ class ImplicitWindowOperator(WindowOperator):
             return
 
         window_func = cls.find_window_func_from_alias(node)
-
         if not window_func:
+            return
+        
+        # check if window function has already been used by other WindowOperator to avoid duplicates
+        # when WindowFunction has >1 aliases above
+        if window_func in [op.window for op in Operator.operators if isinstance(op, WindowOperator)]:
             return
 
         if (hasattr(window_func, "frame") and
@@ -776,7 +790,7 @@ def operator_arg_stringify(operand: Node, struct_name=None, window_resolve=None)
     elif isinstance(operand, ops.WindowFunction):
         # window resolve case: map is preceded by WindowFunction which used same name as map's result for its result
         if window_resolve:
-            return f"{struct_name}.{window_resolve.name}"
+            return f"{struct_name}.{window_resolve}"
         # alias is above WindowFunction and not dependency, but because .map follows .fold
         # in this case, we can get the column added by the DatabaseOperator in the struct
         # it just created, which is second to last (last is new col added by MapOperator)
