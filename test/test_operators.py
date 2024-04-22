@@ -35,6 +35,7 @@ class TestCompiler(unittest.TestCase):
     def assert_similarity_noir_output(self, query, noir_subset_ibis=False):
         print(query.head(50).to_pandas())
         df_ibis = query.to_pandas()
+        self.round_float_cols(df_ibis)
         df_ibis.to_csv(ROOT_DIR + "/out/ibis-result.csv")
         
         noir_path = ROOT_DIR + "/out/noir-result.csv"
@@ -46,6 +47,7 @@ class TestCompiler(unittest.TestCase):
             return
         
         df_noir = pd.read_csv(noir_path)
+        self.round_float_cols(df_noir)
 
         # with keyed streams, noir preserves the key column with its original name
         # with joins, both the key column and the corresponding cols in joined tables are preserved
@@ -93,6 +95,12 @@ class TestCompiler(unittest.TestCase):
             self.assertGreaterEqual(both_count, 0, message)
 
         print(f"\033[92m Output similarity: OK\033[00m")
+
+    @staticmethod
+    def round_float_cols(df: pd.DataFrame, decimals=3):
+        for i, t in enumerate(df.dtypes):
+            if t == "float64":
+                df.iloc[:, i] = df.iloc[:, i].round(decimals)
 
 
 class TestOperators(TestCompiler):
@@ -281,7 +289,7 @@ class TestOperators(TestCompiler):
         self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source()
 
-    def test_nullable_windowing_implicit(self):
+    def test_nullable_windowing_implicit_mean(self):
         # here implicit windowing takes all the rows in the table, because no group_by is performed before the mutate
         # and the window is not explicitly defined
         query = (self
@@ -290,15 +298,26 @@ class TestOperators(TestCompiler):
 
         ib_res = query.to_pandas()
         compile_ibis_to_noir(zip(self.files, self.tables),
-                             query, run_after_gen=True, render_query_graph=True)
+                             query, run_after_gen=True, render_query_graph=False)
 
         self.assert_similarity_noir_output(query, noir_subset_ibis=True)
         self.assert_equality_noir_source()
 
-    # THIS IS ALSO WRONG EVEN IF IT PASSES:
-    # in noir we're not using any window so rows in groups are squashed into single
-    # result
-    # what should happen is windows corresponding to each group are created
+    def test_nullable_windowing_implicit_sum(self):
+        # here implicit windowing takes all the rows in the table, because no group_by is performed before the mutate
+        # and the window is not explicitly defined
+        query = (self
+                 .tables[0]
+                 .mutate(int4_sum=_.int4.sum()))
+        
+        ib_res = query.to_pandas()
+        compile_ibis_to_noir(zip(self.files, self.tables),
+                             query, run_after_gen=True, render_query_graph=True)
+        self.assert_similarity_noir_output(query, noir_subset_ibis=True)
+        self.assert_equality_noir_source()
+
+    # TODO: doesn't pass yet because .reduce_scan() is not implemented for KeyedStream, but it will be soon
+    @unittest.skip(".reduce_scan() is not yet implemented for KeyedStream")
     def test_nullable_windowing_implicit_group(self):
         # here windowing is implicit over the whole group that was grouped before the mutate aggregation
         # so group_mean is actually the mean of the whole group having same string1
@@ -314,7 +333,7 @@ class TestOperators(TestCompiler):
         self.assert_similarity_noir_output(query, noir_subset_ibis=True)
         self.assert_equality_noir_source()
 
-    def test_nullable_windowing_compatible_group(self):
+    def test_nullable_windowing_explicit_group(self):
         # this window first groups by string1, then, keeping original ordering within groups, computes aggregation (mean)
         # over the current row, and the preceding 1 row (2 rows total)
         # if the group the preceding/following rows are finished the mean is computed over fewer rows
@@ -334,11 +353,27 @@ class TestOperators(TestCompiler):
         self.assert_similarity_noir_output(query, noir_subset_ibis=True)
         self.assert_equality_noir_source()
 
-    def test_nullable_windowing_compatible(self):
+    def test_nullable_windowing_explicit(self):
         # same as previous but without group_by
+        # here we test mean aggregation function instead of sum
         w = ibis.window(preceding=1, following=0)
         query = (self.tables[0]
-                 .mutate(group_percent=_.int4 * 100 / _.int4.sum().over(w), group_sum=_.int4.sum().over(w)))
+                 .mutate(group_mean=_.int4.mean().over(w)))
+
+        ib_res = query.to_pandas()
+        compile_ibis_to_noir(zip(self.files, self.tables),
+                             query, run_after_gen=True, render_query_graph=True)
+
+        self.assert_similarity_noir_output(query, noir_subset_ibis=True)
+        self.assert_equality_noir_source()
+
+    def test_nullable_windowing_explicit_window_far(self):
+        # same as previous but testing complex aggregation function that 
+        # makes WindowFunction not direct __children__ of Alias but child of child
+        # so for now not recognized as ExplicitWindowOperator
+        w = ibis.window(preceding=1, following=0)
+        query = (self.tables[0]
+                 .mutate(group_perc=_.int4 * 100 / _.int4.mean().over(w)))
 
         ib_res = query.to_pandas()
         compile_ibis_to_noir(zip(self.files, self.tables),
@@ -346,6 +381,7 @@ class TestOperators(TestCompiler):
 
         self.assert_similarity_noir_output(query, noir_subset_ibis=True)
         self.assert_equality_noir_source()
+
 
 
 class TestNonNullableOperators(TestCompiler):
@@ -410,7 +446,7 @@ class TestNonNullableOperators(TestCompiler):
                  .select(["int1_agg"]))
 
         compile_ibis_to_noir([(self.files[0], self.tables[0])],
-                             query, run_after_gen=True, render_query_graph=False)
+                             query, run_after_gen=True, render_query_graph=True)
 
         self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source()

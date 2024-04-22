@@ -29,8 +29,7 @@ class TestNexmark(TestCompiler):
         compile_ibis_to_noir([(self.files["bid"], bid)],
                              query, run_after_gen=True, render_query_graph=False)
 
-        # TODO: output is the same but some rows are considered different due to float precision
-        # self.assert_similarity_noir_output(query)
+        self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source()
 
     def test_nexmark_query_2(self):
