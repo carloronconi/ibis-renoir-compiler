@@ -98,7 +98,7 @@ class TestNexmark(TestCompiler):
                  .aggregate(avg_final_p=_.final_p.mean()))
 
         compile_ibis_to_noir([(self.files["auction"], auction), (self.files["bid"], bid)],
-                            query, run_after_gen=True, render_query_graph=False)
+                            query, run_after_gen=True, render_query_graph=True)
 
         self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source()

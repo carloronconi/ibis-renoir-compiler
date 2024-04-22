@@ -241,12 +241,18 @@ class GroupReduceOperator(Operator):
         col = operator_arg_stringify(self.reducer.__children__[0])
         is_reduced_col_nullable = Struct.last().is_col_nullable(col)
 
+        # this group_by follows another, so drop_key is required
+        if Struct.last().is_keyed_stream:
+            mid += ".drop_key()"
+
         # for Mean we use specific `.group_by_avg` method, to avoid needing to keep sum and count and
         # then divide them in the end and map to new struct
         if aggr_name == "Mean":
             mid += ".group_by_avg(|x| ("
             for by in bys:
-                mid += f"x.{by}.clone()"
+                mid += f"x.{by}.clone(), "
+            # remove last comma and space
+            mid = mid[:-2]
             mid += "), |x| "
             if is_reduced_col_nullable:
                 mid += f"x.{col}.unwrap_or(0) as f64)"
@@ -255,8 +261,12 @@ class GroupReduceOperator(Operator):
 
         # simple cases with only one accumulator required
         else:
+            mid += ".group_by(|x| ("
             for by in bys:
-                mid += f".group_by(|x| x.{by}.clone())"
+                mid += f"x.{by}.clone(), "
+            # remove last comma and space
+            mid = mid[:-2]
+            mid += "))"
 
             if is_reduced_col_nullable:
                 op = self.aggr_ops[aggr_name]
@@ -270,17 +280,30 @@ class GroupReduceOperator(Operator):
         aggr_col_type = self.node.schema.types[-1]
 
         Struct.with_keyed_stream = bys_n_t
-        # new struct will only contain the aggregated field, while the "by" fields are preserved by
-        # the key of the keyed stream
+        # new struct will contain the aggregated field plus the "by" fields also preserved by
+        # the key of the keyed stream, kept in both to be able to drop_key if other group_by follows
         new_struct = Struct.from_args(
-            str(id(self.alias)), [aggr_col_name], [aggr_col_type])
+            str(id(self.alias)), list(bys_n_t.keys()) + [aggr_col_name], list(bys_n_t.values()) + [aggr_col_type])
 
+        mid += f".map(|(k, x)| {new_struct.name_struct}{{"
+        if len(bys_n_t) == 1:
+            mid += f"{new_struct.columns[0]}: *k,"
+        else: 
+            for i, column in enumerate(new_struct.columns):
+                # skip last
+                if i == len(new_struct.columns) - 1:
+                    break
+                mid += f"{column}: k.{i}, "
         # when reducing, ibis turns results of non-nullable types to nullable! So new_struct will always have nullable
         # field while reduced col could have been either nullable or non-nullable
-        if is_reduced_col_nullable:
-            mid += f".map(|(_, x)| {new_struct.name_struct}{{{new_struct.columns[0]}: x.{col}}})"
+        if aggr_name == "Mean":
+            # in this case aggregation produces single result, not struct
+            # and x is always an f64 (not nullable)
+            mid += f"{new_struct.columns[-1]}: Some(x)}})"
+        elif is_reduced_col_nullable:
+            mid += f"{new_struct.columns[-1]}: x.{col}}})"
         else:
-            mid += f".map(|(_, x)| {new_struct.name_struct}{{{new_struct.columns[0]}: Some(x.{col})}})"
+            mid += f"{new_struct.columns[-1]}: Some(x.{col})}})"
 
         return mid
 
@@ -707,7 +730,7 @@ class BotOperator(Operator):
                 names_types.values()), with_name_short="collect")
             bot += f"let out = out.iter().map(|(k, v)| ({new_struct.name_struct}{{"
             for name in names_types:
-                bot += f"{name}: k.clone()," 
+                bot += f"{name}: k.clone(),"
             bot += "}, v)).collect::<Vec<_>>();"
 
         with open(utl.ROOT_DIR + "/noir-template/main_bot.rs") as f:
