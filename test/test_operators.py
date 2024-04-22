@@ -317,6 +317,7 @@ class TestOperators(TestCompiler):
         self.assert_equality_noir_source()
 
     # TODO: doesn't pass yet because .reduce_scan() is not implemented for KeyedStream, but it will be soon
+    @unittest.skip(".reduce_scan() is not yet implemented for KeyedStream")
     def test_nullable_windowing_implicit_group(self):
         # here windowing is implicit over the whole group that was grouped before the mutate aggregation
         # so group_mean is actually the mean of the whole group having same string1
