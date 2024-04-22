@@ -19,9 +19,6 @@ class Operator:
     @classmethod
     def from_node(cls, node: Node):
         # recursively find subclasses to include only leaves
-        # TODO: check below true and if true assign priority to operators instead
-        # pop(0) to perform search as queue because breaks priority of recognition less
-        # but seems still broken for some
         operator_classes = []
         stack = [cls]
         while stack:
