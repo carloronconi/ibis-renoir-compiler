@@ -333,7 +333,7 @@ class TestOperators(TestCompiler):
         self.assert_similarity_noir_output(query, noir_subset_ibis=True)
         self.assert_equality_noir_source()
 
-    def test_nullable_windowing_compatible_group(self):
+    def test_nullable_windowing_explicit_group(self):
         # this window first groups by string1, then, keeping original ordering within groups, computes aggregation (mean)
         # over the current row, and the preceding 1 row (2 rows total)
         # if the group the preceding/following rows are finished the mean is computed over fewer rows
@@ -353,7 +353,7 @@ class TestOperators(TestCompiler):
         self.assert_similarity_noir_output(query, noir_subset_ibis=True)
         self.assert_equality_noir_source()
 
-    def test_nullable_windowing_compatible(self):
+    def test_nullable_windowing_explicit(self):
         # same as previous but without group_by
         # here we test mean aggregation function instead of sum
         w = ibis.window(preceding=1, following=0)
@@ -367,7 +367,7 @@ class TestOperators(TestCompiler):
         self.assert_similarity_noir_output(query, noir_subset_ibis=True)
         self.assert_equality_noir_source()
 
-    def test_nullable_windowing_compatible_window_far(self):
+    def test_nullable_windowing_explicit_window_far(self):
         # same as previous but testing complex aggregation function that 
         # makes WindowFunction not direct __children__ of Alias but child of child
         # so for now not recognized as ExplicitWindowOperator
