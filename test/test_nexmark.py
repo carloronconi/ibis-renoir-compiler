@@ -89,8 +89,6 @@ class TestNexmark(TestCompiler):
         query = (auction
                  # TODO: writing equality in opposite order breaks noir
                  .join(bid, bid["auction"] == auction["id"])
-                 
-                 # TODO: filtering between columns not recognized as filter! only col and literal up to now
 
                  # careful for ibis: using initial tab name w/ square brackets breaks col resolution for bid.date_time if bid is on right
                  # side of join, because its column (also present in auction) is renamed to date_time_right

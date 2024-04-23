@@ -89,7 +89,13 @@ fn logic(ctx: StreamContext) {
             date_time_right: x.1.date_time,
             extra_right: x.1.extra,
         })
-        .filter(|(_, x)| x.date_time.zip(x.expires).map_or(false, |(x, y)| x < y) && x.expires.clone().is_some_and(|v| v < 2330277279926))
+        .filter(|(_, x)| {
+            x.date_time_right
+                .clone()
+                .zip(x.expires.clone())
+                .map_or(false, |(a, b)| a < b)
+        })
+        .filter(|(_, x)| x.expires.clone().is_some_and(|v| v < 2330277279926))
         .drop_key()
         .group_by(|x| (x.id.clone(), x.category.clone()))
         .reduce(|a, b| {

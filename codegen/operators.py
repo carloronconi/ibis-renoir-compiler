@@ -108,14 +108,23 @@ class FilterOperator(Operator):
     @classmethod
     def recognize(cls, node: Node):
 
-        def is_equals_literal(node: Node) -> bool:
-            return isinstance(node, ops.logical.Comparison) and any(isinstance(c, ops.Literal) for c in node.__children__)
+        def is_equals_col_lit_or_col_col(node: Node) -> bool:
+            if not (isinstance(node, ops.logical.Comparison) and len(node.__children__) == 2):
+                return False
+            left, right = node.__children__[0], node.__children__[1]
+            if isinstance(left, ops.TableColumn) and isinstance(right, ops.Literal):
+                return True
+            if isinstance(left, ops.Literal) and isinstance(right, ops.TableColumn):
+                return True
+            if isinstance(left, ops.TableColumn) and isinstance(right, ops.TableColumn):
+                return True
+            return False
 
         if not (isinstance(node, ops.Selection) or isinstance(node, ops.Aggregation)):
             return
-        equalses = list(filter(is_equals_literal, node.__children__))
+        equalses = list(filter(is_equals_col_lit_or_col_col, node.__children__))
         log_bins = list(filter((lambda c: isinstance(c, ops.logical.LogicalBinary) and any(
-            is_equals_literal(cc) for cc in c.__children__)), node.__children__))
+            is_equals_col_lit_or_col_col(cc) for cc in c.__children__)), node.__children__))
 
         for eq in equalses:
             cls(eq)
@@ -786,14 +795,22 @@ def operator_arg_stringify(operand: Node, struct_name=None, window_resolve=None)
             return f"\"{operand.value}\""
         return operand.name
     elif isinstance(operand, ops.logical.Comparison):
-        # right is always a literal, which is always nullable
         left = operator_arg_stringify(
             operand.left, struct_name, window_resolve)
         right = operator_arg_stringify(
             operand.right, struct_name, window_resolve)
+        # careful: ibis considers literals as optionals, while in noir a numeric literal is not an Option<T>
+        is_left_nullable = operand.left.dtype.nullable and not isinstance(
+            operand.left, ops.Literal)
+        is_right_nullable = operand.right.dtype.nullable and not isinstance(
+            operand.right, ops.Literal)
         op = comp_ops[type(operand).__name__]
-        if operand.left.dtype.nullable:
+        if is_left_nullable and not is_right_nullable:
             return f"{left}.clone().is_some_and(|v| v {op} {right})"
+        if not is_left_nullable and is_right_nullable:
+            return f"{right}.clone().is_some_and(|v| {left} {op} v)"
+        if is_left_nullable and is_right_nullable:
+            return f"{left}.clone().zip({right}.clone()).map_or(false, |(a, b)| a {op} b)"
         return f"{left} {op} {right}"
     elif isinstance(operand, ops.LogicalBinary):
         left = operator_arg_stringify(
