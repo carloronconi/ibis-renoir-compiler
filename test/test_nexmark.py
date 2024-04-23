@@ -108,49 +108,7 @@ class TestNexmark(TestCompiler):
                  .group_by(_.category)
                  .aggregate(avg_final_p=_.final_p.mean()))
 
-        print(ibis.to_sql(query))
-        """
-        WITH t0 AS (
-          SELECT
-            t2.auction AS auction,
-            t2.bidder AS bidder,
-            t2.price AS price,
-            t2.channel AS channel,
-            t2.url AS url,
-            t2.date_time AS date_time,
-            t2.extra AS extra,
-            t3.id AS id,
-            t3.item_name AS item_name,
-            t3.description AS description,
-            t3.initial_bid AS initial_bid,
-            t3.reserve AS reserve,
-            t3.date_time AS date_time_right,
-            t3.expires AS expires,
-            t3.seller AS seller,
-            t3.category AS category,
-            t3.extra AS extra_right
-          FROM main.ibis_read_csv_jqgzehe2rjhibipdymlgjcyrpu AS t2
-          JOIN main.ibis_read_csv_azt4jc6etfbo7mtrbc5nxvhhrq AS t3
-            ON t3.id = t2.auction
-          WHERE
-            t2.date_time < t3.expires AND t3.expires < CAST(2330277279926 AS BIGINT)
-        )
-        SELECT
-          t1.category,
-          AVG(t1.final_p) AS avg_final_p
-        FROM (
-          SELECT
-            t0.id AS id,
-            t0.category AS category,
-            MAX(t0.price) AS final_p
-          FROM t0
-          GROUP BY
-            1,
-            2
-        ) AS t1
-        GROUP BY
-          1
-        """
+        # print(ibis.to_sql(query))
 
         compile_ibis_to_noir([(self.files["auction"], auction), (self.files["bid"], bid)],
                              query, run_after_gen=True, render_query_graph=True)
