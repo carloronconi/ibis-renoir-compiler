@@ -87,18 +87,75 @@ class TestNexmark(TestCompiler):
         auction = self.tables["auction"]
         bid = self.tables["bid"]
         query = (auction
-                 .join(bid, auction["id"] == bid["auction"])
-                 .filter(bid["date_time"] < auction["expires"])
-                 .filter(auction["expires"] < self.CURRENT_TIME)
+                 # TODO: writing equality in opposite order breaks noir
+                 .join(bid, bid["auction"] == auction["id"])
+                 
+                 # TODO: filtering between columns not recognized as filter! only col and literal up to now
+
+                 # careful for ibis: using initial tab name w/ square brackets breaks col resolution for bid.date_time if bid is on right
+                 # side of join, because its column (also present in auction) is renamed to date_time_right
+                 # and would need to use _.date_time_right instead of bid["date_time"]
+                 # if doing join in the opposite direction otherwise, it would still work
+                 .filter((_.date_time_right < _.expires) & (_.expires < self.CURRENT_TIME))
+
                  # > 1 by's not required by semantics of query, as done in noir nexmark test
-                 .group_by([auction["id"], auction["category"]])
-                 .aggregate(final_p=bid["price"].max())
-                 # .join(auction, auction["category"] == auction["id"])
-                 .group_by(auction["category"])
+                 # but required to be able to group by category later (to have category col available)
+                 # note for ibis: better use "_." when choosing columns, because using old table name with
+                 # square brackets instead, can trigger implicit re-join with that table instead of selecting
+                 # from intermediate result
+                 .group_by([_.id, _.category])
+                 .aggregate(final_p=_.price.max())
+                 # nexmark query seems to suggest that there's a Category table to join, but actually
+                 # it doesn't exist and the category is just a column in Auction table
+                 .group_by(_.category)
                  .aggregate(avg_final_p=_.final_p.mean()))
 
+        print(ibis.to_sql(query))
+        """
+        WITH t0 AS (
+          SELECT
+            t2.auction AS auction,
+            t2.bidder AS bidder,
+            t2.price AS price,
+            t2.channel AS channel,
+            t2.url AS url,
+            t2.date_time AS date_time,
+            t2.extra AS extra,
+            t3.id AS id,
+            t3.item_name AS item_name,
+            t3.description AS description,
+            t3.initial_bid AS initial_bid,
+            t3.reserve AS reserve,
+            t3.date_time AS date_time_right,
+            t3.expires AS expires,
+            t3.seller AS seller,
+            t3.category AS category,
+            t3.extra AS extra_right
+          FROM main.ibis_read_csv_jqgzehe2rjhibipdymlgjcyrpu AS t2
+          JOIN main.ibis_read_csv_azt4jc6etfbo7mtrbc5nxvhhrq AS t3
+            ON t3.id = t2.auction
+          WHERE
+            t2.date_time < t3.expires AND t3.expires < CAST(2330277279926 AS BIGINT)
+        )
+        SELECT
+          t1.category,
+          AVG(t1.final_p) AS avg_final_p
+        FROM (
+          SELECT
+            t0.id AS id,
+            t0.category AS category,
+            MAX(t0.price) AS final_p
+          FROM t0
+          GROUP BY
+            1,
+            2
+        ) AS t1
+        GROUP BY
+          1
+        """
+
         compile_ibis_to_noir([(self.files["auction"], auction), (self.files["bid"], bid)],
-                            query, run_after_gen=True, render_query_graph=True)
+                             query, run_after_gen=True, render_query_graph=True)
 
         self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source()
