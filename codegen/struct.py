@@ -1,5 +1,6 @@
 import ibis.formats
 from ibis.expr.operations import Relation
+from ibis.expr.datatypes.core import DataType
 
 
 class Struct(object):
@@ -8,7 +9,7 @@ class Struct(object):
     last_complete_transform: "Struct"
     structs = []
     # copied when generating new structs: toggle if operator turns to keyed/un-keyed
-    with_keyed_stream = None
+    with_keyed_stream: dict[str, DataType] = None
 
     @classmethod
     def id_counter_to_name_short(cls, id_c: int) -> str:

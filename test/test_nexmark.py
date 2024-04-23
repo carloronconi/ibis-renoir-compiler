@@ -2,9 +2,12 @@ import ibis
 from codegen.generator import compile_ibis_to_noir
 from test.test_operators import TestCompiler
 from codegen import ROOT_DIR
+from ibis import _
 
 
 class TestNexmark(TestCompiler):
+    CURRENT_TIME = 2330277279926
+
     def setUp(self):
         names = ["auction", "bid", "person"]
         file_prefix = ROOT_DIR + "/data/nexmark/"
@@ -66,6 +69,49 @@ class TestNexmark(TestCompiler):
                  .select(["name", "city", "state", "id"]))
         compile_ibis_to_noir([(self.files["auction"], auction), (self.files["person"], person)],
                              query, run_after_gen=True, render_query_graph=False)
-        
+
+        self.assert_similarity_noir_output(query)
+        self.assert_equality_noir_source()
+
+    def test_nexmark_query_4(self):
+        """
+        SELECT Istream(AVG(Q.final))
+        FROM Category C, (SELECT Rstream(MAX(B.price) AS final, A.category)
+                          FROM Auction A [ROWS UNBOUNDED], Bid B [ROWS UNBOUNDED]
+                          WHERE A.id=B.auction AND B.datetime < A.expires AND A.expires < CURRENT_TIME
+                          GROUP BY A.id, A.category) Q
+        WHERE Q.category = C.id
+        GROUP BY C.id;
+        """
+
+        auction = self.tables["auction"]
+        bid = self.tables["bid"]
+        query = (auction
+                 # TODO: writing equality in opposite order breaks noir
+                 .join(bid, bid["auction"] == auction["id"])
+
+                 # careful for ibis: using initial tab name w/ square brackets breaks col resolution for bid.date_time if bid is on right
+                 # side of join, because its column (also present in auction) is renamed to date_time_right
+                 # and would need to use _.date_time_right instead of bid["date_time"]
+                 # if doing join in the opposite direction otherwise, it would still work
+                 .filter((_.date_time_right < _.expires) & (_.expires < self.CURRENT_TIME))
+
+                 # > 1 by's not required by semantics of query, as done in noir nexmark test
+                 # but required to be able to group by category later (to have category col available)
+                 # note for ibis: better use "_." when choosing columns, because using old table name with
+                 # square brackets instead, can trigger implicit re-join with that table instead of selecting
+                 # from intermediate result
+                 .group_by([_.id, _.category])
+                 .aggregate(final_p=_.price.max())
+                 # nexmark query seems to suggest that there's a Category table to join, but actually
+                 # it doesn't exist and the category is just a column in Auction table
+                 .group_by(_.category)
+                 .aggregate(avg_final_p=_.final_p.mean()))
+
+        # print(ibis.to_sql(query))
+
+        compile_ibis_to_noir([(self.files["auction"], auction), (self.files["bid"], bid)],
+                             query, run_after_gen=True, render_query_graph=True)
+
         self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source()

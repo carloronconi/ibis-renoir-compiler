@@ -1,5 +1,6 @@
 use renoir::prelude::*;
 use serde::{Deserialize, Serialize};
+use std::cmp::max;
 use std::fs::File;
 #[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
 struct Struct_var_0 {
@@ -9,6 +10,7 @@ struct Struct_var_0 {
 }
 #[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
 struct Struct_var_1 {
+    string1: Option<String>,
     int1_agg: Option<i64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
@@ -25,11 +27,14 @@ fn logic(ctx: StreamContext) {
         .stream_csv::<Struct_var_0>("/home/carlo/Projects/ibis-quickstart/data/int-1-string-1.csv");
     let var_2 = var_0
         .filter(|x| x.string1.clone().is_some_and(|v| v == "unduetre"))
-        .group_by(|x| x.string1.clone())
+        .group_by(|x| (x.string1.clone()))
         .reduce(|a, b| {
             a.int1 = a.int1.zip(b.int1).map(|(x, y)| x);
         })
-        .map(|(_, x)| Struct_var_1 { int1_agg: x.int1 })
+        .map(|(k, x)| Struct_var_1 {
+            string1: k.clone(),
+            int1_agg: x.int1,
+        })
         .map(|(_, x)| Struct_var_2 {
             int1_agg: x.int1_agg,
         });

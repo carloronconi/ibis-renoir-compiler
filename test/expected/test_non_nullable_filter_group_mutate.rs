@@ -1,5 +1,6 @@
 use renoir::prelude::*;
 use serde::{Deserialize, Serialize};
+use std::cmp::max;
 use std::fs::File;
 #[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
 struct Struct_var_0 {
@@ -9,10 +10,12 @@ struct Struct_var_0 {
 }
 #[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
 struct Struct_var_1 {
+    fruit: String,
     int1_agg: Option<i64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
 struct Struct_var_2 {
+    fruit: String,
     int1_agg: Option<i64>,
     mul: Option<i64>,
 }
@@ -26,12 +29,16 @@ fn logic(ctx: StreamContext) {
         ctx.stream_csv::<Struct_var_0>("/home/carlo/Projects/ibis-quickstart/data/fruit_left.csv");
     let var_2 = var_0
         .filter(|x| x.fruit == "Orange")
-        .group_by(|x| x.fruit.clone())
+        .group_by(|x| (x.fruit.clone()))
         .reduce(|a, b| {
             a.price = a.price.zip(b.price).map(|(x, y)| x);
         })
-        .map(|(_, x)| Struct_var_1 { int1_agg: x.price })
+        .map(|(k, x)| Struct_var_1 {
+            fruit: k.clone(),
+            int1_agg: x.price,
+        })
         .map(|(_, x)| Struct_var_2 {
+            fruit: x.fruit,
             int1_agg: x.int1_agg,
             mul: x.int1_agg.map(|v| v * 20),
         });

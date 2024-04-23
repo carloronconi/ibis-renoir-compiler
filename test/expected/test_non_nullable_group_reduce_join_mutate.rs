@@ -1,5 +1,6 @@
 use renoir::prelude::*;
 use serde::{Deserialize, Serialize};
+use std::cmp::max;
 use std::fs::File;
 #[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
 struct Struct_var_0 {
@@ -15,19 +16,22 @@ struct Struct_var_1 {
 }
 #[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
 struct Struct_var_2 {
+    fruit: String,
     agg2: Option<i64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
 struct Struct_var_3 {
-    agg2: Option<i64>,
     fruit: Option<String>,
+    agg2: Option<i64>,
+    fruit_right: Option<String>,
     weight: Option<i64>,
     price: Option<i64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
 struct Struct_var_4 {
-    agg2: Option<i64>,
     fruit: Option<String>,
+    agg2: Option<i64>,
+    fruit_right: Option<String>,
     weight: Option<i64>,
     price: Option<i64>,
     mut4: Option<i64>,
@@ -44,21 +48,24 @@ fn logic(ctx: StreamContext) {
     let var_1 =
         ctx.stream_csv::<Struct_var_1>("/home/carlo/Projects/ibis-quickstart/data/fruit_right.csv");
     let var_4 = var_1
-        .group_by(|x| x.fruit.clone())
+        .group_by(|x| (x.fruit.clone()))
         .reduce(|a, b| a.weight = a.weight + b.weight)
-        .map(|(_, x)| Struct_var_2 {
+        .map(|(k, x)| Struct_var_2 {
+            fruit: k.clone(),
             agg2: Some(x.weight),
         })
         .join(var_0.group_by(|x| x.fruit.clone()))
         .map(|(_, x)| Struct_var_3 {
+            fruit: Some(x.0.fruit),
             agg2: x.0.agg2,
-            fruit: Some(x.1.fruit),
+            fruit_right: Some(x.1.fruit),
             weight: Some(x.1.weight),
             price: x.1.price,
         })
         .map(|(_, x)| Struct_var_4 {
-            agg2: x.agg2,
             fruit: x.fruit,
+            agg2: x.agg2,
+            fruit_right: x.fruit_right,
             weight: x.weight,
             price: x.price,
             mut4: x.price.map(|v| v + 100),
