@@ -1,5 +1,6 @@
 use renoir::prelude::*;
 use serde::{Deserialize, Serialize};
+use std::cmp::max;
 use std::fs::File;
 #[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
 struct Struct_var_0 {
@@ -16,6 +17,7 @@ struct Struct_var_1 {
 }
 #[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
 struct Struct_var_2 {
+    fruit: String,
     agg: Option<i64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
@@ -34,11 +36,14 @@ fn logic(ctx: StreamContext) {
             price: x.price,
             mul: x.price.map(|v| v * 20),
         })
-        .group_by(|x| x.fruit.clone())
+        .group_by(|x| (x.fruit.clone()))
         .reduce(|a, b| {
             a.mul = a.mul.zip(b.mul).map(|(x, y)| x + y);
         })
-        .map(|(_, x)| Struct_var_2 { agg: x.mul });
+        .map(|(k, x)| Struct_var_2 {
+            fruit: k.clone(),
+            agg: x.mul,
+        });
     let out = var_2.collect_vec();
     tracing::info!("starting execution");
     ctx.execute_blocking();

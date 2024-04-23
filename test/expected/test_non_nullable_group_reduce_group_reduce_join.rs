@@ -1,5 +1,6 @@
 use renoir::prelude::*;
 use serde::{Deserialize, Serialize};
+use std::cmp::max;
 use std::fs::File;
 #[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
 struct Struct_var_0 {
@@ -9,6 +10,7 @@ struct Struct_var_0 {
 }
 #[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
 struct Struct_var_1 {
+    fruit: String,
     agg4: Option<i64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
@@ -19,11 +21,14 @@ struct Struct_var_2 {
 }
 #[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
 struct Struct_var_3 {
+    fruit: String,
     agg2: Option<i64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
 struct Struct_var_4 {
+    fruit: Option<String>,
     agg2: Option<i64>,
+    fruit_right: Option<String>,
     agg4: Option<i64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
@@ -35,22 +40,28 @@ fn logic(ctx: StreamContext) {
     let var_0 =
         ctx.stream_csv::<Struct_var_0>("/home/carlo/Projects/ibis-quickstart/data/fruit_left.csv");
     let var_1 = var_0
-        .group_by(|x| x.fruit.clone())
+        .group_by(|x| (x.fruit.clone()))
         .reduce(|a, b| a.weight = a.weight + b.weight)
-        .map(|(_, x)| Struct_var_1 {
+        .map(|(k, x)| Struct_var_1 {
+            fruit: k.clone(),
             agg4: Some(x.weight),
         });
     let var_2 =
         ctx.stream_csv::<Struct_var_2>("/home/carlo/Projects/ibis-quickstart/data/fruit_right.csv");
     let var_4 = var_2
-        .group_by(|x| x.fruit.clone())
+        .group_by(|x| (x.fruit.clone()))
         .reduce(|a, b| {
             a.price = a.price.zip(b.price).map(|(x, y)| x + y);
         })
-        .map(|(_, x)| Struct_var_3 { agg2: x.price })
+        .map(|(k, x)| Struct_var_3 {
+            fruit: k.clone(),
+            agg2: x.price,
+        })
         .join(var_1)
         .map(|(_, x)| Struct_var_4 {
+            fruit: Some(x.0.fruit),
             agg2: x.0.agg2,
+            fruit_right: Some(x.1.fruit),
             agg4: x.1.agg4,
         });
     let out = var_4.collect_vec();

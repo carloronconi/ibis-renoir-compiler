@@ -1,5 +1,6 @@
 use renoir::prelude::*;
 use serde::{Deserialize, Serialize};
+use std::cmp::max;
 use std::fs::File;
 #[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
 struct Struct_var_0 {
@@ -9,6 +10,7 @@ struct Struct_var_0 {
 }
 #[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
 struct Struct_var_1 {
+    int1: Option<i64>,
     agg4: Option<i64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
@@ -19,11 +21,14 @@ struct Struct_var_2 {
 }
 #[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
 struct Struct_var_3 {
+    int1: Option<i64>,
     agg2: Option<i64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
 struct Struct_var_4 {
+    int1: Option<i64>,
     agg2: Option<i64>,
+    int1_right: Option<i64>,
     agg4: Option<i64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
@@ -35,22 +40,30 @@ fn logic(ctx: StreamContext) {
     let var_0 = ctx
         .stream_csv::<Struct_var_0>("/home/carlo/Projects/ibis-quickstart/data/int-1-string-1.csv");
     let var_1 = var_0
-        .group_by(|x| x.int1.clone())
+        .group_by(|x| (x.int1.clone()))
         .reduce(|a, b| {
             a.int4 = a.int4.zip(b.int4).map(|(x, y)| x + y);
         })
-        .map(|(_, x)| Struct_var_1 { agg4: x.int4 });
+        .map(|(k, x)| Struct_var_1 {
+            int1: k.clone(),
+            agg4: x.int4,
+        });
     let var_2 =
         ctx.stream_csv::<Struct_var_2>("/home/carlo/Projects/ibis-quickstart/data/int-3.csv");
     let var_4 = var_2
-        .group_by(|x| x.int1.clone())
+        .group_by(|x| (x.int1.clone()))
         .reduce(|a, b| {
             a.int2 = a.int2.zip(b.int2).map(|(x, y)| x + y);
         })
-        .map(|(_, x)| Struct_var_3 { agg2: x.int2 })
+        .map(|(k, x)| Struct_var_3 {
+            int1: k.clone(),
+            agg2: x.int2,
+        })
         .join(var_1)
         .map(|(_, x)| Struct_var_4 {
+            int1: x.0.int1,
             agg2: x.0.agg2,
+            int1_right: x.1.int1,
             agg4: x.1.agg4,
         });
     let out = var_4.collect_vec();

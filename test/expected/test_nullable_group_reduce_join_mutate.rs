@@ -1,5 +1,6 @@
 use renoir::prelude::*;
 use serde::{Deserialize, Serialize};
+use std::cmp::max;
 use std::fs::File;
 #[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
 struct Struct_var_0 {
@@ -15,19 +16,22 @@ struct Struct_var_1 {
 }
 #[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
 struct Struct_var_2 {
+    int1: Option<i64>,
     agg2: Option<i64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
 struct Struct_var_3 {
-    agg2: Option<i64>,
     int1: Option<i64>,
+    agg2: Option<i64>,
+    int1_right: Option<i64>,
     string1: Option<String>,
     int4: Option<i64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
 struct Struct_var_4 {
-    agg2: Option<i64>,
     int1: Option<i64>,
+    agg2: Option<i64>,
+    int1_right: Option<i64>,
     string1: Option<String>,
     int4: Option<i64>,
     mut4: Option<i64>,
@@ -44,21 +48,26 @@ fn logic(ctx: StreamContext) {
     let var_1 =
         ctx.stream_csv::<Struct_var_1>("/home/carlo/Projects/ibis-quickstart/data/int-3.csv");
     let var_4 = var_1
-        .group_by(|x| x.int1.clone())
+        .group_by(|x| (x.int1.clone()))
         .reduce(|a, b| {
             a.int2 = a.int2.zip(b.int2).map(|(x, y)| x + y);
         })
-        .map(|(_, x)| Struct_var_2 { agg2: x.int2 })
+        .map(|(k, x)| Struct_var_2 {
+            int1: k.clone(),
+            agg2: x.int2,
+        })
         .join(var_0.group_by(|x| x.int1.clone()))
         .map(|(_, x)| Struct_var_3 {
+            int1: x.0.int1,
             agg2: x.0.agg2,
-            int1: x.1.int1,
+            int1_right: x.1.int1,
             string1: x.1.string1,
             int4: x.1.int4,
         })
         .map(|(_, x)| Struct_var_4 {
-            agg2: x.agg2,
             int1: x.int1,
+            agg2: x.agg2,
+            int1_right: x.int1_right,
             string1: x.string1,
             int4: x.int4,
             mut4: x.int4.map(|v| v + 100),

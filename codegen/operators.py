@@ -296,7 +296,7 @@ class GroupReduceOperator(Operator):
 
         mid += f".map(|(k, x)| {new_struct.name_struct}{{"
         if len(bys_n_t) == 1:
-            mid += f"{new_struct.columns[0]}: *k,"
+            mid += f"{new_struct.columns[0]}: k.clone(),"
         else: 
             for i, column in enumerate(new_struct.columns):
                 # skip last

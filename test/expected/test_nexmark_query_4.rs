@@ -109,7 +109,7 @@ fn logic(ctx: StreamContext) {
         .drop_key()
         .group_by_avg(|x| (x.category.clone()), |x| x.final_p.unwrap_or(0) as f64)
         .map(|(k, x)| Struct_var_4 {
-            category: *k,
+            category: k.clone(),
             avg_final_p: Some(x),
         });
     let out = var_4.collect_vec();
