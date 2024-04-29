@@ -468,14 +468,22 @@ class ExplicitWindowOperator(WindowOperator):
         text = ""
 
         # generate .group_by if needed
-        if (group_by := frame.group_by):
-            by = group_by[0]
-            col = operator_arg_stringify(by)
-            text += f".group_by(|x| x.{col}.clone())"
+        if (bys := frame.group_by):
+
+            # this group_by follows another, so drop_key is required
+            if Struct.last().is_keyed_stream:
+                text += ".drop_key()"
+
+            text += ".group_by(|x| ("
+            for by in [operator_arg_stringify(b) for b in bys]:
+                text += f"x.{by}.clone(), "
+            # remove last comma and space
+            text = text[:-2]
+            text += "))"
             # if we have group_by, .fold will generate a KeyedStream so
             # we set Struct.with_keyed_stream with key's name/type so following
             # map knows how to handle it
-            Struct.with_keyed_stream = {by.name: by.dtype}
+            Struct.with_keyed_stream = {b.name: b.dtype for b in bys}
 
         # .fold still generates a KeyedStream, but the key in this case
         # is a unit tuple () and we will discard it before the next operation
@@ -502,6 +510,11 @@ class ExplicitWindowOperator(WindowOperator):
                      WindowFuncGen.Func("grp_count", ibis.dtype(
                          "int64"), fold_action="acc.grp_count = acc.grp_count.map(|v| v + 1);"),
                      WindowFuncGen.Func(self.alias.name, self.alias.dtype, map_action="{0}: x.grp_sum.zip(x.grp_count).map(|(a, b)| a as f64 / b as f64),")])
+            case "Max":
+                op = WindowFuncGen(
+                    [WindowFuncGen.Func(self.alias.name, self.alias.dtype, fold_action="acc.{0} = acc.{0}.zip(x.{1}).map(|(a, b)| max(a, b));")])
+            case _:
+                raise Exception(f"Window function {type(window.func).__name__} not supported!")
 
         # create the new struct by adding struct_fields to previous struct's columns
         new_cols_types = dict(prev_struct.cols_types)
@@ -738,8 +751,11 @@ class BotOperator(Operator):
             new_struct = Struct.from_args(str(id(self)), list(names_types.keys()), list(
                 names_types.values()), with_name_short="collect")
             bot += f"let out = out.iter().map(|(k, v)| ({new_struct.name_struct}{{"
-            for name in names_types:
-                bot += f"{name}: k.clone(),"
+            if len(names_types) == 1:
+                bot += f"{list(names_types.keys())[0]}: k.clone(),"
+            else:
+                for i, name in enumerate(names_types):
+                    bot += f"{name}: k.{i}.clone(),"
             bot += "}, v)).collect::<Vec<_>>();"
 
         with open(utl.ROOT_DIR + "/noir-template/main_bot.rs") as f:
