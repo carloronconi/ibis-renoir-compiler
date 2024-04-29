@@ -116,9 +116,6 @@ class TestNexmark(TestCompiler):
         self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source()
 
-    # Query 5 is not supporteb by ibis: it requires time-based windowing
-    # def test_nexmark_query_5(self):
-
     def test_nexmark_query_6(self):
         """
         SELECT Istream(AVG(Q.final), Q.seller)
@@ -137,7 +134,7 @@ class TestNexmark(TestCompiler):
                  .filter((_.date_time_right < _.expires) & (_.expires < self.CURRENT_TIME))
                  .mutate(final_p=_.price.max().over(w))
                  .select([_.final_p, _.seller])
-                 
+
                  # aggregating here breaks comparison with noir, because noir windows return fewer rows
                  # so averaging them gives different result from ibis
                  .group_by(_.seller)
@@ -151,3 +148,5 @@ class TestNexmark(TestCompiler):
         # but testing withoit last group_by.aggregate shows that result should be correct
         # self.assert_similarity_noir_output(query, noir_subset_ibis=True)
         self.assert_equality_noir_source()
+
+    # Query 5, 7, 8 are not supported by ibis because they require time-based windowing
