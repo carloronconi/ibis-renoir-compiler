@@ -60,9 +60,7 @@ class SelectOperator(Operator):
 
     def __init__(self, node: ops.Selection):
         self.node = node
-        self.columns = []
-        for operand in filter(lambda o: isinstance(o, ops.TableColumn), node.__children__):
-            self.columns.append(operand)
+        self.columns = [c for c in node.__children__ if isinstance(c, ops.TableColumn)]
         super().__init__()
 
     def generate(self) -> str:
@@ -75,8 +73,8 @@ class SelectOperator(Operator):
             mid += ".map(|x| "
 
         mid += f"{new_struct.name_struct}{{"
-        for new_col, col in zip(new_struct.columns, self.columns):
-            mid += f"{new_col}: x.{col.name}, "
+        for col in new_struct.columns:
+            mid += f"{col}: x.{col}, "
         mid += "})"
 
         return mid
@@ -100,7 +98,7 @@ class FilterOperator(Operator):
         super().__init__()
 
     def generate(self) -> str:
-        filter_expr = operator_arg_stringify(self.comparator, "x")
+        filter_expr = operator_arg_stringify(self.comparator, struct_name="x")
         if Struct.last().is_keyed_stream:
             return f".filter(|(_, x)| {filter_expr})"
         return f".filter(|x| {filter_expr})"
