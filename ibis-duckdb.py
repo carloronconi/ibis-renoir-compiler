@@ -1,3 +1,4 @@
+import subprocess
 import ibis
 import ibis.selectors as sel
 
@@ -5,6 +6,7 @@ from ibis.expr.visualize import to_graph
 from ibis.common.graph import Graph
 import ibis.expr.operations as ops
 from ibis import _
+from codegen import ROOT_DIR
 
 """
 https://ibis-project.org/tutorials/getting_started
@@ -152,8 +154,26 @@ def ibis_backends():
     res = ibis.get_backend().compile(expr)
     print(res)
 
+def check_no_q_optimization():
+    con = ibis.connect("duckdb://penguins.ddb")
+    con.create_table("penguins", ibis.examples.penguins.fetch().to_pyarrow(), overwrite=True)
+
+    penguins = con.table("penguins")
+
+    expr = (penguins
+            .mutate(bill_length_plus_10=penguins.bill_length_mm + 10)
+            .mutate(bill_length_times_20=_.bill_length_plus_10 * 2)
+    #       .filter(penguins.sex == "male"))
+            .select("species", "bill_length_plus_10"))
+
+    to_graph(expr).render(ROOT_DIR + "/out/query")
+    subprocess.run(f"open {ROOT_DIR}/out/query.pdf", shell=True)
+    print(ibis.to_sql(expr))
+
+
 
 if __name__ == '__main__':
     # ibis_backends()
     # ibis_visualize()
-    ibis_noir_generator_query()
+    # ibis_noir_generator_query()
+    check_no_q_optimization()
