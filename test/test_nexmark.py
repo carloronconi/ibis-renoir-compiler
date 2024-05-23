@@ -1,6 +1,6 @@
 import ibis
 from codegen.generator import compile_ibis_to_noir
-from test.test_operators import TestCompiler
+from test.test_base import TestCompiler
 from codegen import ROOT_DIR
 from ibis import _
 
@@ -30,7 +30,7 @@ class TestNexmark(TestCompiler):
                  .select(["auction", "price", "dol_price", "bidder", "date_time"]))
 
         compile_ibis_to_noir([(self.files["bid"], bid)],
-                             query, run_after_gen=True, render_query_graph=False)
+                             query, self.run_after_gen, self.render_query_graph)
 
         self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source()
@@ -48,7 +48,7 @@ class TestNexmark(TestCompiler):
                  .select(["auction", "price"]))
 
         compile_ibis_to_noir([(self.files["bid"], bid)],
-                             query, run_after_gen=True, render_query_graph=False)
+                             query, self.run_after_gen, self.render_query_graph)
 
         self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source()
@@ -68,7 +68,7 @@ class TestNexmark(TestCompiler):
                  .filter(auction["category"] == 10)
                  .select(["name", "city", "state", "id"]))
         compile_ibis_to_noir([(self.files["auction"], auction), (self.files["person"], person)],
-                             query, run_after_gen=True, render_query_graph=False)
+                             query, self.run_after_gen, self.render_query_graph)
 
         self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source()
@@ -111,7 +111,7 @@ class TestNexmark(TestCompiler):
         # print(ibis.to_sql(query))
 
         compile_ibis_to_noir([(self.files["auction"], auction), (self.files["bid"], bid)],
-                             query, run_after_gen=True, render_query_graph=True)
+                             query, self.run_after_gen, self.render_query_graph)
 
         self.assert_similarity_noir_output(query)
         self.assert_equality_noir_source()
@@ -141,7 +141,7 @@ class TestNexmark(TestCompiler):
                  .aggregate(avg_final_p=_.final_p.mean()))
 
         compile_ibis_to_noir([(self.files["auction"], auction), (self.files["bid"], bid)],
-                             query, run_after_gen=True, render_query_graph=False)
+                             query, self.run_after_gen, self.render_query_graph)
 
         # subset option is not enough for different window semantics in this case:
         # after obtaining fewer rows in noir, we aggregate them, obtaining different results altogether

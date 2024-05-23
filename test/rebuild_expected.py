@@ -3,7 +3,7 @@ import shutil
 from unittest import TestLoader
 
 from codegen import ROOT_DIR
-from test.test_operators import TestOperators, TestNonNullableOperators
+from test.test_operators import TestNullableOperators, TestNonNullableOperators
 
 
 def update_all_expected_sources():
@@ -12,7 +12,8 @@ def update_all_expected_sources():
     Useful when made a change that changes expected noir code of all tests and already ensured output similarity
     """
     suite = []
-    suite.extend(list(TestLoader().loadTestsFromTestCase(TestOperators)))
+    suite.extend(
+        list(TestLoader().loadTestsFromTestCase(TestNullableOperators)))
     suite.extend(
         list(TestLoader().loadTestsFromTestCase(TestNonNullableOperators)))
 
