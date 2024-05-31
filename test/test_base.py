@@ -1,11 +1,10 @@
-import logging
 import os
 import sys
 import time
 import unittest
 import pandas as pd
 from difflib import unified_diff
-from codegen import ROOT_DIR
+from codegen import ROOT_DIR, Benchmark
 from ibis import _
 
 
@@ -19,15 +18,19 @@ class TestCompiler(unittest.TestCase):
         except FileNotFoundError:
             pass
 
+        # initialize benchmark data for current test name
+        self.benchmark = Benchmark(self.id().split('.')[-1])
+
     def tearDown(self) -> None:
-        # measure performance of ibis query execution
-        logger = logging.getLogger()
-        logger.info("Ibis")
+        # measure ibis total execution time
         start_time = time.perf_counter()
         # TODO: renoir performs computation and writes output to file, here we're just performing the computation
         self.query.to_pandas()
         end_time = time.perf_counter()
-        logger.info(f"Execution time: {end_time - start_time:.10f}s")
+
+        # log renoir and ibis results
+        self.benchmark.set_ibis(end_time - start_time)
+        self.benchmark.log()
 
     def assert_equality_noir_source(self):
         test_expected_file = "/test/expected/" + \

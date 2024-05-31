@@ -23,7 +23,7 @@ class TestNullableOperators(TestCompiler):
                       .select("int1"))
 
         compile_ibis_to_noir([(self.files[0], self.tables[0])],
-                             self.query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
         self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
 
@@ -35,7 +35,7 @@ class TestNullableOperators(TestCompiler):
                  .select("string1"))
 
         compile_ibis_to_noir([(self.files[0], self.tables[0])],
-                             self.query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
@@ -48,7 +48,7 @@ class TestNullableOperators(TestCompiler):
                  .select(["int1_agg"]))
 
         compile_ibis_to_noir([(self.files[0], self.tables[0])],
-                             self.query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
@@ -61,7 +61,7 @@ class TestNullableOperators(TestCompiler):
                  .mutate(mul=_.int1_agg * 20))  # mutate always results in alias preceded by Multiply (or other bin op)
 
         compile_ibis_to_noir([(self.files[0], self.tables[0])],
-                             self.query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
@@ -73,7 +73,7 @@ class TestNullableOperators(TestCompiler):
         # here example of reduce without group_by
 
         compile_ibis_to_noir([(self.files[0], self.tables[0])],
-                             self.query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
@@ -105,7 +105,7 @@ class TestNullableOperators(TestCompiler):
         # .mutate(center=_.int1 - _.int1.mean()))
 
         compile_ibis_to_noir([(self.files[0], self.tables[0])],
-                             self.query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
@@ -119,7 +119,7 @@ class TestNullableOperators(TestCompiler):
                  .select(["string1", "int1", "int3"]))
 
         compile_ibis_to_noir(zip(self.files, self.tables),
-                             self.query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
@@ -129,7 +129,7 @@ class TestNullableOperators(TestCompiler):
                  .outer_join(self.tables[1], "int1"))
 
         compile_ibis_to_noir(zip(self.files, self.tables),
-                             self.query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
@@ -139,7 +139,7 @@ class TestNullableOperators(TestCompiler):
                  .left_join(self.tables[1], "int1"))
 
         compile_ibis_to_noir(zip(self.files, self.tables),
-                             self.query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
@@ -157,7 +157,7 @@ class TestNullableOperators(TestCompiler):
                  .mutate(mut4=_.int4 + 100))
 
         compile_ibis_to_noir(zip(self.files, self.tables),
-                             self.query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
@@ -173,7 +173,7 @@ class TestNullableOperators(TestCompiler):
                              .group_by("int1").aggregate(agg4=_.int4.sum()), "int1"))
 
         compile_ibis_to_noir(zip(self.files, self.tables),
-                             self.query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
@@ -188,7 +188,7 @@ class TestNullableOperators(TestCompiler):
                              .aggregate(agg4=_.int4.sum()), "int1"))
 
         compile_ibis_to_noir(zip(self.files, self.tables),
-                             self.query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
@@ -202,7 +202,7 @@ class TestNullableOperators(TestCompiler):
 
         ib_res = self.query.to_pandas()
         compile_ibis_to_noir(zip(self.files, self.tables),
-                             self.query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         self.assert_similarity_noir_output(noir_subset_ibis=True)
         self.assert_equality_noir_source()
@@ -216,7 +216,7 @@ class TestNullableOperators(TestCompiler):
 
         ib_res = self.query.to_pandas()
         compile_ibis_to_noir(zip(self.files, self.tables),
-                             self.query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         self.assert_similarity_noir_output(noir_subset_ibis=True)
         self.assert_equality_noir_source()
@@ -233,7 +233,7 @@ class TestNullableOperators(TestCompiler):
 
         ib_res = self.query.to_pandas()
         compile_ibis_to_noir(zip(self.files, self.tables),
-                             self.query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         self.assert_similarity_noir_output(noir_subset_ibis=True)
         self.assert_equality_noir_source()
@@ -253,7 +253,7 @@ class TestNullableOperators(TestCompiler):
 
         ib_res = self.query.to_pandas()
         compile_ibis_to_noir(zip(self.files, self.tables),
-                             self.query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         self.assert_similarity_noir_output(noir_subset_ibis=True)
         self.assert_equality_noir_source()
@@ -267,7 +267,7 @@ class TestNullableOperators(TestCompiler):
 
         ib_res = self.query.to_pandas()
         compile_ibis_to_noir(zip(self.files, self.tables),
-                             self.query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         self.assert_similarity_noir_output(noir_subset_ibis=True)
         self.assert_equality_noir_source()
@@ -282,7 +282,7 @@ class TestNullableOperators(TestCompiler):
 
         ib_res = self.query.to_pandas()
         compile_ibis_to_noir(zip(self.files, self.tables),
-                             self.query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         self.assert_similarity_noir_output(noir_subset_ibis=True)
         self.assert_equality_noir_source()
@@ -324,7 +324,7 @@ class TestNonNullableOperators(TestCompiler):
                  .select("price"))
 
         compile_ibis_to_noir([(self.files[0], self.tables[0])],
-                             self.query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
@@ -337,7 +337,7 @@ class TestNonNullableOperators(TestCompiler):
                  .select("fruit"))
 
         compile_ibis_to_noir([(self.files[0], self.tables[0])],
-                             self.query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
@@ -350,7 +350,7 @@ class TestNonNullableOperators(TestCompiler):
                  .select(["int1_agg"]))
 
         compile_ibis_to_noir([(self.files[0], self.tables[0])],
-                             self.query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
@@ -363,7 +363,7 @@ class TestNonNullableOperators(TestCompiler):
                  .mutate(mul=_.int1_agg * 20))
 
         compile_ibis_to_noir([(self.files[0], self.tables[0])],
-                             self.query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
@@ -374,7 +374,7 @@ class TestNonNullableOperators(TestCompiler):
                  .aggregate(int1_agg=_["weight"].sum()))
 
         compile_ibis_to_noir([(self.files[0], self.tables[0])],
-                             self.query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
@@ -387,7 +387,7 @@ class TestNonNullableOperators(TestCompiler):
                  .aggregate(agg=_.mul.sum()))
 
         compile_ibis_to_noir([(self.files[0], self.tables[0])],
-                             self.query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
@@ -401,7 +401,7 @@ class TestNonNullableOperators(TestCompiler):
                  .select(["fruit", "weight", "price"]))
 
         compile_ibis_to_noir(zip(self.files, self.tables),
-                             self.query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
@@ -411,7 +411,7 @@ class TestNonNullableOperators(TestCompiler):
                  .left_join(self.tables[1], "fruit"))
 
         compile_ibis_to_noir(zip(self.files, self.tables),
-                             self.query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
@@ -421,7 +421,7 @@ class TestNonNullableOperators(TestCompiler):
                  .outer_join(self.tables[1], "fruit"))
 
         compile_ibis_to_noir(zip(self.files, self.tables),
-                             self.query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
@@ -434,7 +434,7 @@ class TestNonNullableOperators(TestCompiler):
                  .mutate(mut4=_.price + 100))
 
         compile_ibis_to_noir(zip(self.files, self.tables),
-                             self.query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
@@ -447,7 +447,7 @@ class TestNonNullableOperators(TestCompiler):
                              .group_by("fruit").aggregate(agg4=_.weight.sum()), "fruit"))
 
         compile_ibis_to_noir(zip(self.files, self.tables),
-                             self.query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
@@ -459,7 +459,7 @@ class TestNonNullableOperators(TestCompiler):
                              .aggregate(agg4=_.price.sum()), "fruit"))
 
         compile_ibis_to_noir(zip(self.files, self.tables),
-                             self.query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         self.assert_similarity_noir_output()
         self.assert_equality_noir_source()

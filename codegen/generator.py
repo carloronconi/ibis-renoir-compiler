@@ -1,11 +1,10 @@
 import subprocess
 import time
-import logging
 
-from datetime import datetime
 from ibis.common.graph import Node
 from ibis.expr.operations import PhysicalTable
 from ibis.expr.visualize import to_graph
+from codegen.benchmark import Benchmark
 
 import codegen.utils as utl
 from codegen.operators import Operator
@@ -15,12 +14,9 @@ def compile_ibis_to_noir(files_tables: list[tuple[str, PhysicalTable]],
                          query: PhysicalTable,
                          run_after_gen=True,
                          render_query_graph=True,
-                         diagnostics=True):
-    
-    if diagnostics: 
-        logger = setup_logger()
-        logger.info(f"Starting run")
-        logger.info("Renoir")
+                         benchmark: Benchmark = None):
+
+    if benchmark:
         start_time = time.perf_counter()
 
     for file, table in files_tables:
@@ -35,19 +31,19 @@ def compile_ibis_to_noir(files_tables: list[tuple[str, PhysicalTable]],
 
     if subprocess.run(f"cd {utl.ROOT_DIR}/noir-template && cargo-fmt && cargo build", shell=True).returncode != 0:
         raise Exception("Failed to compile generated noir code!")
-    
-    if diagnostics:
+
+    if benchmark:
         end_time = time.perf_counter()
-        logger.info(f"Compilation time: {end_time - start_time:.10f}s")
+        benchmark.set_renoir_compile(end_time - start_time)
 
     if run_after_gen:
-        if diagnostics:
+        if benchmark:
             start_time = time.perf_counter()
         if subprocess.run(f"cd {utl.ROOT_DIR}/noir-template && cargo run", shell=True).returncode != 0:
             raise Exception("Noir code panicked!")
-        if diagnostics:
+        if benchmark:
             end_time = time.perf_counter()
-            logger.info(f"Execution time: {end_time - start_time:.10f}s")
+            benchmark.set_renoir_execute(end_time - start_time)
 
 
 def post_order_dfs(root: Node):
@@ -70,9 +66,11 @@ def gen_noir_code():
 
     mid = ""
     for op in Operator.operators:
-        mid += op.generate()  # operators can also modify structs while generating, so generate mid before top
+        # operators can also modify structs while generating, so generate mid before top
+        mid += op.generate()
 
-    bot = Operator.new_bot().generate()  # bottom can also generate new struct, so generate bot before top
+    # bottom can also generate new struct, so generate bot before top
+    bot = Operator.new_bot().generate()
     top = Operator.new_top().generate()
 
     with open(utl.ROOT_DIR + '/noir-template/src/main.rs', 'w') as f:
@@ -81,24 +79,3 @@ def gen_noir_code():
         f.write(bot)
 
     print("done generating code")
-
-
-def setup_logger() -> logging.Logger:
-    logger = logging.getLogger()
-    handler = logging.FileHandler(utl.ROOT_DIR + "/log/codegen_log.csv", mode='a')
-    handler.setFormatter(CustomFormatter("%(levelname)s, %(asctime)s, %(message)s"))
-    logger.addHandler(handler)
-    logger.setLevel(logging.INFO)
-    return logger
-
-
-class CustomFormatter(logging.Formatter):
-    converter = datetime.fromtimestamp
-
-    def formatTime(self, record, datefmt=None):
-        ct = self.converter(record.created)
-        if datefmt:
-            s = ct.strftime(datefmt)
-            return s
-        else:
-            return ct.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
