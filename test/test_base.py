@@ -22,15 +22,18 @@ class TestCompiler(unittest.TestCase):
         self.benchmark = Benchmark(self.id().split('.')[-1])
 
     def tearDown(self) -> None:
-        # measure ibis total execution time
-        start_time = time.perf_counter()
-        # TODO: renoir performs computation and writes output to file, here we're just performing the computation
-        self.query.to_pandas()
-        end_time = time.perf_counter()
-
-        # log renoir and ibis results
-        self.benchmark.set_ibis(end_time - start_time)
+        # only run ibis query if not already run in assert_similarity_noir_output
+        if not hasattr(self.benchmark, "ibis_time"):
+            self.run_ibis_query()
         self.benchmark.log()
+
+    def run_ibis_query(self):
+        # benchmark ibis total run time + write to csv (as noir also performs write to csv)
+        start_time = time.perf_counter()
+        self.df_ibis = self.query.to_pandas()
+        self.df_ibis.to_csv(ROOT_DIR + "/out/ibis-benchmark.csv")
+        end_time = time.perf_counter()
+        self.benchmark.set_ibis(end_time - start_time)
 
     def assert_equality_noir_source(self):
         test_expected_file = "/test/expected/" + \
@@ -46,9 +49,10 @@ class TestCompiler(unittest.TestCase):
         print("\033[92m Source equality: OK\033[00m")
 
     def assert_similarity_noir_output(self, noir_subset_ibis=False):
-        print(self.query.head(50).to_pandas())
-        df_ibis = self.query.to_pandas()
-        self.round_float_cols(df_ibis)
+        self.run_ibis_query()
+
+        self.round_float_cols(self.df_ibis)
+        df_ibis = self.df_ibis
         df_ibis.to_csv(ROOT_DIR + "/out/ibis-result.csv")
 
         noir_path = ROOT_DIR + "/out/noir-result.csv"
