@@ -1,9 +1,10 @@
 import os
 import sys
+import time
 import unittest
 import pandas as pd
 from difflib import unified_diff
-from codegen import ROOT_DIR
+from codegen import ROOT_DIR, Benchmark
 from ibis import _
 
 
@@ -16,6 +17,23 @@ class TestCompiler(unittest.TestCase):
             os.remove(ROOT_DIR + "/out/noir-result.csv")
         except FileNotFoundError:
             pass
+
+        # initialize benchmark data for current test name
+        self.benchmark = Benchmark(self.id().split('.')[-1])
+
+    def tearDown(self) -> None:
+        # only run ibis query if not already run in assert_similarity_noir_output
+        if not hasattr(self.benchmark, "ibis_time"):
+            self.run_ibis_query()
+        self.benchmark.log()
+
+    def run_ibis_query(self):
+        # benchmark ibis total run time + write to csv (as noir also performs write to csv)
+        start_time = time.perf_counter()
+        self.df_ibis = self.query.to_pandas()
+        self.df_ibis.to_csv(ROOT_DIR + "/out/ibis-benchmark.csv")
+        end_time = time.perf_counter()
+        self.benchmark.set_ibis(end_time - start_time)
 
     def assert_equality_noir_source(self):
         test_expected_file = "/test/expected/" + \
@@ -30,10 +48,11 @@ class TestCompiler(unittest.TestCase):
         self.assertEqual(diff, [], "Differences:\n" + "".join(diff))
         print("\033[92m Source equality: OK\033[00m")
 
-    def assert_similarity_noir_output(self, query, noir_subset_ibis=False):
-        print(query.head(50).to_pandas())
-        df_ibis = query.to_pandas()
-        self.round_float_cols(df_ibis)
+    def assert_similarity_noir_output(self, noir_subset_ibis=False):
+        self.run_ibis_query()
+
+        self.round_float_cols(self.df_ibis)
+        df_ibis = self.df_ibis
         df_ibis.to_csv(ROOT_DIR + "/out/ibis-result.csv")
 
         noir_path = ROOT_DIR + "/out/noir-result.csv"

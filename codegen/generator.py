@@ -1,8 +1,10 @@
 import subprocess
+import time
 
 from ibis.common.graph import Node
 from ibis.expr.operations import PhysicalTable
 from ibis.expr.visualize import to_graph
+from codegen.benchmark import Benchmark
 
 import codegen.utils as utl
 from codegen.operators import Operator
@@ -11,7 +13,11 @@ from codegen.operators import Operator
 def compile_ibis_to_noir(files_tables: list[tuple[str, PhysicalTable]],
                          query: PhysicalTable,
                          run_after_gen=True,
-                         render_query_graph=True):
+                         render_query_graph=True,
+                         benchmark: Benchmark = None):
+
+    if benchmark:
+        start_time = time.perf_counter()
 
     for file, table in files_tables:
         utl.TAB_FILES[str(table._arg.name)] = file
@@ -25,9 +31,19 @@ def compile_ibis_to_noir(files_tables: list[tuple[str, PhysicalTable]],
 
     if subprocess.run(f"cd {utl.ROOT_DIR}/noir-template && cargo-fmt && cargo build", shell=True).returncode != 0:
         raise Exception("Failed to compile generated noir code!")
+
+    if benchmark:
+        end_time = time.perf_counter()
+        benchmark.set_renoir_compile(end_time - start_time)
+
     if run_after_gen:
+        if benchmark:
+            start_time = time.perf_counter()
         if subprocess.run(f"cd {utl.ROOT_DIR}/noir-template && cargo run", shell=True).returncode != 0:
             raise Exception("Noir code panicked!")
+        if benchmark:
+            end_time = time.perf_counter()
+            benchmark.set_renoir_execute(end_time - start_time)
 
 
 def post_order_dfs(root: Node):
@@ -50,9 +66,11 @@ def gen_noir_code():
 
     mid = ""
     for op in Operator.operators:
-        mid += op.generate()  # operators can also modify structs while generating, so generate mid before top
+        # operators can also modify structs while generating, so generate mid before top
+        mid += op.generate()
 
-    bot = Operator.new_bot().generate()  # bottom can also generate new struct, so generate bot before top
+    # bottom can also generate new struct, so generate bot before top
+    bot = Operator.new_bot().generate()
     top = Operator.new_top().generate()
 
     with open(utl.ROOT_DIR + '/noir-template/src/main.rs', 'w') as f:
