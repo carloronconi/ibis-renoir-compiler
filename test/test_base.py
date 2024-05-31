@@ -41,7 +41,7 @@ class TestCompiler(unittest.TestCase):
 
         with open(ROOT_DIR + test_expected_file, "r") as f:
             expected_lines = f.readlines()
-        with open(ROOT_DIR + "/noir-template/src/main.rs", "r") as f:
+        with open(ROOT_DIR + "/noir_template/src/main.rs", "r") as f:
             actual_lines = f.readlines()
 
         diff = list(unified_diff(expected_lines, actual_lines))

@@ -1,9 +1,9 @@
 .idea
 .vscode
 /out
-/noir-template/target
-/noir-template/Cargo.lock
-/noir-template/src/main.rs
+/noir_template/target
+/noir_template/Cargo.lock
+/noir_template/src/main.rs
 /test/expected/ibis-result.csv
 __pycache__
 penguins.ddb

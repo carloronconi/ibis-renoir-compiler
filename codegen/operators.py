@@ -723,7 +723,7 @@ class TopOperator(Operator):
         # cleanup operators: TopOperator should be the last to generate
         Operator.cleanup()
 
-        with open(utl.ROOT_DIR + "/noir-template/main_top.rs") as f:
+        with open(utl.ROOT_DIR + "/noir_template/main_top.rs") as f:
             top = f.read()
         for st in Struct.structs:
             top += st.generate()
@@ -756,7 +756,7 @@ class BotOperator(Operator):
                     bot += f"{name}: k.{i}.clone(),"
             bot += "}, v)).collect::<Vec<_>>();"
 
-        with open(utl.ROOT_DIR + "/noir-template/main_bot.rs") as f:
+        with open(utl.ROOT_DIR + "/noir_template/main_bot.rs") as f:
             bot += f.read()
         return bot
 
