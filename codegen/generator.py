@@ -2,6 +2,7 @@ import subprocess
 import time
 import logging
 
+from datetime import datetime
 from ibis.common.graph import Node
 from ibis.expr.operations import PhysicalTable
 from ibis.expr.visualize import to_graph
@@ -14,9 +15,11 @@ def compile_ibis_to_noir(files_tables: list[tuple[str, PhysicalTable]],
                          query: PhysicalTable,
                          run_after_gen=True,
                          render_query_graph=True,
-                         diagnostics=False):
+                         diagnostics=True):
     
-    logging.basicConfig(filename="codegen.log", filemode='w', level=logging.INFO)
+    logger = setup_logger()
+
+    logger.info(f"Starting run")
     start_time = time.perf_counter()
 
     for file, table in files_tables:
@@ -34,7 +37,7 @@ def compile_ibis_to_noir(files_tables: list[tuple[str, PhysicalTable]],
     
     end_time = time.perf_counter()
     if diagnostics:
-        logging.info(f"Compilation time: {end_time - start_time:.10f}s")
+        logger.info(f"Compilation time: {end_time - start_time:.10f}s")
 
     if run_after_gen:
         start_time = time.perf_counter()
@@ -42,7 +45,7 @@ def compile_ibis_to_noir(files_tables: list[tuple[str, PhysicalTable]],
             raise Exception("Noir code panicked!")
         end_time = time.perf_counter()
         if diagnostics:
-            logging.info(f"Execution time: {end_time - start_time:.10f}s")
+            logger.info(f"Execution time: {end_time - start_time:.10f}s")
 
 
 def post_order_dfs(root: Node):
@@ -76,3 +79,24 @@ def gen_noir_code():
         f.write(bot)
 
     print("done generating code")
+
+
+def setup_logger() -> logging.Logger:
+    logger = logging.getLogger()
+    handler = logging.FileHandler(utl.ROOT_DIR + "/log/codegen_log.csv", mode='a')
+    handler.setFormatter(CustomFormatter("%(levelname)s, %(asctime)s, %(message)s"))
+    logger.addHandler(handler)
+    logger.setLevel(logging.INFO)
+    return logger
+
+
+class CustomFormatter(logging.Formatter):
+    converter = datetime.fromtimestamp
+
+    def formatTime(self, record, datefmt=None):
+        ct = self.converter(record.created)
+        if datefmt:
+            s = ct.strftime(datefmt)
+            return s
+        else:
+            return ct.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
