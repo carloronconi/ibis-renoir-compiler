@@ -18,68 +18,68 @@ class TestNullableOperators(TestCompiler):
         super().setUp()
 
     def test_nullable_filter_select(self):
-        query = (self.tables[0]
-                 .filter(_.string1 == "unduetre")
-                 .select("int1"))
+        self.query = (self.tables[0]
+                      .filter(_.string1 == "unduetre")
+                      .select("int1"))
 
         compile_ibis_to_noir([(self.files[0], self.tables[0])],
-                             query, self.run_after_gen, self.render_query_graph)
-        self.assert_similarity_noir_output(query)
+                             self.query, self.run_after_gen, self.render_query_graph)
+        self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
 
     def test_nullable_filter_filter_select_select(self):
-        query = (self.tables[0]
+        self.query = (self.tables[0]
                  .filter(_.int1 == 123)
                  .filter(_.string1 == "unduetre")
                  .select("int1", "string1")
                  .select("string1"))
 
         compile_ibis_to_noir([(self.files[0], self.tables[0])],
-                             query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph)
 
-        self.assert_similarity_noir_output(query)
+        self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
 
     def test_nullable_filter_group_select(self):
-        query = (self.tables[0]
+        self.query = (self.tables[0]
                  .filter(_.string1 == "unduetre")
                  .group_by("string1")
                  .aggregate(int1_agg=_["int1"].first())
                  .select(["int1_agg"]))
 
         compile_ibis_to_noir([(self.files[0], self.tables[0])],
-                             query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph)
 
-        self.assert_similarity_noir_output(query)
+        self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
 
     def test_nullable_filter_group_mutate(self):
-        query = (self.tables[0]
+        self.query = (self.tables[0]
                  .filter(_.string1 == "unduetre")
                  .group_by("string1")
                  .aggregate(int1_agg=_["int1"].first())
                  .mutate(mul=_.int1_agg * 20))  # mutate always results in alias preceded by Multiply (or other bin op)
 
         compile_ibis_to_noir([(self.files[0], self.tables[0])],
-                             query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph)
 
-        self.assert_similarity_noir_output(query)
+        self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
 
     def test_nullable_filter_reduce(self):
-        query = (self.tables[0]
+        self.query = (self.tables[0]
                  .filter(_.string1 == "unduetre")
                  .aggregate(int1_agg=_["int1"].sum()))
         # here example of reduce without group_by
 
         compile_ibis_to_noir([(self.files[0], self.tables[0])],
-                             query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph)
 
-        self.assert_similarity_noir_output(query)
+        self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
 
     def test_nullable_filter_group_mutate_reduce(self):
-        query = (self.tables[0]
+        self.query = (self.tables[0]
                  .filter(_.int1 > 200)
                  .mutate(mul=_.int1 * 20)
                  .group_by("string1")
@@ -105,13 +105,13 @@ class TestNullableOperators(TestCompiler):
         # .mutate(center=_.int1 - _.int1.mean()))
 
         compile_ibis_to_noir([(self.files[0], self.tables[0])],
-                             query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph)
 
-        self.assert_similarity_noir_output(query)
+        self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
 
     def test_nullable_inner_join_select(self):
-        query = (self.tables[0]
+        self.query = (self.tables[0]
                  .filter(_.int1 < 200)
                  .mutate(mul=_.int1 * 20)
                  .join(self.tables[1]
@@ -119,29 +119,29 @@ class TestNullableOperators(TestCompiler):
                  .select(["string1", "int1", "int3"]))
 
         compile_ibis_to_noir(zip(self.files, self.tables),
-                             query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph)
 
-        self.assert_similarity_noir_output(query)
+        self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
 
     def test_nullable_outer_join(self):
-        query = (self.tables[0]
+        self.query = (self.tables[0]
                  .outer_join(self.tables[1], "int1"))
 
         compile_ibis_to_noir(zip(self.files, self.tables),
-                             query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph)
 
-        self.assert_similarity_noir_output(query)
+        self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
 
     def test_nullable_left_join(self):
-        query = (self.tables[0]
+        self.query = (self.tables[0]
                  .left_join(self.tables[1], "int1"))
 
         compile_ibis_to_noir(zip(self.files, self.tables),
-                             query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph)
 
-        self.assert_similarity_noir_output(query)
+        self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
 
     def test_nullable_group_reduce_join_mutate(self):
@@ -150,75 +150,75 @@ class TestNullableOperators(TestCompiler):
         - mutate (could also be select) after join (which produces a KeyedStream of a tuple of joined structs)
         - group-reduce KeyedStream join with Stream (KeyedStream wants to join with another KeyedStream)
         """
-        query = (self.tables[1]
+        self.query = (self.tables[1]
                  .group_by("int1")
                  .aggregate(agg2=_.int2.sum())
                  .inner_join(self.tables[0], "int1")
                  .mutate(mut4=_.int4 + 100))
 
         compile_ibis_to_noir(zip(self.files, self.tables),
-                             query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph)
 
-        self.assert_similarity_noir_output(query)
+        self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
 
     def test_nullable_group_reduce_group_reduce_join(self):
         """
         Tests joining KeyedStream with other var which is KeyedStream already
         """
-        query = (self.tables[1]
+        self.query = (self.tables[1]
                  .group_by("int1")
                  .aggregate(agg2=_.int2.sum())
                  .inner_join(self.tables[0]
                              .group_by("int1").aggregate(agg4=_.int4.sum()), "int1"))
 
         compile_ibis_to_noir(zip(self.files, self.tables),
-                             query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph)
 
-        self.assert_similarity_noir_output(query)
+        self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
 
     def test_nullable_join_group_reduce(self):
         """
         Tests joining left non-KeyedStream with right KeyedStream
         """
-        query = (self.tables[1]
+        self.query = (self.tables[1]
                  .inner_join(self.tables[0]
                              .group_by("int1")
                              .aggregate(agg4=_.int4.sum()), "int1"))
 
         compile_ibis_to_noir(zip(self.files, self.tables),
-                             query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph)
 
-        self.assert_similarity_noir_output(query)
+        self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
 
     def test_nullable_windowing_implicit_mean(self):
         # here implicit windowing takes all the rows in the table, because no group_by is performed before the mutate
         # and the window is not explicitly defined
-        query = (self
+        self.query = (self
                  .tables[0]
                  .mutate(int4_demean=_.int4 - _.int4.mean(), int4_mean=_.int4.mean()))
 
-        ib_res = query.to_pandas()
+        ib_res = self.query.to_pandas()
         compile_ibis_to_noir(zip(self.files, self.tables),
-                             query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph)
 
-        self.assert_similarity_noir_output(query, noir_subset_ibis=True)
+        self.assert_similarity_noir_output(noir_subset_ibis=True)
         self.assert_equality_noir_source()
 
     def test_nullable_windowing_implicit_sum(self):
         # here implicit windowing takes all the rows in the table, because no group_by is performed before the mutate
         # and the window is not explicitly defined
-        query = (self
+        self.query = (self
                  .tables[0]
                  .mutate(int4_sum=_.int4.sum()))
 
-        ib_res = query.to_pandas()
+        ib_res = self.query.to_pandas()
         compile_ibis_to_noir(zip(self.files, self.tables),
-                             query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph)
 
-        self.assert_similarity_noir_output(query, noir_subset_ibis=True)
+        self.assert_similarity_noir_output(noir_subset_ibis=True)
         self.assert_equality_noir_source()
 
     # TODO: doesn't pass yet because .reduce_scan() is not implemented for KeyedStream, but it will be soon
@@ -226,16 +226,16 @@ class TestNullableOperators(TestCompiler):
     def test_nullable_windowing_implicit_group(self):
         # here windowing is implicit over the whole group that was grouped before the mutate aggregation
         # so group_mean is actually the mean of the whole group having same string1
-        query = (self
+        self.query = (self
                  .tables[0]
                  .group_by("string1")
                  .mutate(int4_demean=_.int4 - _.int4.mean(), group_mean=_.int4.mean()))
 
-        ib_res = query.to_pandas()
+        ib_res = self.query.to_pandas()
         compile_ibis_to_noir(zip(self.files, self.tables),
-                             query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph)
 
-        self.assert_similarity_noir_output(query, noir_subset_ibis=True)
+        self.assert_similarity_noir_output(noir_subset_ibis=True)
         self.assert_equality_noir_source()
 
     def test_nullable_windowing_explicit_group(self):
@@ -248,28 +248,28 @@ class TestNullableOperators(TestCompiler):
         # semantic difference: ibis takes up to 1 preceding row and itself, for a total of 2, while noir takes exactly 2 so produces fewer result rows
         # i.e. ibis takes all windows with size 2 and below, while noir only takes windows with size 2
         w = ibis.window(group_by="string1", preceding=1, following=0)
-        query = (self.tables[0]
+        self.query = (self.tables[0]
                  .mutate(group_percent=_.int4 * 100 / _.int4.sum().over(w), group_sum=_.int4.sum().over(w)))
 
-        ib_res = query.to_pandas()
+        ib_res = self.query.to_pandas()
         compile_ibis_to_noir(zip(self.files, self.tables),
-                             query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph)
 
-        self.assert_similarity_noir_output(query, noir_subset_ibis=True)
+        self.assert_similarity_noir_output(noir_subset_ibis=True)
         self.assert_equality_noir_source()
 
     def test_nullable_windowing_explicit(self):
         # same as previous but without group_by
         # here we test mean aggregation function instead of sum
         w = ibis.window(preceding=1, following=0)
-        query = (self.tables[0]
+        self.query = (self.tables[0]
                  .mutate(group_mean=_.int4.mean().over(w)))
 
-        ib_res = query.to_pandas()
+        ib_res = self.query.to_pandas()
         compile_ibis_to_noir(zip(self.files, self.tables),
-                             query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph)
 
-        self.assert_similarity_noir_output(query, noir_subset_ibis=True)
+        self.assert_similarity_noir_output(noir_subset_ibis=True)
         self.assert_equality_noir_source()
 
     def test_nullable_windowing_explicit_window_far(self):
@@ -277,14 +277,14 @@ class TestNullableOperators(TestCompiler):
         # makes WindowFunction not direct __children__ of Alias but child of child
         # so for now not recognized as ExplicitWindowOperator
         w = ibis.window(preceding=1, following=0)
-        query = (self.tables[0]
+        self.query = (self.tables[0]
                  .mutate(group_perc=_.int4 * 100 / _.int4.mean().over(w)))
 
-        ib_res = query.to_pandas()
+        ib_res = self.query.to_pandas()
         compile_ibis_to_noir(zip(self.files, self.tables),
-                             query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph)
 
-        self.assert_similarity_noir_output(query, noir_subset_ibis=True)
+        self.assert_similarity_noir_output(noir_subset_ibis=True)
         self.assert_equality_noir_source()
 
 
@@ -319,81 +319,81 @@ class TestNonNullableOperators(TestCompiler):
         super().setUp()
 
     def test_non_nullable_filter_select(self):
-        query = (self.tables[0]
+        self.query = (self.tables[0]
                  .filter(_.fruit == "Apple")
                  .select("price"))
 
         compile_ibis_to_noir([(self.files[0], self.tables[0])],
-                             query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph)
 
-        self.assert_similarity_noir_output(query)
+        self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
 
     def test_non_nullable_filter_filter_select_select(self):
-        query = (self.tables[0]
+        self.query = (self.tables[0]
                  .filter(_.price > 3)
                  .filter(_.fruit == "Apple")
                  .select("fruit", "weight")
                  .select("fruit"))
 
         compile_ibis_to_noir([(self.files[0], self.tables[0])],
-                             query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph)
 
-        self.assert_similarity_noir_output(query)
+        self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
 
     def test_non_nullable_filter_group_select(self):
-        query = (self.tables[0]
+        self.query = (self.tables[0]
                  .filter(_.fruit == "Orange")
                  .group_by("fruit")
                  .aggregate(int1_agg=_["price"].first())
                  .select(["int1_agg"]))
 
         compile_ibis_to_noir([(self.files[0], self.tables[0])],
-                             query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph)
 
-        self.assert_similarity_noir_output(query)
+        self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
 
     def test_non_nullable_filter_group_mutate(self):
-        query = (self.tables[0]
+        self.query = (self.tables[0]
                  .filter(_.fruit == "Orange")
                  .group_by("fruit")
                  .aggregate(int1_agg=_["price"].first())
                  .mutate(mul=_.int1_agg * 20))
 
         compile_ibis_to_noir([(self.files[0], self.tables[0])],
-                             query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph)
 
-        self.assert_similarity_noir_output(query)
+        self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
 
     def test_non_nullable_filter_reduce(self):
-        query = (self.tables[0]
+        self.query = (self.tables[0]
                  .filter(_.fruit == "Orange")
                  .aggregate(int1_agg=_["weight"].sum()))
 
         compile_ibis_to_noir([(self.files[0], self.tables[0])],
-                             query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph)
 
-        self.assert_similarity_noir_output(query)
+        self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
 
     def test_non_nullable_filter_group_mutate_reduce(self):
-        query = (self.tables[0]
+        self.query = (self.tables[0]
                  .filter(_.weight > 4)
                  .mutate(mul=_.price * 20)
                  .group_by("fruit")
                  .aggregate(agg=_.mul.sum()))
 
         compile_ibis_to_noir([(self.files[0], self.tables[0])],
-                             query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph)
 
-        self.assert_similarity_noir_output(query)
+        self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
 
     def test_non_nullable_inner_join_select(self):
-        query = (self.tables[0]
+        self.query = (self.tables[0]
                  .filter(_.weight > 2)
                  .mutate(mul=_.price + 10)
                  .join(self.tables[1]
@@ -401,65 +401,65 @@ class TestNonNullableOperators(TestCompiler):
                  .select(["fruit", "weight", "price"]))
 
         compile_ibis_to_noir(zip(self.files, self.tables),
-                             query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph)
 
-        self.assert_similarity_noir_output(query)
+        self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
 
     def test_non_nullable_left_join(self):
-        query = (self.tables[0]
+        self.query = (self.tables[0]
                  .left_join(self.tables[1], "fruit"))
 
         compile_ibis_to_noir(zip(self.files, self.tables),
-                             query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph)
 
-        self.assert_similarity_noir_output(query)
+        self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
 
     def test_non_nullable_outer_join(self):
-        query = (self.tables[0]
+        self.query = (self.tables[0]
                  .outer_join(self.tables[1], "fruit"))
 
         compile_ibis_to_noir(zip(self.files, self.tables),
-                             query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph)
 
-        self.assert_similarity_noir_output(query)
+        self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
 
     def test_non_nullable_group_reduce_join_mutate(self):
-        query = (self.tables[1]
+        self.query = (self.tables[1]
                  .group_by("fruit")
                  .aggregate(agg2=_.weight.sum())
                  .inner_join(self.tables[0], "fruit")
                  .mutate(mut4=_.price + 100))
 
         compile_ibis_to_noir(zip(self.files, self.tables),
-                             query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph)
 
-        self.assert_similarity_noir_output(query)
+        self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
 
     def test_non_nullable_group_reduce_group_reduce_join(self):
-        query = (self.tables[1]
+        self.query = (self.tables[1]
                  .group_by("fruit")
                  .aggregate(agg2=_.price.sum())
                  .inner_join(self.tables[0]
                              .group_by("fruit").aggregate(agg4=_.weight.sum()), "fruit"))
 
         compile_ibis_to_noir(zip(self.files, self.tables),
-                             query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph)
 
-        self.assert_similarity_noir_output(query)
+        self.assert_similarity_noir_output()
         self.assert_equality_noir_source()
 
     def test_non_nullable_join_group_reduce(self):
-        query = (self.tables[1]
+        self.query = (self.tables[1]
                  .inner_join(self.tables[0]
                              .group_by("fruit")
                              .aggregate(agg4=_.price.sum()), "fruit"))
 
         compile_ibis_to_noir(zip(self.files, self.tables),
-                             query, self.run_after_gen, self.render_query_graph)
+                             self.query, self.run_after_gen, self.render_query_graph)
 
-        self.assert_similarity_noir_output(query)
+        self.assert_similarity_noir_output()
         self.assert_equality_noir_source()

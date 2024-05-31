@@ -17,10 +17,11 @@ def compile_ibis_to_noir(files_tables: list[tuple[str, PhysicalTable]],
                          render_query_graph=True,
                          diagnostics=True):
     
-    logger = setup_logger()
-
-    logger.info(f"Starting run")
-    start_time = time.perf_counter()
+    if diagnostics: 
+        logger = setup_logger()
+        logger.info(f"Starting run")
+        logger.info("Renoir")
+        start_time = time.perf_counter()
 
     for file, table in files_tables:
         utl.TAB_FILES[str(table._arg.name)] = file
@@ -35,16 +36,17 @@ def compile_ibis_to_noir(files_tables: list[tuple[str, PhysicalTable]],
     if subprocess.run(f"cd {utl.ROOT_DIR}/noir-template && cargo-fmt && cargo build", shell=True).returncode != 0:
         raise Exception("Failed to compile generated noir code!")
     
-    end_time = time.perf_counter()
     if diagnostics:
+        end_time = time.perf_counter()
         logger.info(f"Compilation time: {end_time - start_time:.10f}s")
 
     if run_after_gen:
-        start_time = time.perf_counter()
+        if diagnostics:
+            start_time = time.perf_counter()
         if subprocess.run(f"cd {utl.ROOT_DIR}/noir-template && cargo run", shell=True).returncode != 0:
             raise Exception("Noir code panicked!")
-        end_time = time.perf_counter()
         if diagnostics:
+            end_time = time.perf_counter()
             logger.info(f"Execution time: {end_time - start_time:.10f}s")
 
 

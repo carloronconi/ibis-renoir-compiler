@@ -1,5 +1,7 @@
+import logging
 import os
 import sys
+import time
 import unittest
 import pandas as pd
 from difflib import unified_diff
@@ -17,6 +19,16 @@ class TestCompiler(unittest.TestCase):
         except FileNotFoundError:
             pass
 
+    def tearDown(self) -> None:
+        # measure performance of ibis query execution
+        logger = logging.getLogger()
+        logger.info("Ibis")
+        start_time = time.perf_counter()
+        # TODO: renoir performs computation and writes output to file, here we're just performing the computation
+        self.query.to_pandas()
+        end_time = time.perf_counter()
+        logger.info(f"Execution time: {end_time - start_time:.10f}s")
+
     def assert_equality_noir_source(self):
         test_expected_file = "/test/expected/" + \
             sys._getframe().f_back.f_code.co_name + ".rs"
@@ -30,9 +42,9 @@ class TestCompiler(unittest.TestCase):
         self.assertEqual(diff, [], "Differences:\n" + "".join(diff))
         print("\033[92m Source equality: OK\033[00m")
 
-    def assert_similarity_noir_output(self, query, noir_subset_ibis=False):
-        print(query.head(50).to_pandas())
-        df_ibis = query.to_pandas()
+    def assert_similarity_noir_output(self, noir_subset_ibis=False):
+        print(self.query.head(50).to_pandas())
+        df_ibis = self.query.to_pandas()
         self.round_float_cols(df_ibis)
         df_ibis.to_csv(ROOT_DIR + "/out/ibis-result.csv")
 
