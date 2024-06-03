@@ -1,5 +1,6 @@
 import logging
 import codegen.utils as utl
+import os.path
 from datetime import datetime
 
 
@@ -24,9 +25,12 @@ class Benchmark:
 
 def setup_logger() -> logging.Logger:
     logger = logging.getLogger("codegen_log")
+    file = utl.ROOT_DIR + "/log/codegen_log.csv"
+    if not os.path.isfile(file):
+        with open(file, "w") as f:
+            f.write("level,timestamp,test_name,renoir_compile_time,renoir_execution_time,ibis_total_time\n")
     if not logger.hasHandlers():
-        handler = logging.FileHandler(
-            utl.ROOT_DIR + "/log/codegen_log.csv", mode='a')
+        handler = logging.FileHandler(file, mode='a')
         handler.setFormatter(CustomFormatter(
             "%(levelname)s,%(asctime)s,%(message)s"))
         logger.addHandler(handler)
