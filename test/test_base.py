@@ -9,19 +9,21 @@ from ibis import _
 
 
 class TestCompiler(unittest.TestCase):
-    run_after_gen = True
-    render_query_graph = False
-
     def setUp(self):
         try:
             os.remove(ROOT_DIR + "/out/noir-result.csv")
         except FileNotFoundError:
             pass
 
+        self.run_after_gen = os.getenv("RUN_AFTER_GEN", "true") == "true"
+        self.render_query_graph = os.getenv("RENDER_QUERY_GRAPH", "false") == "true"
+        self.perform_assertions = os.getenv("PERFORM_ASSERTIONS", "true") == "true"
         # initialize benchmark data for current test name
-        self.benchmark = Benchmark(self.id().split('.')[-1])
+        self.benchmark = Benchmark(self.id().split('.')[-1]) if os.getenv("PERFORM_BENCHMARK", "true") == "true" else None
 
     def tearDown(self) -> None:
+        if not self.benchmark:
+            return
         # only run ibis query if not already run in assert_similarity_noir_output
         if not hasattr(self.benchmark, "ibis_time"):
             self.run_ibis_query()

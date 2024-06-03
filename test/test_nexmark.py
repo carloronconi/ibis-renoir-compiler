@@ -32,8 +32,9 @@ class TestNexmark(TestCompiler):
         compile_ibis_to_noir([(self.files["bid"], bid)],
                              self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
-        self.assert_similarity_noir_output()
-        self.assert_equality_noir_source()
+        if self.perform_assertions:
+            self.assert_similarity_noir_output()
+            self.assert_equality_noir_source()
 
     def test_nexmark_query_2(self):
         """
@@ -50,8 +51,9 @@ class TestNexmark(TestCompiler):
         compile_ibis_to_noir([(self.files["bid"], bid)],
                              self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
-        self.assert_similarity_noir_output()
-        self.assert_equality_noir_source()
+        if self.perform_assertions:
+            self.assert_similarity_noir_output()
+            self.assert_equality_noir_source()
 
     def test_nexmark_query_3(self):
         """
@@ -70,8 +72,9 @@ class TestNexmark(TestCompiler):
         compile_ibis_to_noir([(self.files["auction"], auction), (self.files["person"], person)],
                              self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
-        self.assert_similarity_noir_output()
-        self.assert_equality_noir_source()
+        if self.perform_assertions:
+            self.assert_similarity_noir_output()
+            self.assert_equality_noir_source()
 
     def test_nexmark_query_4(self):
         """
@@ -113,8 +116,9 @@ class TestNexmark(TestCompiler):
         compile_ibis_to_noir([(self.files["auction"], auction), (self.files["bid"], bid)],
                              self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
-        self.assert_similarity_noir_output()
-        self.assert_equality_noir_source()
+        if self.perform_assertions:
+            self.assert_similarity_noir_output()
+            self.assert_equality_noir_source()
 
     def test_nexmark_query_6(self):
         """
@@ -147,6 +151,7 @@ class TestNexmark(TestCompiler):
         # after obtaining fewer rows in noir, we aggregate them, obtaining different results altogether
         # but testing withoit last group_by.aggregate shows that result should be correct
         # self.assert_similarity_noir_output(query, noir_subset_ibis=True)
-        self.assert_equality_noir_source()
+        if self.perform_assertions:
+            self.assert_equality_noir_source()
 
     # Query 5, 7, 8 are not supported by ibis because they require time-based windowing
