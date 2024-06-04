@@ -20,6 +20,7 @@ class TestCompiler(unittest.TestCase):
         self.perform_assertions = os.getenv("PERFORM_ASSERTIONS", "true") == "true"
         # initialize benchmark data for current test name
         self.benchmark = Benchmark(self.id().split('.')[-1]) if os.getenv("PERFORM_BENCHMARK", "true") == "true" else None
+        self.perform_compilation = True
 
     def tearDown(self) -> None:
         if not self.benchmark:

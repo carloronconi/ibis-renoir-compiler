@@ -22,7 +22,8 @@ class TestNullableOperators(TestCompiler):
                       .filter(_.string1 == "unduetre")
                       .select("int1"))
 
-        compile_ibis_to_noir([(self.files[0], self.tables[0])],
+        if self.perform_compilation:
+            compile_ibis_to_noir([(self.files[0], self.tables[0])],
                              self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
         
         if self.perform_assertions:
@@ -36,7 +37,8 @@ class TestNullableOperators(TestCompiler):
                  .select("int1", "string1")
                  .select("string1"))
 
-        compile_ibis_to_noir([(self.files[0], self.tables[0])],
+        if self.perform_compilation: 
+            compile_ibis_to_noir([(self.files[0], self.tables[0])],
                              self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
@@ -50,7 +52,8 @@ class TestNullableOperators(TestCompiler):
                  .aggregate(int1_agg=_["int1"].first())
                  .select(["int1_agg"]))
 
-        compile_ibis_to_noir([(self.files[0], self.tables[0])],
+        if self.perform_compilation:
+            compile_ibis_to_noir([(self.files[0], self.tables[0])],
                              self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
@@ -64,7 +67,8 @@ class TestNullableOperators(TestCompiler):
                  .aggregate(int1_agg=_["int1"].first())
                  .mutate(mul=_.int1_agg * 20))  # mutate always results in alias preceded by Multiply (or other bin op)
 
-        compile_ibis_to_noir([(self.files[0], self.tables[0])],
+        if self.perform_compilation:
+            compile_ibis_to_noir([(self.files[0], self.tables[0])],
                              self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
@@ -77,7 +81,8 @@ class TestNullableOperators(TestCompiler):
                  .aggregate(int1_agg=_["int1"].sum()))
         # here example of reduce without group_by
 
-        compile_ibis_to_noir([(self.files[0], self.tables[0])],
+        if self.perform_compilation:
+            compile_ibis_to_noir([(self.files[0], self.tables[0])],
                              self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
@@ -110,7 +115,8 @@ class TestNullableOperators(TestCompiler):
         # .aggregate(int1_agg=table["int1"].first())
         # .mutate(center=_.int1 - _.int1.mean()))
 
-        compile_ibis_to_noir([(self.files[0], self.tables[0])],
+        if self.perform_compilation:
+            compile_ibis_to_noir([(self.files[0], self.tables[0])],
                              self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
@@ -125,7 +131,8 @@ class TestNullableOperators(TestCompiler):
                        .mutate(sum=_.int3 + 100), "int1")
                  .select(["string1", "int1", "int3"]))
 
-        compile_ibis_to_noir(zip(self.files, self.tables),
+        if self.perform_compilation:
+            compile_ibis_to_noir(zip(self.files, self.tables),
                              self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
@@ -136,7 +143,8 @@ class TestNullableOperators(TestCompiler):
         self.query = (self.tables[0]
                  .outer_join(self.tables[1], "int1"))
 
-        compile_ibis_to_noir(zip(self.files, self.tables),
+        if self.perform_compilation:
+            compile_ibis_to_noir(zip(self.files, self.tables),
                              self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
@@ -147,7 +155,8 @@ class TestNullableOperators(TestCompiler):
         self.query = (self.tables[0]
                  .left_join(self.tables[1], "int1"))
 
-        compile_ibis_to_noir(zip(self.files, self.tables),
+        if self.perform_compilation:
+            compile_ibis_to_noir(zip(self.files, self.tables),
                              self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
@@ -166,7 +175,8 @@ class TestNullableOperators(TestCompiler):
                  .inner_join(self.tables[0], "int1")
                  .mutate(mut4=_.int4 + 100))
 
-        compile_ibis_to_noir(zip(self.files, self.tables),
+        if self.perform_compilation:
+            compile_ibis_to_noir(zip(self.files, self.tables),
                              self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
@@ -183,7 +193,8 @@ class TestNullableOperators(TestCompiler):
                  .inner_join(self.tables[0]
                              .group_by("int1").aggregate(agg4=_.int4.sum()), "int1"))
 
-        compile_ibis_to_noir(zip(self.files, self.tables),
+        if self.perform_compilation:
+            compile_ibis_to_noir(zip(self.files, self.tables),
                              self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
@@ -199,7 +210,8 @@ class TestNullableOperators(TestCompiler):
                              .group_by("int1")
                              .aggregate(agg4=_.int4.sum()), "int1"))
 
-        compile_ibis_to_noir(zip(self.files, self.tables),
+        if self.perform_compilation:
+            compile_ibis_to_noir(zip(self.files, self.tables),
                              self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
@@ -213,8 +225,8 @@ class TestNullableOperators(TestCompiler):
                  .tables[0]
                  .mutate(int4_demean=_.int4 - _.int4.mean(), int4_mean=_.int4.mean()))
 
-        ib_res = self.query.to_pandas()
-        compile_ibis_to_noir(zip(self.files, self.tables),
+        if self.perform_compilation:
+            compile_ibis_to_noir(zip(self.files, self.tables),
                              self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
@@ -228,8 +240,8 @@ class TestNullableOperators(TestCompiler):
                  .tables[0]
                  .mutate(int4_sum=_.int4.sum()))
 
-        ib_res = self.query.to_pandas()
-        compile_ibis_to_noir(zip(self.files, self.tables),
+        if self.perform_compilation:
+            compile_ibis_to_noir(zip(self.files, self.tables),
                              self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
@@ -246,8 +258,8 @@ class TestNullableOperators(TestCompiler):
                  .group_by("string1")
                  .mutate(int4_demean=_.int4 - _.int4.mean(), group_mean=_.int4.mean()))
 
-        ib_res = self.query.to_pandas()
-        compile_ibis_to_noir(zip(self.files, self.tables),
+        if self.perform_compilation:
+            compile_ibis_to_noir(zip(self.files, self.tables),
                              self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
@@ -267,8 +279,8 @@ class TestNullableOperators(TestCompiler):
         self.query = (self.tables[0]
                  .mutate(group_percent=_.int4 * 100 / _.int4.sum().over(w), group_sum=_.int4.sum().over(w)))
 
-        ib_res = self.query.to_pandas()
-        compile_ibis_to_noir(zip(self.files, self.tables),
+        if self.perform_compilation:
+            compile_ibis_to_noir(zip(self.files, self.tables),
                              self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
@@ -282,8 +294,8 @@ class TestNullableOperators(TestCompiler):
         self.query = (self.tables[0]
                  .mutate(group_mean=_.int4.mean().over(w)))
 
-        ib_res = self.query.to_pandas()
-        compile_ibis_to_noir(zip(self.files, self.tables),
+        if self.perform_compilation:
+            compile_ibis_to_noir(zip(self.files, self.tables),
                              self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
@@ -298,8 +310,8 @@ class TestNullableOperators(TestCompiler):
         self.query = (self.tables[0]
                  .mutate(group_perc=_.int4 * 100 / _.int4.mean().over(w)))
 
-        ib_res = self.query.to_pandas()
-        compile_ibis_to_noir(zip(self.files, self.tables),
+        if self.perform_compilation:
+            compile_ibis_to_noir(zip(self.files, self.tables),
                              self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
@@ -342,7 +354,8 @@ class TestNonNullableOperators(TestCompiler):
                  .filter(_.fruit == "Apple")
                  .select("price"))
 
-        compile_ibis_to_noir([(self.files[0], self.tables[0])],
+        if self.perform_compilation:
+            compile_ibis_to_noir([(self.files[0], self.tables[0])],
                              self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
@@ -356,7 +369,8 @@ class TestNonNullableOperators(TestCompiler):
                  .select("fruit", "weight")
                  .select("fruit"))
 
-        compile_ibis_to_noir([(self.files[0], self.tables[0])],
+        if self.perform_compilation:
+            compile_ibis_to_noir([(self.files[0], self.tables[0])],
                              self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
@@ -370,7 +384,8 @@ class TestNonNullableOperators(TestCompiler):
                  .aggregate(int1_agg=_["price"].first())
                  .select(["int1_agg"]))
 
-        compile_ibis_to_noir([(self.files[0], self.tables[0])],
+        if self.perform_compilation:
+            compile_ibis_to_noir([(self.files[0], self.tables[0])],
                              self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
@@ -384,7 +399,8 @@ class TestNonNullableOperators(TestCompiler):
                  .aggregate(int1_agg=_["price"].first())
                  .mutate(mul=_.int1_agg * 20))
 
-        compile_ibis_to_noir([(self.files[0], self.tables[0])],
+        if self.perform_compilation:
+            compile_ibis_to_noir([(self.files[0], self.tables[0])],
                              self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
@@ -396,7 +412,8 @@ class TestNonNullableOperators(TestCompiler):
                  .filter(_.fruit == "Orange")
                  .aggregate(int1_agg=_["weight"].sum()))
 
-        compile_ibis_to_noir([(self.files[0], self.tables[0])],
+        if self.perform_compilation:
+            compile_ibis_to_noir([(self.files[0], self.tables[0])],
                              self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
@@ -410,7 +427,8 @@ class TestNonNullableOperators(TestCompiler):
                  .group_by("fruit")
                  .aggregate(agg=_.mul.sum()))
 
-        compile_ibis_to_noir([(self.files[0], self.tables[0])],
+        if self.perform_compilation:
+            compile_ibis_to_noir([(self.files[0], self.tables[0])],
                              self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
@@ -425,7 +443,8 @@ class TestNonNullableOperators(TestCompiler):
                        .mutate(sum=_.price + 100), "fruit")
                  .select(["fruit", "weight", "price"]))
 
-        compile_ibis_to_noir(zip(self.files, self.tables),
+        if self.perform_compilation:
+            compile_ibis_to_noir(zip(self.files, self.tables),
                              self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
@@ -436,7 +455,8 @@ class TestNonNullableOperators(TestCompiler):
         self.query = (self.tables[0]
                  .left_join(self.tables[1], "fruit"))
 
-        compile_ibis_to_noir(zip(self.files, self.tables),
+        if self.perform_compilation:
+            compile_ibis_to_noir(zip(self.files, self.tables),
                              self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
@@ -447,7 +467,8 @@ class TestNonNullableOperators(TestCompiler):
         self.query = (self.tables[0]
                  .outer_join(self.tables[1], "fruit"))
 
-        compile_ibis_to_noir(zip(self.files, self.tables),
+        if self.perform_compilation:
+            compile_ibis_to_noir(zip(self.files, self.tables),
                              self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
@@ -461,7 +482,8 @@ class TestNonNullableOperators(TestCompiler):
                  .inner_join(self.tables[0], "fruit")
                  .mutate(mut4=_.price + 100))
 
-        compile_ibis_to_noir(zip(self.files, self.tables),
+        if self.perform_compilation:
+            compile_ibis_to_noir(zip(self.files, self.tables),
                              self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
@@ -475,7 +497,8 @@ class TestNonNullableOperators(TestCompiler):
                  .inner_join(self.tables[0]
                              .group_by("fruit").aggregate(agg4=_.weight.sum()), "fruit"))
 
-        compile_ibis_to_noir(zip(self.files, self.tables),
+        if self.perform_compilation:
+            compile_ibis_to_noir(zip(self.files, self.tables),
                              self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
@@ -488,7 +511,8 @@ class TestNonNullableOperators(TestCompiler):
                              .group_by("fruit")
                              .aggregate(agg4=_.price.sum()), "fruit"))
 
-        compile_ibis_to_noir(zip(self.files, self.tables),
+        if self.perform_compilation:
+            compile_ibis_to_noir(zip(self.files, self.tables),
                              self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:

@@ -29,7 +29,8 @@ class TestNexmark(TestCompiler):
                  .mutate(dol_price=bid["price"] * 0.85)
                  .select(["auction", "price", "dol_price", "bidder", "date_time"]))
 
-        compile_ibis_to_noir([(self.files["bid"], bid)],
+        if self.perform_compilation:
+            compile_ibis_to_noir([(self.files["bid"], bid)],
                              self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
@@ -48,7 +49,8 @@ class TestNexmark(TestCompiler):
                  .filter((bid["auction"] == 1007) | (bid["auction"] == 1020) | (bid["auction"] == 2001) | (bid["auction"] == 2019) | (bid["auction"] == 2087))
                  .select(["auction", "price"]))
 
-        compile_ibis_to_noir([(self.files["bid"], bid)],
+        if self.perform_compilation:
+            compile_ibis_to_noir([(self.files["bid"], bid)],
                              self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
@@ -69,7 +71,9 @@ class TestNexmark(TestCompiler):
                  .filter((person["state"] == "OR") | (person["state"] == "ID") | (person["state"] == "CA"))
                  .filter(auction["category"] == 10)
                  .select(["name", "city", "state", "id"]))
-        compile_ibis_to_noir([(self.files["auction"], auction), (self.files["person"], person)],
+        
+        if self.perform_compilation:
+            compile_ibis_to_noir([(self.files["auction"], auction), (self.files["person"], person)],
                              self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
@@ -113,7 +117,8 @@ class TestNexmark(TestCompiler):
 
         # print(ibis.to_sql(query))
 
-        compile_ibis_to_noir([(self.files["auction"], auction), (self.files["bid"], bid)],
+        if self.perform_compilation:
+            compile_ibis_to_noir([(self.files["auction"], auction), (self.files["bid"], bid)],
                              self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
@@ -144,7 +149,8 @@ class TestNexmark(TestCompiler):
                  .group_by(_.seller)
                  .aggregate(avg_final_p=_.final_p.mean()))
 
-        compile_ibis_to_noir([(self.files["auction"], auction), (self.files["bid"], bid)],
+        if self.perform_compilation:
+            compile_ibis_to_noir([(self.files["auction"], auction), (self.files["bid"], bid)],
                              self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
 
         # subset option is not enough for different window semantics in this case:
