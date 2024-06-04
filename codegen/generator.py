@@ -29,7 +29,7 @@ def compile_ibis_to_noir(files_tables: list[tuple[str, PhysicalTable]],
     post_order_dfs(query.op())
     gen_noir_code()
 
-    if subprocess.run(f"cd {utl.ROOT_DIR}/noir_template && cargo-fmt && cargo build", shell=True).returncode != 0:
+    if subprocess.run(f"cd {utl.ROOT_DIR}/noir_template && cargo-fmt && cargo build --release", shell=True).returncode != 0:
         raise Exception("Failed to compile generated noir code!")
 
     if benchmark:
@@ -39,7 +39,7 @@ def compile_ibis_to_noir(files_tables: list[tuple[str, PhysicalTable]],
     if run_after_gen:
         if benchmark:
             start_time = time.perf_counter()
-        if subprocess.run(f"cd {utl.ROOT_DIR}/noir_template && cargo run", shell=True).returncode != 0:
+        if subprocess.run(f"cd {utl.ROOT_DIR}/noir_template && cargo run --release", shell=True).returncode != 0:
             raise Exception("Noir code panicked!")
         if benchmark:
             end_time = time.perf_counter()
