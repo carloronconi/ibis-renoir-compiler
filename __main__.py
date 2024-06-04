@@ -6,8 +6,10 @@ import test.test_operators
 import ibis
 
 def main():
-    # Example usage: 
+    # Example standalone usage: 
     # python ../ibis-quickstart test.test_operators.TestNullableOperators.test_nullable_filter_filter_select_select --paths /home/carlo/Projects/ibis-quickstart/data/int-1-string-1.csv /home/carlo/Projects/ibis-quickstart/data/int-3.csv
+    # Example hyperfine usage:
+    # hyperfine --warmup 5 "python ../ibis-quickstart test.test_operators.TestNullableOperators.test_nullable_filter_filter_select_select --paths /home/carlo/Projects/ibis-quickstart/data/int-1-string-1.csv /home/carlo/Projects/ibis-quickstart/data/int-3.csv" --export-json result.json
     parser = argparse.ArgumentParser("ibis_quickstart")
     parser.add_argument("test_case", help="Which testcase to run. Use `python -m benchmark.discover_tests` to see the current list of tests.", type=str)
     parser.add_argument("--paths", help="Paths to the files to be used in the test.", nargs="+", required=True, type=str)
