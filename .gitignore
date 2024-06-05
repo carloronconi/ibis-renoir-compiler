@@ -8,3 +8,5 @@
 /test/expected/ibis-result.csv
 __pycache__
 penguins.ddb
+/data/nexmark_data_gen/target
+/data/nexmark_data_gen/Cargo.lock
