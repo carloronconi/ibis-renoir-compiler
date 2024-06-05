@@ -2,7 +2,10 @@ import os
 import sys
 import time
 import unittest
+import ibis.backends
+import ibis.backends.duckdb
 import pandas as pd
+import ibis
 from difflib import unified_diff
 from codegen import ROOT_DIR, Benchmark
 from ibis import _
@@ -22,6 +25,9 @@ class TestCompiler(unittest.TestCase):
         self.benchmark = Benchmark(self.id().split('.')[-1]) if os.getenv("PERFORM_BENCHMARK", "true") == "true" else None
         self.perform_compilation = True
 
+    def init_table_files(self, file_suffix=""):
+        raise NotImplementedError
+
     def tearDown(self) -> None:
         if not self.benchmark:
             return
@@ -31,8 +37,18 @@ class TestCompiler(unittest.TestCase):
         self.benchmark.log()
 
     def run_ibis_query(self):
+        
         # benchmark ibis total run time + write to csv (as noir also performs write to csv)
         start_time = time.perf_counter()
+        
+        # for non-nullable tests rebuild query over new memtable as self.tables is non-materialized
+        # to be able to define its schema as non-nullable (ibis doesn't allow defining schema when reading from csv)
+        if hasattr(self, "query_func"):
+            df_left = pd.read_csv(self.files[0])
+            df_right = pd.read_csv(self.files[1])
+            tables = [ibis.memtable(df_left, schema=self.schema), ibis.memtable(df_right, schema=self.schema)]
+            self.query = self.query_func(tables)
+        
         self.df_ibis = self.query.to_pandas()
         self.df_ibis.to_csv(ROOT_DIR + "/out/ibis-benchmark.csv")
         end_time = time.perf_counter()

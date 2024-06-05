@@ -14,8 +14,9 @@ struct Struct_var_1 {
 }
 
 fn logic(ctx: StreamContext) {
-    let var_0 = ctx
-        .stream_csv::<Struct_var_0>("/home/carlo/Projects/ibis-quickstart/data/int-1-string-1.csv");
+    let var_0 = ctx.stream_csv::<Struct_var_0>(
+        "/home/carlo/Projects/ibis-quickstart/data/nullable_op/ints_strings.csv",
+    );
     let var_1 = var_0
         .filter(|x| x.string1.clone().is_some_and(|v| v == "unduetre"))
         .map(|x| Struct_var_1 { int1: x.int1 });
