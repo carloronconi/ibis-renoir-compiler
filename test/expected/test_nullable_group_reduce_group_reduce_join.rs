@@ -37,8 +37,9 @@ struct Struct_collect {
 }
 
 fn logic(ctx: StreamContext) {
-    let var_0 = ctx
-        .stream_csv::<Struct_var_0>("/home/carlo/Projects/ibis-quickstart/data/int-1-string-1.csv");
+    let var_0 = ctx.stream_csv::<Struct_var_0>(
+        "/home/carlo/Projects/ibis-quickstart/data/nullable_op/ints_strings.csv",
+    );
     let var_1 = var_0
         .group_by(|x| (x.int1.clone()))
         .reduce(|a, b| {
@@ -48,8 +49,9 @@ fn logic(ctx: StreamContext) {
             int1: k.clone(),
             agg4: x.int4,
         });
-    let var_2 =
-        ctx.stream_csv::<Struct_var_2>("/home/carlo/Projects/ibis-quickstart/data/int-3.csv");
+    let var_2 = ctx.stream_csv::<Struct_var_2>(
+        "/home/carlo/Projects/ibis-quickstart/data/nullable_op/many_ints.csv",
+    );
     let var_4 = var_2
         .group_by(|x| (x.int1.clone()))
         .reduce(|a, b| {

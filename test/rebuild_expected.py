@@ -27,7 +27,7 @@ def update_all_expected_sources():
             os.remove(file)
         except FileNotFoundError:
             pass  # ignore: create new file
-        shutil.copyfile(ROOT_DIR + "/noir-template/src/main.rs", file)
+        shutil.copyfile(ROOT_DIR + "/noir_template/src/main.rs", file)
 
 
 if __name__ == "__main__":

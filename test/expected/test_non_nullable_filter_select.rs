@@ -14,8 +14,9 @@ struct Struct_var_1 {
 }
 
 fn logic(ctx: StreamContext) {
-    let var_0 =
-        ctx.stream_csv::<Struct_var_0>("/home/carlo/Projects/ibis-quickstart/data/fruit_left.csv");
+    let var_0 = ctx.stream_csv::<Struct_var_0>(
+        "/home/carlo/Projects/ibis-quickstart/data/non_nullable_op/fruit_left.csv",
+    );
     let var_1 = var_0
         .filter(|x| x.fruit == "Apple")
         .map(|x| Struct_var_1 { price: x.price });
