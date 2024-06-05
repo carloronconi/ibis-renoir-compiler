@@ -14,7 +14,7 @@ if [ ! -s log/memo_log.csv ]; then
 fi
 
 source .venv/bin/activate
-python -m benchmark.discover_tests | while IFS= read -r name; do
+python -m benchmark.discover_tests | grep nexmark | while IFS= read -r name; do
     trim=${name##*.}
     echo "Running $trim"
     command time -a -o "log/memo_log.csv" -f "$trim,%e,%M,%U,%S,%x" python -m unittest $name > /dev/null 2>&1

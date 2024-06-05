@@ -4,6 +4,7 @@ use std::fs::File;
 use std::io::BufWriter;
 use std::io::Write;
 use std::path::Path;
+use std::env;
 
 use serde::Serialize;
 use nexmark::event::*;
@@ -22,11 +23,12 @@ fn main() -> eyre::Result<()> {
         ..Default::default()
     };
 
-    let mut bid = csv_writer("./bid.csv");
-    let mut person = csv_writer("./person.csv");
-    let mut auction = csv_writer("./auction.csv");
+    let size = env::args().collect::<Vec<_>>()[1].parse::<usize>().unwrap();
+    let mut bid = csv_writer(format!("../nexmark/bid_{}.csv", size));
+    let mut person = csv_writer(format!("../nexmark/person_{}.csv", size));
+    let mut auction = csv_writer(format!("../nexmark/auction_{}.csv", size));
 
-    for e in nexmark::EventGenerator::new(conf).take(10000) {
+    for e in nexmark::EventGenerator::new(conf).take(size) {
         match e {
             Event::Person(p) => {
                 person.serialize(p)?;
