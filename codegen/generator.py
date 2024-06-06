@@ -1,3 +1,4 @@
+import os
 import subprocess
 import time
 
@@ -73,7 +74,10 @@ def gen_noir_code():
     bot = Operator.new_bot().generate()
     top = Operator.new_top().generate()
 
-    with open(utl.ROOT_DIR + '/noir_template/src/main.rs', 'w') as f:
+    directory = utl.ROOT_DIR + '/noir_template/src'
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    with open(directory + '/main.rs', 'w+') as f:
         f.write(top)
         f.write(mid)
         f.write(bot)

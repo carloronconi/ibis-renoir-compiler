@@ -50,7 +50,10 @@ class TestCompiler(unittest.TestCase):
             self.query = self.query_func(tables)
         
         self.df_ibis = self.query.to_pandas()
-        self.df_ibis.to_csv(ROOT_DIR + "/out/ibis-benchmark.csv")
+        directory = ROOT_DIR + "/out"
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        self.df_ibis.to_csv(directory + "/ibis-benchmark.csv")
         end_time = time.perf_counter()
         self.benchmark.set_ibis(end_time - start_time)
 

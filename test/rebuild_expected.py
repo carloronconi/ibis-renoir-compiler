@@ -1,8 +1,4 @@
 import os
-import sys
-
-# sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 import shutil
 from unittest import TestLoader
 
@@ -18,7 +14,7 @@ def update_all_expected_sources():
     """
     suite = []
     suite.extend(
-        list(TestLoader().loadTestsFromTestCase(TestNullableOperators)))
+        list(TestLoader().loadTestsFromTestCase(TestNexmark)))
     #suite.extend(
     #   list(TestLoader().loadTestsFromTestCase(TestNonNullableOperators)))
 

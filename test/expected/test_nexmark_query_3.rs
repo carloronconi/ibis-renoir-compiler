@@ -64,8 +64,9 @@ fn logic(ctx: StreamContext) {
         "/home/carlo/Projects/ibis-renoir-compiler/data/nexmark/auction.csv",
     );
     let var_0 = var_0;
-    let var_1 = ctx
-        .stream_csv::<Struct_var_1>("/home/carlo/Projects/ibis-renoir-compiler/data/nexmark/person.csv");
+    let var_1 = ctx.stream_csv::<Struct_var_1>(
+        "/home/carlo/Projects/ibis-renoir-compiler/data/nexmark/person.csv",
+    );
     let var_3 = var_1
         .join(var_0, |x| x.id.clone(), |y| y.seller.clone())
         .map(|(_, x)| Struct_var_2 {
