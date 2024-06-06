@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 
 # add the backends you want to compare renoir against
 backends_compare_against=("duckdb")

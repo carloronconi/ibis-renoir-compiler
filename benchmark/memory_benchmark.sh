@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 # run from project root to have the script automatically discover tests and measure their memory consumption to memo_log.csv
 
 # tests by default would log their time consumption to codegen_log.csv and would perform assertions comparing ibis to noir
