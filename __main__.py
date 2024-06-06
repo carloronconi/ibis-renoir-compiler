@@ -30,6 +30,8 @@ def main():
     test_instance.benchmark = None
     test_instance.perform_assertions = False
     test_instance.perform_compilation = True if args.backend == "renoir" else False
+    # when running performance benchmarks, don't write to file
+    test_instance.print_output_to_file = False
 
     eval(f"test_instance.{test_case}()", {"test_instance": test_instance})
     # If the backend is renoir, we have already performed the compilation to renoir code and ran it

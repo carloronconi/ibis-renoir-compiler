@@ -14,6 +14,7 @@ from codegen.operators import Operator
 def compile_ibis_to_noir(files_tables: list[tuple[str, PhysicalTable]],
                          query: PhysicalTable,
                          run_after_gen=True,
+                         print_output_to_file=True,
                          render_query_graph=True,
                          benchmark: Benchmark = None):
 
@@ -28,6 +29,7 @@ def compile_ibis_to_noir(files_tables: list[tuple[str, PhysicalTable]],
         subprocess.run(f"open {utl.ROOT_DIR}/out/query.pdf", shell=True)
 
     post_order_dfs(query.op())
+    Operator.print_output_to_file = print_output_to_file
     gen_noir_code()
 
     if subprocess.run(f"cd {utl.ROOT_DIR}/noir_template && cargo-fmt && cargo build --release", shell=True).returncode != 0:

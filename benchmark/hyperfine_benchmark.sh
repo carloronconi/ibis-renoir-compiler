@@ -8,7 +8,7 @@ backends_compare_against=("duckdb")
 # the git repository only contains the base non-suffixed files, so in case you use this variable you
 # need to generate the extended files first.
 # For nexmark, `cd data/nexmark_data_gen && cargo run -- 100000000`
-size_suffix="_100000000"
+size_suffix="_10000"
 
 source .venv/bin/activate
 # change grep to filter the tests you want to run

@@ -12,6 +12,7 @@ class Operator:
     # when two operators use the same root node for recognition, increase this
     # value to prioritize one over the other and change ordeding of operators in noir code
     priority = 0
+    print_output_to_file = True
 
     def __init__(self):
         Operator.operators.append(self)
@@ -746,6 +747,13 @@ class BotOperator(Operator):
 
     def generate(self) -> str:
         last_struct = Struct.last()
+        
+        if not self.print_output_to_file:
+            bot = f"; {last_struct.name_short}.for_each(|x| {{std::hint::black_box(x);}});"
+            with open(utl.ROOT_DIR + "/noir_template/main_bot_no_print.rs") as f:
+                bot += f.read()
+            return bot
+        
         bot = f"; let out = {last_struct.name_short}.collect_vec();"
         bot += "\ntracing::info!(\"starting execution\");\nctx.execute_blocking();\nlet out = out.get().unwrap();\n"
 

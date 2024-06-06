@@ -26,7 +26,7 @@ class TestNullableOperators(TestCompiler):
 
         if self.perform_compilation:
             compile_ibis_to_noir([(self.files[0], self.tables[0])],
-                                 self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
+                                 self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
             self.assert_similarity_noir_output()
@@ -41,7 +41,7 @@ class TestNullableOperators(TestCompiler):
 
         if self.perform_compilation:
             compile_ibis_to_noir([(self.files[0], self.tables[0])],
-                                 self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
+                                 self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
             self.assert_similarity_noir_output()
@@ -56,7 +56,7 @@ class TestNullableOperators(TestCompiler):
 
         if self.perform_compilation:
             compile_ibis_to_noir([(self.files[0], self.tables[0])],
-                                 self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
+                                 self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
             self.assert_similarity_noir_output()
@@ -71,7 +71,7 @@ class TestNullableOperators(TestCompiler):
 
         if self.perform_compilation:
             compile_ibis_to_noir([(self.files[0], self.tables[0])],
-                                 self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
+                                 self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
             self.assert_similarity_noir_output()
@@ -85,7 +85,7 @@ class TestNullableOperators(TestCompiler):
 
         if self.perform_compilation:
             compile_ibis_to_noir([(self.files[0], self.tables[0])],
-                                 self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
+                                 self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
             self.assert_similarity_noir_output()
@@ -119,7 +119,7 @@ class TestNullableOperators(TestCompiler):
 
         if self.perform_compilation:
             compile_ibis_to_noir([(self.files[0], self.tables[0])],
-                                 self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
+                                 self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
             self.assert_similarity_noir_output()
@@ -135,7 +135,7 @@ class TestNullableOperators(TestCompiler):
 
         if self.perform_compilation:
             compile_ibis_to_noir(zip(self.files, self.tables),
-                                 self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
+                                 self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
             self.assert_similarity_noir_output()
@@ -147,7 +147,7 @@ class TestNullableOperators(TestCompiler):
 
         if self.perform_compilation:
             compile_ibis_to_noir(zip(self.files, self.tables),
-                                 self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
+                                 self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
             self.assert_similarity_noir_output()
@@ -159,7 +159,7 @@ class TestNullableOperators(TestCompiler):
 
         if self.perform_compilation:
             compile_ibis_to_noir(zip(self.files, self.tables),
-                                 self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
+                                 self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
             self.assert_similarity_noir_output()
@@ -179,7 +179,7 @@ class TestNullableOperators(TestCompiler):
 
         if self.perform_compilation:
             compile_ibis_to_noir(zip(self.files, self.tables),
-                                 self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
+                                 self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
             self.assert_similarity_noir_output()
@@ -197,7 +197,7 @@ class TestNullableOperators(TestCompiler):
 
         if self.perform_compilation:
             compile_ibis_to_noir(zip(self.files, self.tables),
-                                 self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
+                                 self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
             self.assert_similarity_noir_output()
@@ -214,7 +214,7 @@ class TestNullableOperators(TestCompiler):
 
         if self.perform_compilation:
             compile_ibis_to_noir(zip(self.files, self.tables),
-                                 self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
+                                 self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
             self.assert_similarity_noir_output()
@@ -229,7 +229,7 @@ class TestNullableOperators(TestCompiler):
 
         if self.perform_compilation:
             compile_ibis_to_noir(zip(self.files, self.tables),
-                                 self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
+                                 self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
             self.assert_similarity_noir_output(noir_subset_ibis=True)
@@ -244,7 +244,7 @@ class TestNullableOperators(TestCompiler):
 
         if self.perform_compilation:
             compile_ibis_to_noir(zip(self.files, self.tables),
-                                 self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
+                                 self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
             self.assert_similarity_noir_output(noir_subset_ibis=True)
@@ -262,7 +262,7 @@ class TestNullableOperators(TestCompiler):
 
         if self.perform_compilation:
             compile_ibis_to_noir(zip(self.files, self.tables),
-                                 self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
+                                 self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
             self.assert_similarity_noir_output(noir_subset_ibis=True)
@@ -283,7 +283,7 @@ class TestNullableOperators(TestCompiler):
 
         if self.perform_compilation:
             compile_ibis_to_noir(zip(self.files, self.tables),
-                                 self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
+                                 self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
             self.assert_similarity_noir_output(noir_subset_ibis=True)
@@ -298,7 +298,7 @@ class TestNullableOperators(TestCompiler):
 
         if self.perform_compilation:
             compile_ibis_to_noir(zip(self.files, self.tables),
-                                 self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
+                                 self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
             self.assert_similarity_noir_output(noir_subset_ibis=True)
@@ -314,7 +314,7 @@ class TestNullableOperators(TestCompiler):
 
         if self.perform_compilation:
             compile_ibis_to_noir(zip(self.files, self.tables),
-                                 self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
+                                 self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
             self.assert_similarity_noir_output(noir_subset_ibis=True)
@@ -343,7 +343,7 @@ class TestNonNullableOperators(TestCompiler):
 
         if self.perform_compilation:
             compile_ibis_to_noir([(self.files[0], self.tables[0])],
-                                 self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
+                                 self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
             self.assert_similarity_noir_output()
@@ -360,7 +360,7 @@ class TestNonNullableOperators(TestCompiler):
 
         if self.perform_compilation:
             compile_ibis_to_noir([(self.files[0], self.tables[0])],
-                                 self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
+                                 self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
             self.assert_similarity_noir_output()
@@ -368,16 +368,16 @@ class TestNonNullableOperators(TestCompiler):
 
     def test_non_nullable_filter_group_select(self):
         self.query_func = lambda tables:  (tables[0]
-                      .filter(_.fruit == "Orange")
-                      .group_by("fruit")
-                      .aggregate(int1_agg=_["price"].first())
-                      .select(["int1_agg"]))
-        
+                                           .filter(_.fruit == "Orange")
+                                           .group_by("fruit")
+                                           .aggregate(int1_agg=_["price"].first())
+                                           .select(["int1_agg"]))
+
         self.query = self.query_func(self.tables)
 
         if self.perform_compilation:
             compile_ibis_to_noir([(self.files[0], self.tables[0])],
-                                 self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
+                                 self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
             self.assert_similarity_noir_output()
@@ -385,16 +385,16 @@ class TestNonNullableOperators(TestCompiler):
 
     def test_non_nullable_filter_group_mutate(self):
         self.query_func = lambda tables: (tables[0]
-                      .filter(_.fruit == "Orange")
-                      .group_by("fruit")
-                      .aggregate(int1_agg=_["price"].first())
-                      .mutate(mul=_.int1_agg * 20))
-        
+                                          .filter(_.fruit == "Orange")
+                                          .group_by("fruit")
+                                          .aggregate(int1_agg=_["price"].first())
+                                          .mutate(mul=_.int1_agg * 20))
+
         self.query = self.query_func(self.tables)
 
         if self.perform_compilation:
             compile_ibis_to_noir([(self.files[0], self.tables[0])],
-                                 self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
+                                 self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
             self.assert_similarity_noir_output()
@@ -402,14 +402,14 @@ class TestNonNullableOperators(TestCompiler):
 
     def test_non_nullable_filter_reduce(self):
         self.query_func = lambda tables: (tables[0]
-                      .filter(_.fruit == "Orange")
-                      .aggregate(int1_agg=_["weight"].sum()))
-        
+                                          .filter(_.fruit == "Orange")
+                                          .aggregate(int1_agg=_["weight"].sum()))
+
         self.query = self.query_func(self.tables)
 
         if self.perform_compilation:
             compile_ibis_to_noir([(self.files[0], self.tables[0])],
-                                 self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
+                                 self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
             self.assert_similarity_noir_output()
@@ -417,16 +417,16 @@ class TestNonNullableOperators(TestCompiler):
 
     def test_non_nullable_filter_group_mutate_reduce(self):
         self.query_func = lambda tables: (tables[0]
-                      .filter(_.weight > 4)
-                      .mutate(mul=_.price * 20)
-                      .group_by("fruit")
-                      .aggregate(agg=_.mul.sum()))
-        
+                                          .filter(_.weight > 4)
+                                          .mutate(mul=_.price * 20)
+                                          .group_by("fruit")
+                                          .aggregate(agg=_.mul.sum()))
+
         self.query = self.query_func(self.tables)
 
         if self.perform_compilation:
             compile_ibis_to_noir([(self.files[0], self.tables[0])],
-                                 self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
+                                 self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
             self.assert_similarity_noir_output()
@@ -434,17 +434,17 @@ class TestNonNullableOperators(TestCompiler):
 
     def test_non_nullable_inner_join_select(self):
         self.query_func = lambda tables: (tables[0]
-                      .filter(_.weight > 2)
-                      .mutate(mul=_.price + 10)
-                      .join(tables[1]
-                            .mutate(sum=_.price + 100), "fruit")
-                      .select(["fruit", "weight", "price"]))
-        
+                                          .filter(_.weight > 2)
+                                          .mutate(mul=_.price + 10)
+                                          .join(tables[1]
+                                                .mutate(sum=_.price + 100), "fruit")
+                                          .select(["fruit", "weight", "price"]))
+
         self.query = self.query_func(self.tables)
 
         if self.perform_compilation:
             compile_ibis_to_noir(zip(self.files, self.tables),
-                                 self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
+                                 self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
             self.assert_similarity_noir_output()
@@ -452,13 +452,13 @@ class TestNonNullableOperators(TestCompiler):
 
     def test_non_nullable_left_join(self):
         self.query_func = lambda tables: (tables[0]
-                      .left_join(tables[1], "fruit"))
-        
+                                          .left_join(tables[1], "fruit"))
+
         self.query = self.query_func(self.tables)
 
         if self.perform_compilation:
             compile_ibis_to_noir(zip(self.files, self.tables),
-                                 self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
+                                 self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
             self.assert_similarity_noir_output()
@@ -466,13 +466,13 @@ class TestNonNullableOperators(TestCompiler):
 
     def test_non_nullable_outer_join(self):
         self.query_func = lambda tables: (tables[0]
-                      .outer_join(tables[1], "fruit"))
-        
+                                          .outer_join(tables[1], "fruit"))
+
         self.query = self.query_func(self.tables)
 
         if self.perform_compilation:
             compile_ibis_to_noir(zip(self.files, self.tables),
-                                 self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
+                                 self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
             self.assert_similarity_noir_output()
@@ -480,16 +480,16 @@ class TestNonNullableOperators(TestCompiler):
 
     def test_non_nullable_group_reduce_join_mutate(self):
         self.query_func = lambda tables: (tables[1]
-                      .group_by("fruit")
-                      .aggregate(agg2=_.weight.sum())
-                      .inner_join(tables[0], "fruit")
-                      .mutate(mut4=_.price + 100))
-        
+                                          .group_by("fruit")
+                                          .aggregate(agg2=_.weight.sum())
+                                          .inner_join(tables[0], "fruit")
+                                          .mutate(mut4=_.price + 100))
+
         self.query = self.query_func(self.tables)
 
         if self.perform_compilation:
             compile_ibis_to_noir(zip(self.files, self.tables),
-                                 self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
+                                 self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
             self.assert_similarity_noir_output()
@@ -497,16 +497,16 @@ class TestNonNullableOperators(TestCompiler):
 
     def test_non_nullable_group_reduce_group_reduce_join(self):
         self.query_func = lambda tables: (tables[1]
-                      .group_by("fruit")
-                      .aggregate(agg2=_.price.sum())
-                      .inner_join(tables[0]
-                                  .group_by("fruit").aggregate(agg4=_.weight.sum()), "fruit"))
-        
+                                          .group_by("fruit")
+                                          .aggregate(agg2=_.price.sum())
+                                          .inner_join(tables[0]
+                                                      .group_by("fruit").aggregate(agg4=_.weight.sum()), "fruit"))
+
         self.query = self.query_func(self.tables)
 
         if self.perform_compilation:
             compile_ibis_to_noir(zip(self.files, self.tables),
-                                 self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
+                                 self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
             self.assert_similarity_noir_output()
@@ -514,15 +514,15 @@ class TestNonNullableOperators(TestCompiler):
 
     def test_non_nullable_join_group_reduce(self):
         self.query_func = lambda tables: (tables[1]
-                      .inner_join(tables[0]
-                                  .group_by("fruit")
-                                  .aggregate(agg4=_.price.sum()), "fruit"))
-        
+                                          .inner_join(tables[0]
+                                                      .group_by("fruit")
+                                                      .aggregate(agg4=_.price.sum()), "fruit"))
+
         self.query = self.query_func(self.tables)
 
         if self.perform_compilation:
             compile_ibis_to_noir(zip(self.files, self.tables),
-                                 self.query, self.run_after_gen, self.render_query_graph, self.benchmark)
+                                 self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
             self.assert_similarity_noir_output()

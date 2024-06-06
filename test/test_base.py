@@ -24,6 +24,7 @@ class TestCompiler(unittest.TestCase):
         # initialize benchmark data for current test name
         self.benchmark = Benchmark(self.id().split('.')[-1]) if os.getenv("PERFORM_BENCHMARK", "true") == "true" else None
         self.perform_compilation = True
+        self.print_output_to_file = True
 
     def init_table_files(self, file_suffix=""):
         raise NotImplementedError
