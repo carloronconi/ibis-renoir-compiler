@@ -23,9 +23,7 @@ struct Struct_collect {
 }
 
 fn logic(ctx: StreamContext) {
-    let var_0 = ctx.stream_csv::<Struct_var_0>(
-        "/home/carlo/Projects/ibis-quickstart/data/non_nullable_op/fruit_left.csv",
-    );
+    let var_0 = ctx.stream_csv::<Struct_var_0>("../data/non_nullable_op/fruit_left.csv");
     let var_2 = var_0
         .filter(|x| x.fruit == "Orange")
         .group_by(|x| (x.fruit.clone()))

@@ -4,6 +4,7 @@ from unittest import TestLoader
 
 from codegen import ROOT_DIR
 from test.test_operators import TestNullableOperators, TestNonNullableOperators
+from test.test_nexmark import TestNexmark
 
 
 def update_all_expected_sources():
@@ -16,6 +17,8 @@ def update_all_expected_sources():
         list(TestLoader().loadTestsFromTestCase(TestNullableOperators)))
     suite.extend(
         list(TestLoader().loadTestsFromTestCase(TestNonNullableOperators)))
+    suite.extend(
+        list(TestLoader().loadTestsFromTestCase(TestNexmark)))
 
     tests = [(t._testMethodName + ".rs", t) for t in suite]
     for file, t in tests:

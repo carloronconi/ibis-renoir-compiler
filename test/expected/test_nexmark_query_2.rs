@@ -19,8 +19,7 @@ struct Struct_var_1 {
 }
 
 fn logic(ctx: StreamContext) {
-    let var_0 =
-        ctx.stream_csv::<Struct_var_0>("/home/carlo/Projects/ibis-quickstart/data/nexmark/bid.csv");
+    let var_0 = ctx.stream_csv::<Struct_var_0>("../data/nexmark/bid.csv");
     let var_1 = var_0
         .filter(|x| {
             x.auction.clone().is_some_and(|v| v == 1007)

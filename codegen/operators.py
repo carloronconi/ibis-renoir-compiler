@@ -703,7 +703,10 @@ class DatabaseOperator(Operator):
         count_structs = len(list(
             filter(lambda o: o.does_add_struct(), self.operators[this_idx + 1:end_idx])))
 
-        return (f";\nlet {struct.name_short} = ctx.stream_csv::<{struct.name_struct}>(\"{utl.TAB_FILES[self.table.name]}\");\n" +
+        # turning full path to relative path so that rust code contains relative path and expected code can work across machines
+        full_path = utl.TAB_FILES[self.table.name]
+        rel_path = ".." + full_path.split(utl.ROOT_DIR)[1]
+        return (f";\nlet {struct.name_short} = ctx.stream_csv::<{struct.name_struct}>(\"{rel_path}\");\n" +
                 f"let var_{struct.id_counter + count_structs} = {struct.name_short}")
 
     def does_add_struct(self) -> bool:

@@ -16,8 +16,8 @@ python -m benchmark.discover_tests | grep "nexmark_query_2" | while IFS= read -r
     trim=${name##*.}
     for backend in "${backends_compare_against[@]}"; do
         hyperfine --warmup 5 \
-        "python ../ibis-quickstart $name --backend renoir --path_suffix $size_suffix" \
-        "python ../ibis-quickstart $name --backend $backend --path_suffix $size_suffix" \
+        "python ../ibis-renoir-compiler $name --backend renoir --path_suffix $size_suffix" \
+        "python ../ibis-renoir-compiler $name --backend $backend --path_suffix $size_suffix" \
         --export-json log/hyperfine_${backend}_${trim}${size_suffix}.json
     done
 done
