@@ -498,21 +498,21 @@ class ExplicitWindowOperator(WindowOperator):
 
         prev_struct = Struct.last()
 
-        match type(window.func).__name__:
-            case "Sum":
-                op = WindowFuncGen(
-                    [WindowFuncGen.Func(self.alias.name, self.alias.dtype, fold_action="acc.{0} = acc.{0}.zip(x.{1}).map(|(a, b)| a + b);")])
-            case "Mean":
-                op = WindowFuncGen(
-                    [WindowFuncGen.Func("grp_sum", ibis.dtype("int64"), fold_action="acc.grp_sum = acc.grp_sum.zip(x.{1}).map(|(a, b)| a + b);"),
-                     WindowFuncGen.Func("grp_count", ibis.dtype(
-                         "int64"), fold_action="acc.grp_count = acc.grp_count.map(|v| v + 1);"),
-                     WindowFuncGen.Func(self.alias.name, self.alias.dtype, map_action="{0}: x.grp_sum.zip(x.grp_count).map(|(a, b)| a as f64 / b as f64),")])
-            case "Max":
-                op = WindowFuncGen(
-                    [WindowFuncGen.Func(self.alias.name, self.alias.dtype, fold_action="acc.{0} = acc.{0}.zip(x.{1}).map(|(a, b)| max(a, b));")])
-            case _:
-                raise Exception(f"Window function {type(window.func).__name__} not supported!")
+        name = type(window.func).__name__
+        if name == "Sum":
+            op = WindowFuncGen(
+                [WindowFuncGen.Func(self.alias.name, self.alias.dtype, fold_action="acc.{0} = acc.{0}.zip(x.{1}).map(|(a, b)| a + b);")])
+        elif name == "Mean":
+            op = WindowFuncGen(
+                [WindowFuncGen.Func("grp_sum", ibis.dtype("int64"), fold_action="acc.grp_sum = acc.grp_sum.zip(x.{1}).map(|(a, b)| a + b);"),
+                 WindowFuncGen.Func("grp_count", ibis.dtype(
+                     "int64"), fold_action="acc.grp_count = acc.grp_count.map(|v| v + 1);"),
+                 WindowFuncGen.Func(self.alias.name, self.alias.dtype, map_action="{0}: x.grp_sum.zip(x.grp_count).map(|(a, b)| a as f64 / b as f64),")])
+        elif name == "Max":
+            op = WindowFuncGen(
+                [WindowFuncGen.Func(self.alias.name, self.alias.dtype, fold_action="acc.{0} = acc.{0}.zip(x.{1}).map(|(a, b)| max(a, b));")])
+        else:
+            raise Exception(f"Window function {type(window.func).__name__} not supported!")
 
         # create the new struct by adding struct_fields to previous struct's columns
         new_cols_types = dict(prev_struct.cols_types)
@@ -601,17 +601,19 @@ class ImplicitWindowOperator(WindowOperator):
         text += ".reduce_scan("
         prev_struct = Struct.last()
 
-        match type(window.func).__name__:
-            case "Sum":
-                op = WindowFuncGen(
-                    [WindowFuncGen.Func("sum", ibis.dtype("!int64"), init_action="x.{1}.unwrap_or(0)", fold_action="a_sum + b_sum"),
-                     WindowFuncGen.Func(self.alias.name, self.alias.dtype, map_action="{0}: Some(*sum),")])
-            case "Mean":
-                op = WindowFuncGen(
-                    [WindowFuncGen.Func("sum", ibis.dtype("!int64"), init_action="x.{1}.unwrap_or(0)", fold_action="a_sum + b_sum"),
-                     WindowFuncGen.Func("count", ibis.dtype(
-                         "!int64"), init_action="1", fold_action="a_count + b_count"),
-                     WindowFuncGen.Func(self.alias.name, self.alias.dtype, map_action="{0}: Some(*sum as f64 / *count as f64),")])
+        name = type(window.func).__name__
+        if name == "Sum":
+            op = WindowFuncGen(
+                [WindowFuncGen.Func("sum", ibis.dtype("!int64"), init_action="x.{1}.unwrap_or(0)", fold_action="a_sum + b_sum"),
+                 WindowFuncGen.Func(self.alias.name, self.alias.dtype, map_action="{0}: Some(*sum),")])
+        elif name == "Mean":
+            op = WindowFuncGen(
+                [WindowFuncGen.Func("sum", ibis.dtype("!int64"), init_action="x.{1}.unwrap_or(0)", fold_action="a_sum + b_sum"),
+                 WindowFuncGen.Func("count", ibis.dtype(
+                     "!int64"), init_action="1", fold_action="a_count + b_count"),
+                 WindowFuncGen.Func(self.alias.name, self.alias.dtype, map_action="{0}: Some(*sum as f64 / *count as f64),")])
+        else:
+            raise Exception(f"Window function {name} not supported!")
 
         # create the new struct by adding struct_fields to previous struct's columns
         new_cols_types = dict(prev_struct.cols_types)
