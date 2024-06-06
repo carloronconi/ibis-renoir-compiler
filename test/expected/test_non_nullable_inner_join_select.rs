@@ -52,7 +52,7 @@ struct Struct_collect {
 
 fn logic(ctx: StreamContext) {
     let var_0 = ctx.stream_csv::<Struct_var_0>(
-        "/home/carlo/Projects/ibis-quickstart/data/non_nullable_op/fruit_right.csv",
+        "/home/carlo/Projects/ibis-renoir-compiler/data/non_nullable_op/fruit_right.csv",
     );
     let var_1 = var_0.map(|x| Struct_var_1 {
         fruit: x.fruit,
@@ -61,7 +61,7 @@ fn logic(ctx: StreamContext) {
         sum: x.price.map(|v| v + 100),
     });
     let var_2 = ctx.stream_csv::<Struct_var_2>(
-        "/home/carlo/Projects/ibis-quickstart/data/non_nullable_op/fruit_left.csv",
+        "/home/carlo/Projects/ibis-renoir-compiler/data/non_nullable_op/fruit_left.csv",
     );
     let var_5 = var_2
         .filter(|x| x.weight > 2)

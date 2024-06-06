@@ -63,10 +63,10 @@ struct Struct_collect {
 
 fn logic(ctx: StreamContext) {
     let var_0 =
-        ctx.stream_csv::<Struct_var_0>("/home/carlo/Projects/ibis-quickstart/data/nexmark/bid.csv");
+        ctx.stream_csv::<Struct_var_0>("/home/carlo/Projects/ibis-renoir-compiler/data/nexmark/bid.csv");
     let var_0 = var_0;
     let var_1 = ctx.stream_csv::<Struct_var_1>(
-        "/home/carlo/Projects/ibis-quickstart/data/nexmark/auction.csv",
+        "/home/carlo/Projects/ibis-renoir-compiler/data/nexmark/auction.csv",
     );
     let var_4 = var_1
         .join(var_0, |x| x.id.clone(), |y| y.auction.clone())

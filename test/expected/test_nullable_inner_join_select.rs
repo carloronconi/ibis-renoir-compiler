@@ -52,7 +52,7 @@ struct Struct_collect {
 
 fn logic(ctx: StreamContext) {
     let var_0 = ctx.stream_csv::<Struct_var_0>(
-        "/home/carlo/Projects/ibis-quickstart/data/nullable_op/many_ints.csv",
+        "/home/carlo/Projects/ibis-renoir-compiler/data/nullable_op/many_ints.csv",
     );
     let var_1 = var_0.map(|x| Struct_var_1 {
         int1: x.int1,
@@ -61,7 +61,7 @@ fn logic(ctx: StreamContext) {
         sum: x.int3.map(|v| v + 100),
     });
     let var_2 = ctx.stream_csv::<Struct_var_2>(
-        "/home/carlo/Projects/ibis-quickstart/data/nullable_op/ints_strings.csv",
+        "/home/carlo/Projects/ibis-renoir-compiler/data/nullable_op/ints_strings.csv",
     );
     let var_5 = var_2
         .filter(|x| x.int1.clone().is_some_and(|v| v < 200))

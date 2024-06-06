@@ -1,9 +1,14 @@
 import os
+import sys
+
+# sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import shutil
 from unittest import TestLoader
 
 from codegen import ROOT_DIR
 from test.test_operators import TestNullableOperators, TestNonNullableOperators
+from test.test_nexmark import TestNexmark
 
 
 def update_all_expected_sources():
@@ -14,8 +19,8 @@ def update_all_expected_sources():
     suite = []
     suite.extend(
         list(TestLoader().loadTestsFromTestCase(TestNullableOperators)))
-    suite.extend(
-        list(TestLoader().loadTestsFromTestCase(TestNonNullableOperators)))
+    #suite.extend(
+    #   list(TestLoader().loadTestsFromTestCase(TestNonNullableOperators)))
 
     tests = [(t._testMethodName + ".rs", t) for t in suite]
     for file, t in tests:
