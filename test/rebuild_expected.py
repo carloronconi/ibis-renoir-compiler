@@ -14,9 +14,11 @@ def update_all_expected_sources():
     """
     suite = []
     suite.extend(
+        list(TestLoader().loadTestsFromTestCase(TestNullableOperators)))
+    suite.extend(
+        list(TestLoader().loadTestsFromTestCase(TestNonNullableOperators)))
+    suite.extend(
         list(TestLoader().loadTestsFromTestCase(TestNexmark)))
-    #suite.extend(
-    #   list(TestLoader().loadTestsFromTestCase(TestNonNullableOperators)))
 
     tests = [(t._testMethodName + ".rs", t) for t in suite]
     for file, t in tests:

@@ -29,9 +29,7 @@ struct Struct_collect {
 }
 
 fn logic(ctx: StreamContext) {
-    let var_0 = ctx.stream_csv::<Struct_var_0>(
-        "/home/carlo/Projects/ibis-renoir-compiler/data/nullable_op/ints_strings.csv",
-    );
+    let var_0 = ctx.stream_csv::<Struct_var_0>("../data/nullable_op/ints_strings.csv");
     let var_2 = var_0
         .group_by(|x| (x.string1.clone()))
         .window(CountWindow::new(2, 1, true))
