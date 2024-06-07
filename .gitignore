@@ -1,5 +1,6 @@
 .idea
 .vscode
+.venv/
 /out
 /log/codegen_log.csv
 /log/memo_log.csv
