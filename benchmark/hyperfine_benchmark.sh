@@ -12,12 +12,13 @@ size_suffix="_10000000"
 
 source .venv/bin/activate
 # change grep to filter the tests you want to run
+mkdir -p log/$1
 python -m benchmark.discover_tests | grep "nexmark" | while IFS= read -r name; do
     trim=${name##*.}
     for backend in "${backends_compare_against[@]}"; do
         hyperfine --warmup 5 \
         "python ../ibis-renoir-compiler $name --backend renoir --path_suffix $size_suffix" \
         "python ../ibis-renoir-compiler $name --backend $backend --path_suffix $size_suffix" \
-        --export-json log/hyperfine_${backend}_${trim}${size_suffix}.json
+        --export-json log/$1/hyperfine_${backend}_${trim}${size_suffix}.json
     done
 done

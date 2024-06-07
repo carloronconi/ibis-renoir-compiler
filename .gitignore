@@ -1,7 +1,8 @@
 .idea
 .vscode
 /out
-/log
+/log/codegen_log.csv
+/log/memo_log.csv
 /noir_template/target
 /noir_template/Cargo.lock
 /noir_template/src/main.rs
