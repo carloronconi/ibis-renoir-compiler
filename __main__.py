@@ -23,11 +23,13 @@ def main():
 
     test_class, test_case = args.test_case.rsplit(".", 1)
 
-    test_instance = eval(f"{test_class}()")
+    # because we're not using unittest's harness, we need to set the method name manually
+    test_instance = eval(f"{test_class}(\"{test_case}\")")
     test_instance.init_table_files(file_suffix=args.path_suffix)
     test_instance.run_after_gen = True
     test_instance.render_query_graph = False
-    test_instance.benchmark = None
+    # leaving logging on doesn't seem to affect performance
+    # test_instance.benchmark = None
     test_instance.perform_assertions = False
     test_instance.perform_compilation = True if args.backend == "renoir" else False
     # when running performance benchmarks, don't write to file
@@ -36,6 +38,8 @@ def main():
     eval(f"test_instance.{test_case}()", {"test_instance": test_instance})
     # If the backend is renoir, we have already performed the compilation to renoir code and ran it
     if (args.backend == "renoir"):
+        if (test_instance.benchmark is not None):
+            test_instance.benchmark.log()
         return
 
     # Else, the test we ran simply populated the query attribute with the ibis query

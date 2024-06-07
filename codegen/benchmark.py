@@ -19,7 +19,9 @@ class Benchmark:
         self.ibis_time = time
 
     def log(self):
-        message = f"{self.name},{self.renoir_compile_time:.10f}s,{self.renoir_execute_time:.10f}s,{self.ibis_time:.10f}s"
+        message = f"{self.name},{self.renoir_compile_time:.10f}s,{self.renoir_execute_time:.10f}s"
+        if hasattr(self, "ibis_time"):
+            message += f",{self.ibis_time:.10f}s"
         self.logger.info(message)
 
 

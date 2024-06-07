@@ -12,19 +12,32 @@ from ibis import _
 
 
 class TestCompiler(unittest.TestCase):
+
+    def __init__(self, methodName: str = "runTest"):
+        """
+        moved part of the setup to __init__ even though not customary for tests (both __init__ and setUp are 
+        called before each test method) because we use the test case without unittest's harness for performance
+        benchmarks
+        """
+        self.run_after_gen = os.getenv("RUN_AFTER_GEN", "true") == "true"
+        self.render_query_graph = os.getenv(
+            "RENDER_QUERY_GRAPH", "false") == "true"
+        self.perform_assertions = os.getenv(
+            "PERFORM_ASSERTIONS", "true") == "true"
+
+        self._testMethodName = methodName
+        # initialize benchmark data for current test name
+        self.benchmark = Benchmark(methodName) if os.getenv("PERFORM_BENCHMARK", "true") == "true" else None
+        self.perform_compilation = True
+        self.print_output_to_file = True
+
+        super().__init__(methodName=methodName)
+
     def setUp(self):
         try:
             os.remove(ROOT_DIR + "/out/noir-result.csv")
         except FileNotFoundError:
             pass
-
-        self.run_after_gen = os.getenv("RUN_AFTER_GEN", "true") == "true"
-        self.render_query_graph = os.getenv("RENDER_QUERY_GRAPH", "false") == "true"
-        self.perform_assertions = os.getenv("PERFORM_ASSERTIONS", "true") == "true"
-        # initialize benchmark data for current test name
-        self.benchmark = Benchmark(self.id().split('.')[-1]) if os.getenv("PERFORM_BENCHMARK", "true") == "true" else None
-        self.perform_compilation = True
-        self.print_output_to_file = True
 
     def init_table_files(self, file_suffix=""):
         raise NotImplementedError
@@ -38,18 +51,19 @@ class TestCompiler(unittest.TestCase):
         self.benchmark.log()
 
     def run_ibis_query(self):
-        
+
         # benchmark ibis total run time + write to csv (as noir also performs write to csv)
         start_time = time.perf_counter()
-        
+
         # for non-nullable tests rebuild query over new memtable as self.tables is non-materialized
         # to be able to define its schema as non-nullable (ibis doesn't allow defining schema when reading from csv)
         if hasattr(self, "query_func"):
             df_left = pd.read_csv(self.files[0])
             df_right = pd.read_csv(self.files[1])
-            tables = [ibis.memtable(df_left, schema=self.schema), ibis.memtable(df_right, schema=self.schema)]
+            tables = [ibis.memtable(df_left, schema=self.schema), ibis.memtable(
+                df_right, schema=self.schema)]
             self.query = self.query_func(tables)
-        
+
         self.df_ibis = self.query.to_pandas()
         directory = ROOT_DIR + "/out"
         if not os.path.exists(directory):
