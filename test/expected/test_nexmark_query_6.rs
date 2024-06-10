@@ -48,32 +48,16 @@ struct Struct_var_2 {
 #[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
 struct Struct_var_3 {
     id: Option<i64>,
-    item_name: Option<String>,
-    description: Option<String>,
-    initial_bid: Option<i64>,
-    reserve: Option<i64>,
-    date_time: Option<i64>,
-    expires: Option<i64>,
     seller: Option<i64>,
-    category: Option<i64>,
-    extra: Option<String>,
-    auction: Option<i64>,
-    bidder: Option<i64>,
-    price: Option<i64>,
-    channel: Option<String>,
-    url: Option<String>,
-    date_time_right: Option<i64>,
-    extra_right: Option<String>,
     final_p: Option<i64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
 struct Struct_var_4 {
+    id: Option<i64>,
+    seller: Option<i64>,
     final_p: Option<i64>,
-    seller: Option<i64>,
-}
-#[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
-struct Struct_var_5 {
-    seller: Option<i64>,
+    grp_sum: Option<i64>,
+    grp_count: Option<i64>,
     avg_final_p: Option<f64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
@@ -85,7 +69,7 @@ fn logic(ctx: StreamContext) {
     let var_0 = ctx.stream_csv::<Struct_var_0>("../data/nexmark/bid.csv");
     let var_0 = var_0;
     let var_1 = ctx.stream_csv::<Struct_var_1>("../data/nexmark/auction.csv");
-    let var_5 = var_1
+    let var_4 = var_1
         .join(var_0, |x| x.id.clone(), |y| y.auction.clone())
         .map(|(_, x)| Struct_var_2 {
             id: x.0.id,
@@ -115,60 +99,39 @@ fn logic(ctx: StreamContext) {
         .filter(|(_, x)| x.expires.clone().is_some_and(|v| v < 2330277279926))
         .drop_key()
         .group_by(|x| (x.id.clone(), x.seller.clone()))
-        .window(CountWindow::new(3, 1, true))
+        .reduce(|a, b| {
+            a.price = a.price.zip(b.price).map(|(x, y)| max(x, y));
+        })
+        .map(|(k, x)| Struct_var_3 {
+            id: k.0,
+            seller: k.1,
+            final_p: x.price,
+        })
+        .drop_key()
+        .group_by(|x| (x.seller.clone()))
+        .window(CountWindow::new(10, 1, true))
         .fold(
-            Struct_var_3 {
+            Struct_var_4 {
                 id: None,
-                item_name: None,
-                description: None,
-                initial_bid: None,
-                reserve: None,
-                date_time: None,
-                expires: None,
                 seller: None,
-                category: None,
-                extra: None,
-                auction: None,
-                bidder: None,
-                price: None,
-                channel: None,
-                url: None,
-                date_time_right: None,
-                extra_right: None,
-                final_p: Some(0),
+                final_p: None,
+                grp_sum: Some(0),
+                grp_count: Some(0),
+                avg_final_p: Some(0.0),
             },
             |acc, x| {
                 acc.id = x.id;
-                acc.item_name = x.item_name;
-                acc.description = x.description;
-                acc.initial_bid = x.initial_bid;
-                acc.reserve = x.reserve;
-                acc.date_time = x.date_time;
-                acc.expires = x.expires;
                 acc.seller = x.seller;
-                acc.category = x.category;
-                acc.extra = x.extra;
-                acc.auction = x.auction;
-                acc.bidder = x.bidder;
-                acc.price = x.price;
-                acc.channel = x.channel;
-                acc.url = x.url;
-                acc.date_time_right = x.date_time_right;
-                acc.extra_right = x.extra_right;
-                acc.final_p = acc.final_p.zip(x.price).map(|(a, b)| max(a, b));
+                acc.final_p = x.final_p;
+                acc.grp_sum = acc.grp_sum.zip(x.final_p).map(|(a, b)| a + b);
+                acc.grp_count = acc.grp_count.map(|v| v + 1);
             },
         )
         .map(|(_, x)| Struct_var_4 {
-            final_p: x.final_p,
-            seller: x.seller,
-        })
-        .drop_key()
-        .group_by_avg(|x| (x.seller.clone()), |x| x.final_p.unwrap_or(0) as f64)
-        .map(|(k, x)| Struct_var_5 {
-            seller: k.clone(),
-            avg_final_p: Some(x),
+            avg_final_p: x.grp_sum.zip(x.grp_count).map(|(a, b)| a as f64 / b as f64),
+            ..x
         });
-    let out = var_5.collect_vec();
+    let out = var_4.collect_vec();
     tracing::info!("starting execution");
     ctx.execute_blocking();
     let out = out.get().unwrap();
