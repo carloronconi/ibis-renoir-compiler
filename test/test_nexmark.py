@@ -139,27 +139,23 @@ class TestNexmark(TestCompiler):
 
         auction = self.tables["auction"]
         bid = self.tables["bid"]
-        w = ibis.window(group_by=[_.id, _.seller], preceding=2, following=0)
+        w = ibis.window(group_by=[_.seller], preceding=9, following=0)
         self.query = (auction
                       .join(bid, bid["auction"] == auction["id"])
                       .filter((_.date_time_right < _.expires) & (_.expires < self.CURRENT_TIME))
-                      .mutate(final_p=_.price.max().over(w))
-                      .select([_.final_p, _.seller])
-
-                      # aggregating here breaks comparison with noir, because noir windows return fewer rows
-                      # so averaging them gives different result from ibis
-                      .group_by(_.seller)
-                      .aggregate(avg_final_p=_.final_p.mean()))
+                      .group_by([_.id, _.seller])
+                      .aggregate(final_p=_.price.max())
+                      .mutate(avg_final_p=_.final_p.mean().over(w)))
 
         if self.perform_compilation:
             compile_ibis_to_noir([(self.files["auction"], auction), (self.files["bid"], bid)],
                                  self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
 
-        # subset option is not enough for different window semantics in this case:
-        # after obtaining fewer rows in noir, we aggregate them, obtaining different results altogether
-        # but testing withoit last group_by.aggregate shows that result should be correct
-        # self.assert_similarity_noir_output(query, noir_subset_ibis=True)
+        # subset option is not enough in this case: testing excluding the last .mutate confirms that outputs
+        # are the same up to there, but the last .mutate uses a window over 10 close rows within the same seller group:
+        # the ordering of rows is non-deterministic in ibis (and maybe noir too), so the avg_final_p will be different
         if self.perform_assertions:
+            # self.assert_similarity_noir_output(noir_subset_ibis=True)
             self.assert_equality_noir_source()
 
     # Query 5, 7, 8 are not supported by ibis because they require time-based windowing
