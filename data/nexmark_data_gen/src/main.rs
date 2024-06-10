@@ -42,5 +42,6 @@ fn main() -> eyre::Result<()> {
         }
     }
 
+    println!("Done generating Nexmark data.");
     Ok(())
 }
