@@ -15,3 +15,9 @@ penguins.ddb
 /data/nexmark/auction_*
 /data/nexmark/person_*
 /data/nexmark/bid_*
+/data/operator_data_gen/target
+/data/operator_data_gen/Cargo.lock
+/data/nullable_op/ints_strings_*
+/data/nullable_op/many_ints_*
+/data/non_nullable_op/fruit_left_*
+/data/non_nullable_op/fruit_right_*
