@@ -1,0 +1,72 @@
+{
+  "results": [
+    {
+      "command": "python3 ../ibis-renoir-compiler test.test_operators.TestNullableOperators.test_nullable_filter_group_mutate --backend renoir --path_suffix _100000000",
+      "mean": 5.5969158377,
+      "stddev": 0.23531055327377887,
+      "median": 5.7438271844,
+      "user": 45.178692479999995,
+      "system": 1.5259871400000002,
+      "min": 5.2351468509,
+      "max": 5.7692505339,
+      "times": [
+        5.2599078569,
+        5.2351468509,
+        5.2839969379,
+        5.6529640669,
+        5.7391902929,
+        5.7570535439,
+        5.748464075899999,
+        5.7692505339,
+        5.7571245929,
+        5.7660596249
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "command": "python3 ../ibis-renoir-compiler test.test_operators.TestNullableOperators.test_nullable_filter_group_mutate --backend duckdb --path_suffix _100000000",
+      "mean": 1.9545396661000005,
+      "stddev": 0.022342976050215606,
+      "median": 1.9511426664,
+      "user": 13.26595208,
+      "system": 1.4146947399999998,
+      "min": 1.9305952869,
+      "max": 2.0117496219,
+      "times": [
+        1.9557059649000001,
+        1.9594093599000002,
+        1.9379571409,
+        1.9580212999000002,
+        1.9586901749,
+        1.9445931759000001,
+        1.9465793679,
+        1.9420952679,
+        1.9305952869,
+        2.0117496219
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}
