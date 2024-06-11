@@ -1,4 +1,7 @@
+import test
 import argparse
+import test.test_nexmark
+import test.test_operators
 import ibis
 from pyflink.table import EnvironmentSettings, TableEnvironment
 
