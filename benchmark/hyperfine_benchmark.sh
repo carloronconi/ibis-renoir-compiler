@@ -23,3 +23,4 @@ python3 -m benchmark.discover_tests | grep "test_operators" | while IFS= read -r
         printf "\n"
     done
 done
+cp log/codegen_log.csv log/$1/codegen_log.csv
