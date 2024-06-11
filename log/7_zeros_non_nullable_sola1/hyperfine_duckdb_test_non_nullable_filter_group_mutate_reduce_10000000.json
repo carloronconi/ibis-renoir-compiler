@@ -1,0 +1,38 @@
+{
+  "results": [
+    {
+      "command": "python3 ../ibis-renoir-compiler test.test_operators.TestNonNullableOperators.test_non_nullable_filter_group_mutate_reduce --backend renoir --path_suffix _10000000",
+      "mean": 4.02410521994,
+      "stddev": 0.018413910748903833,
+      "median": 4.01694396484,
+      "user": 24.2494867,
+      "system": 2.21006058,
+      "min": 4.00859826784,
+      "max": 4.06952174884,
+      "times": [
+        4.01791664084,
+        4.01593767884,
+        4.02096746184,
+        4.01597128884,
+        4.00859826784,
+        4.01549275284,
+        4.01070354184,
+        4.04181760984,
+        4.06952174884,
+        4.02412520784
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}
