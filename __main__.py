@@ -1,8 +1,6 @@
-import test
 import argparse
-import test.test_nexmark
-import test.test_operators
 import ibis
+from pyflink.table import EnvironmentSettings, TableEnvironment
 
 
 def main():
@@ -44,7 +42,14 @@ def main():
 
     # Else, the test we ran simply populated the query attribute with the ibis query
     # and we can run it using to_pandas(), after setting the backend to the desired one
-    ibis.set_backend(args.backend)
+    # Flink requires special setup
+    if (args.backend == "flink"):
+        table_env = TableEnvironment.create(
+            EnvironmentSettings.in_streaming_mode())
+        con = ibis.flink.connect(table_env)
+        ibis.set_backend(con)
+    else:
+        ibis.set_backend(args.backend)
     test_instance.query.to_pandas().head()
     print(f"finished running query with: {ibis.get_backend().name}")
 
