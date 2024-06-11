@@ -1,0 +1,1 @@
+Re-ran nexmark q6 after change of semantics
