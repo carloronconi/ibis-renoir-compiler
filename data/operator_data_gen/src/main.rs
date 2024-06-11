@@ -22,6 +22,8 @@ struct Args {
     names: Vec<String>,
     #[arg(short, long, num_args=NUM_FILES)]
     types: Vec<String>,
+    #[arg(short, long, num_args=NUM_FILES, default_value=None)]
+    headers: Option<Vec<String>>,
 }
 
 fn main() -> eyre::Result<()> {
@@ -36,16 +38,20 @@ fn main() -> eyre::Result<()> {
         let file = File::create(path)?;
         let mut writer = BufWriter::new(file);
 
-        let header = type_.chars()
-            .enumerate()
-            .map(|(i, c)| 
-                match c {
-                    'i' => format!("int{}", i),
-                    's' => format!("string{}", i),
-                    _ => panic!("Invalid type character"),
-                })
-            .collect::<Vec<String>>();
-        writeln!(writer, "{}", header.join(","))?;
+        let header = args.headers.as_ref()
+            .map(|h| h[i].clone())
+            .unwrap_or(
+                type_.chars()
+                    .enumerate()
+                    .map(|(i, c)| 
+                        match c {
+                            'i' => format!("int{}", i),
+                            's' => format!("string{}", i),
+                            _ => panic!("Invalid type character"),
+                        })
+                    .collect::<Vec<String>>()
+                    .join(","));
+        writeln!(writer, "{}", header)?;
 
         let seed = [0; 32];
         let mut rng = StdRng::from_seed(seed);
