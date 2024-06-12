@@ -17,9 +17,10 @@ skip=0
 source .venv/bin/activate
 mkdir -p log/$1
 i=0
-# use grep to filter the tests you want to run, with option -v "test_name" to exclude single test
-# or -v -e "test_name1" -e "test_name2" to exclude multiple tests
-python3 -m benchmark.discover_tests | while IFS= read -r name; do
+# use grep to filter the tests you want to run, with option -v "test_name" to exclude single test pattern
+# or -v -e "test_name1" -e "test_name2" to exclude multiple patterns
+# always exclude non_nullable tests as they require to create memtable's, which would skew the results
+python3 -m benchmark.discover_tests | grep -v "non_nullable" | while IFS= read -r name; do
     i=$((i+1))
     if [ $i -lt $skip ]; then
         continue
