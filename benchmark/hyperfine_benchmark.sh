@@ -10,15 +10,17 @@ backends=("renoir" "duckdb" "polars" "flink")
 # For nexmark, `cd data/nexmark_data_gen && cargo run -- 100000000`
 size_suffix="_100000000"
 
+# change to skip the first n tests
+skip=0
+
 source .venv/bin/activate
-# change grep to filter the tests you want to run
 mkdir -p log/$1
 i=0
-python3 -m benchmark.discover_tests | \
-grep -v -e "test_nullable_group_reduce_group_reduce_join" -e "test_nullable_group_reduce_join_mutate" -e "test_non_nullable_filter_filter_select_select" | \
-while IFS= read -r name; do
+# use grep to filter the tests you want to run, with option -v "test_name" to exclude single test
+# or -v -e "test_name1" -e "test_name2" to exclude multiple tests
+python3 -m benchmark.discover_tests | while IFS= read -r name; do
     i=$((i+1))
-    if [ $i -lt 7 ]; then
+    if [ $i -lt $skip ]; then
         continue
     fi
     trim=${name##*.}
