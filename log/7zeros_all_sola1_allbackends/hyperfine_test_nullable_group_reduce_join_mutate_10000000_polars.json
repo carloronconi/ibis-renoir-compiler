@@ -1,0 +1,38 @@
+{
+  "results": [
+    {
+      "command": "python3 ../ibis-renoir-compiler test.test_operators.TestNullableOperators.test_nullable_group_reduce_join_mutate --backend polars --path_suffix _10000000",
+      "mean": 2.39995823892,
+      "stddev": 0.043299966271641614,
+      "median": 2.3990786763200003,
+      "user": 9.250607899999999,
+      "system": 1.39487688,
+      "min": 2.34505701532,
+      "max": 2.47738030932,
+      "times": [
+        2.38307886232,
+        2.40065292532,
+        2.34505701532,
+        2.34929371032,
+        2.35591506532,
+        2.41574983632,
+        2.39750442732,
+        2.43872862132,
+        2.47738030932,
+        2.43622161632
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}
