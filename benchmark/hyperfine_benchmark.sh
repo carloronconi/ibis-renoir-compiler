@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # add the backends you want to compare renoir against
-backends=("renoir" "duckdb" "polars" "flink")
+# putting renoir as last to see if others fail with large dataset
+backends=("duckdb" "polars" "flink" "renoir")
 # backends=("duckdb" "polars")
 
 # if you want to run the benchmark on a different dataset size, change the size_suffix, otherwise leave ""
