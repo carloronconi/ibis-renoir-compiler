@@ -623,7 +623,7 @@ class ImplicitWindowOperator(WindowOperator):
         new_struct = Struct.from_args_dict(str(id(window)), new_cols_types)
 
         # generate initialization (aka first_map) within .reduce_scan
-        text += f"|x| ("
+        text += f"|x| (" if not Struct.with_keyed_stream else f"|_, x| ("
         arg = window.func.args[0].name
         for col, init in op.init_actions():
             text += init.format(col, arg) + ", "
@@ -632,7 +632,7 @@ class ImplicitWindowOperator(WindowOperator):
         # generate folding within .reduce_scan
         fold_tup_fields = op.fields()
         fold_tup_fields.remove((self.alias.name, self.alias.dtype))
-        text += "|("
+        text += "|(" if not Struct.with_keyed_stream else "|_, ("
         for col, _ in fold_tup_fields:
             text += f"a_{col}, "
         text += "), ("
@@ -644,10 +644,14 @@ class ImplicitWindowOperator(WindowOperator):
         text += "),\n"
 
         # generate second_map within .reduce_scan
-        text += "|x, ("
+        text += "|x, " if not Struct.with_keyed_stream else "|_, "
+        text += "("
         for col, _ in fold_tup_fields:
             text += f"{col}, "
-        text += f")| {new_struct.name_struct}{{"
+        text += f")"
+        if Struct.with_keyed_stream:
+            text += ", x"
+        text += f" | {new_struct.name_struct}{{"
         for col in prev_struct.columns:
             text += f"{col}: x.{col}, "
         for col, _ in fold_tup_fields:
