@@ -13,7 +13,14 @@ size_suffix="_100000000"
 source .venv/bin/activate
 # change grep to filter the tests you want to run
 mkdir -p log/$1
-python3 -m benchmark.discover_tests | grep "TestNullableOperators" | while IFS= read -r name; do
+i=0
+python3 -m benchmark.discover_tests | \
+grep -v -e "test_nullable_group_reduce_group_reduce_join" -e "test_nullable_group_reduce_join_mutate" -e "test_non_nullable_filter_filter_select_select" | \
+while IFS= read -r name; do
+    i=$((i+1))
+    if [ $i -lt 7 ]; then
+        continue
+    fi
     trim=${name##*.}
     for backend in "${backends[@]}"; do
         hyperfine --warmup 1 \
