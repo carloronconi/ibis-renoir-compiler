@@ -1,8 +1,14 @@
 #!/bin/bash
 
+# Hanging on server
+# target/release/noir-template
+# python3 ../ibis-renoir-compiler tes.test_operators.TestNullableOperators.test_nullable_left_join --backend renoir --path_suffix _100000000
+
+# Failing locally
+# 
+
 # add the backends you want to compare renoir against
-# putting renoir as last to see if others fail with large dataset
-backends=("duckdb" "polars" "flink" "renoir")
+backends=("renoir" "duckdb" "polars" "flink")
 # backends=("duckdb" "polars")
 
 # if you want to run the benchmark on a different dataset size, change the size_suffix, otherwise leave ""
@@ -11,19 +17,10 @@ backends=("duckdb" "polars" "flink" "renoir")
 # For nexmark, `cd data/nexmark_data_gen && cargo run -- 100000000`
 size_suffix="_100000000"
 
-# change to skip the first n tests
-skip=0
-
 source .venv/bin/activate
+# change grep to filter the tests you want to run
 mkdir -p log/$1
-i=0
-# use grep to filter the tests you want to run, with option -v "test_name" to exclude single test
-# or -v -e "test_name1" -e "test_name2" to exclude multiple tests
 python3 -m benchmark.discover_tests | while IFS= read -r name; do
-    i=$((i+1))
-    if [ $i -lt $skip ]; then
-        continue
-    fi
     trim=${name##*.}
     for backend in "${backends[@]}"; do
         hyperfine --warmup 1 \

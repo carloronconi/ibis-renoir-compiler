@@ -13,62 +13,58 @@ struct Struct_var_1 {
     int1: Option<i64>,
     string1: Option<String>,
     int4: Option<i64>,
-    grp_sum: Option<i64>,
-    grp_count: Option<i64>,
-    group_perc: Option<f64>,
+    sum: i64,
+    count: i64,
+    group_mean: Option<f64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
 struct Struct_var_2 {
     int1: Option<i64>,
     string1: Option<String>,
     int4: Option<i64>,
-    grp_sum: Option<i64>,
-    grp_count: Option<i64>,
-    group_perc: Option<f64>,
+    sum: i64,
+    count: i64,
+    group_mean: Option<f64>,
+    int4_demean: Option<f64>,
+}
+#[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
+struct Struct_collect {
+    string1: Option<String>,
 }
 
 fn logic(ctx: StreamContext) {
     let var_0 = ctx.stream_csv::<Struct_var_0>("../data/nullable_op/ints_strings.csv");
     let var_2 = var_0
-        .window_all(CountWindow::new(2, 1, true))
-        .fold(
-            Struct_var_1 {
-                int1: None,
-                string1: None,
-                int4: None,
-                grp_sum: Some(0),
-                grp_count: Some(0),
-                group_perc: Some(0.0),
-            },
-            |acc, x| {
-                acc.int1 = x.int1;
-                acc.string1 = x.string1;
-                acc.int4 = x.int4;
-                acc.grp_sum = acc.grp_sum.zip(x.int4).map(|(a, b)| a + b);
-                acc.grp_count = acc.grp_count.map(|v| v + 1);
+        .group_by(|x| x.string1.clone())
+        .reduce_scan(
+            |_, x| (x.int4.unwrap_or(0), 1),
+            |_, (a_sum, a_count), (b_sum, b_count)| (a_sum + b_sum, a_count + b_count),
+            |_, (sum, count), x| Struct_var_1 {
+                int1: x.int1,
+                string1: x.string1,
+                int4: x.int4,
+                sum: *sum,
+                count: *count,
+                group_mean: Some(*sum as f64 / *count as f64),
             },
         )
-        .drop_key()
-        .map(|x| Struct_var_1 {
-            group_perc: x.grp_sum.zip(x.grp_count).map(|(a, b)| a as f64 / b as f64),
-            ..x
-        })
-        .map(|x| Struct_var_2 {
+        .map(|(_, x)| Struct_var_2 {
             int1: x.int1,
             string1: x.string1,
             int4: x.int4,
-            grp_sum: x.grp_sum,
-            grp_count: x.grp_count,
-            group_perc: x
-                .int4
-                .map(|v| v * 100)
-                .zip(x.group_perc)
-                .map(|(a, b)| a as f64 / b as f64),
+            sum: x.sum,
+            count: x.count,
+            group_mean: x.group_mean,
+            int4_demean: x.int4.zip(x.group_mean).map(|(a, b)| a as f64 - b as f64),
         });
     let out = var_2.collect_vec();
     tracing::info!("starting execution");
     ctx.execute_blocking();
     let out = out.get().unwrap();
+    let out = out
+        .iter()
+        .map(|(k, v)| (Struct_collect { string1: k.clone() }, v))
+        .collect::<Vec<_>>();
     let file = File::create("../out/noir-result.csv").unwrap();
     let mut wtr = csv::WriterBuilder::new().from_writer(file);
 

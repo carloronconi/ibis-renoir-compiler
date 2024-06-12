@@ -42,6 +42,7 @@ def compile_ibis_to_noir(files_tables: list[tuple[str, PhysicalTable]],
     if run_after_gen:
         if benchmark:
             start_time = time.perf_counter()
+        # add options to print renoir output: capture_output = True, text = True
         if subprocess.run(f"cd {utl.ROOT_DIR}/noir_template && cargo run --release", shell=True).returncode != 0:
             raise Exception("Noir code panicked!")
         if benchmark:
