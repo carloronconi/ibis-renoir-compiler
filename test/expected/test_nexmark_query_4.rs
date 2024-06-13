@@ -1,7 +1,11 @@
+use mimalloc::MiMalloc;
 use renoir::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::cmp::max;
 use std::fs::File;
+
+#[global_allocator]
+static GLOBAL: MiMalloc = MiMalloc;
 #[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq, Default)]
 struct Struct_var_0 {
     auction: Option<i64>,
