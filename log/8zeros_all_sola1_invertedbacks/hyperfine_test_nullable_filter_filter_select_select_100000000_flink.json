@@ -1,0 +1,38 @@
+{
+  "results": [
+    {
+      "command": "python3 ../ibis-renoir-compiler test.test_operators.TestNullableOperators.test_nullable_filter_filter_select_select --backend flink --path_suffix _100000000",
+      "mean": 8.933743142400001,
+      "stddev": 0.07298102257056298,
+      "median": 8.9123686055,
+      "user": 7.3085993999999985,
+      "system": 1.2898409599999998,
+      "min": 8.8684078185,
+      "max": 9.1139491885,
+      "times": [
+        8.9979217515,
+        8.9111555665,
+        8.9402433615,
+        8.8893398525,
+        8.9160276545,
+        8.9135816445,
+        8.8684078185,
+        9.1139491885,
+        8.9103589005,
+        8.8764456855
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}
