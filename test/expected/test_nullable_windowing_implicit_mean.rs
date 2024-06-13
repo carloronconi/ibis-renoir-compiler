@@ -56,17 +56,10 @@ fn logic(ctx: StreamContext) {
             int4_mean: x.int4_mean,
             int4_demean: x.int4.zip(x.int4_mean).map(|(a, b)| a as f64 - b as f64),
         });
-    let out = var_2.collect_vec();
+    var_2.write_csv_one("../out/noir-result.csv", true);
+    File::create("../out/noir-result.csv").unwrap();
     tracing::info!("starting execution");
     ctx.execute_blocking();
-    let out = out.get().unwrap();
-    let file = File::create("../out/noir-result.csv").unwrap();
-    let mut wtr = csv::WriterBuilder::new().from_writer(file);
-
-    for e in out {
-        wtr.serialize(e).unwrap();
-    }
-    wtr.flush().unwrap();
 }
 
 fn main() -> eyre::Result<()> {

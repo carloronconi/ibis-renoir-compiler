@@ -61,21 +61,13 @@ fn logic(ctx: StreamContext) {
             group_mean: x.group_mean,
             int4_demean: x.int4.zip(x.group_mean).map(|(a, b)| a as f64 - b as f64),
         });
-    let out = var_2.collect_vec();
+    var_2
+        .map(|(k, v)| (Struct_collect { string1: k.clone() }, v))
+        .drop_key()
+        .write_csv_one("../out/noir-result.csv", true);
+    File::create("../out/noir-result.csv").unwrap();
     tracing::info!("starting execution");
     ctx.execute_blocking();
-    let out = out.get().unwrap();
-    let out = out
-        .iter()
-        .map(|(k, v)| (Struct_collect { string1: k.clone() }, v))
-        .collect::<Vec<_>>();
-    let file = File::create("../out/noir-result.csv").unwrap();
-    let mut wtr = csv::WriterBuilder::new().from_writer(file);
-
-    for e in out {
-        wtr.serialize(e).unwrap();
-    }
-    wtr.flush().unwrap();
 }
 
 fn main() -> eyre::Result<()> {

@@ -56,17 +56,10 @@ fn logic(ctx: StreamContext) {
             bidder: x.bidder,
             date_time: x.date_time,
         });
-    let out = var_2.collect_vec();
+    var_2.write_csv_one("../out/noir-result.csv", true);
+    File::create("../out/noir-result.csv").unwrap();
     tracing::info!("starting execution");
     ctx.execute_blocking();
-    let out = out.get().unwrap();
-    let file = File::create("../out/noir-result.csv").unwrap();
-    let mut wtr = csv::WriterBuilder::new().from_writer(file);
-
-    for e in out {
-        wtr.serialize(e).unwrap();
-    }
-    wtr.flush().unwrap();
 }
 
 fn main() -> eyre::Result<()> {

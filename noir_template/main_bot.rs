@@ -1,12 +1,6 @@
-    let file = File::create("../out/noir-result.csv").unwrap();
-    let mut wtr = csv::WriterBuilder::new()
-        .from_writer(file);
-
-    for e in out {
-        wtr.serialize(e).unwrap();
-    }
-    wtr.flush().unwrap();
-
+    File::create("../out/noir-result.csv").unwrap();
+    tracing::info!("starting execution");
+    ctx.execute_blocking();
 }
 
 fn main() -> eyre::Result<()> {

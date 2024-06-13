@@ -113,12 +113,7 @@ fn logic(ctx: StreamContext) {
             category: k.clone(),
             avg_final_p: Some(x),
         });
-    let out = var_4.collect_vec();
-    tracing::info!("starting execution");
-    ctx.execute_blocking();
-    let out = out.get().unwrap();
-    let out = out
-        .iter()
+    var_4
         .map(|(k, v)| {
             (
                 Struct_collect {
@@ -127,14 +122,11 @@ fn logic(ctx: StreamContext) {
                 v,
             )
         })
-        .collect::<Vec<_>>();
-    let file = File::create("../out/noir-result.csv").unwrap();
-    let mut wtr = csv::WriterBuilder::new().from_writer(file);
-
-    for e in out {
-        wtr.serialize(e).unwrap();
-    }
-    wtr.flush().unwrap();
+        .drop_key()
+        .write_csv_one("../out/noir-result.csv", true);
+    File::create("../out/noir-result.csv").unwrap();
+    tracing::info!("starting execution");
+    ctx.execute_blocking();
 }
 
 fn main() -> eyre::Result<()> {

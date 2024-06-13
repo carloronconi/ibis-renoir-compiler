@@ -757,21 +757,20 @@ class BotOperator(Operator):
             with open(utl.ROOT_DIR + "/noir_template/main_bot_no_print.rs") as f:
                 bot += f.read()
             return bot
-        
-        bot = f"; let out = {last_struct.name_short}.collect_vec();"
-        bot += "\ntracing::info!(\"starting execution\");\nctx.execute_blocking();\nlet out = out.get().unwrap();\n"
 
-        if last_struct.is_keyed_stream:
+        if not last_struct.is_keyed_stream:
+            bot = f";\n{last_struct.name_short}.write_csv_one(\"../out/noir-result.csv\", true);"
+        else:
             names_types = Struct.last().with_keyed_stream
             new_struct = Struct.from_args(str(id(self)), list(names_types.keys()), list(
                 names_types.values()), with_name_short="collect")
-            bot += f"let out = out.iter().map(|(k, v)| ({new_struct.name_struct}{{"
+            bot = f";\n{last_struct.name_short}.map(|(k, v)| ({new_struct.name_struct}{{"
             if len(names_types) == 1:
                 bot += f"{list(names_types.keys())[0]}: k.clone(),"
             else:
                 for i, name in enumerate(names_types):
                     bot += f"{name}: k.{i}.clone(),"
-            bot += "}, v)).collect::<Vec<_>>();"
+            bot += "}, v)).drop_key().write_csv_one(\"../out/noir-result.csv\", true);"
 
         with open(utl.ROOT_DIR + "/noir_template/main_bot.rs") as f:
             bot += f.read()
