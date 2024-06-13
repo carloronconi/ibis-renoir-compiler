@@ -21,4 +21,7 @@ penguins.ddb
 /data/nullable_op/many_ints_*
 /data/non_nullable_op/fruit_left_*
 /data/non_nullable_op/fruit_right_*
+/data/tpch/
+/data/tpc_data_gen/target
+/data/tpc_data_gen/Cargo.lock
 *COMPARISON*

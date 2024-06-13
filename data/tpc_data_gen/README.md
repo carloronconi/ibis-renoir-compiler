@@ -1,0 +1,2 @@
+Use [TCP-H project zips](https://www.tpc.org/tpc_documents_current_versions/current_specifications5.asp) to generate pipe-separated data: go into the dbgen directory, `make` and `./dbgen`.
+Then `mv` to `./data/tpch` dir and use this tool to turn the data into csv files.
