@@ -66,7 +66,7 @@ class TestNullableOperators(TestCompiler):
         self.query = (self.tables[0]
                       .filter(_.string1 == "unduetre")
                       .group_by("string1")
-                      .aggregate(int1_agg=_["int1"].first())
+                      .aggregate(int1_agg=_["int1"].first())  # TODO: first() can be flaky as ordering is not guaranteed in either ibis or noir
                       .mutate(mul=_.int1_agg * 20))  # mutate always results in alias preceded by Multiply (or other bin op)
 
         if self.perform_compilation:
