@@ -5,6 +5,7 @@ from ibis.common.graph import Node
 import codegen.utils as utl
 from codegen.struct import Struct
 from ibis.expr.datatypes.core import DataType
+from codegen.argument_parser import ArgumentParser
 
 
 class Operator:
@@ -15,6 +16,7 @@ class Operator:
     print_output_to_file = True
 
     def __init__(self):
+        self.arg_parser = ArgumentParser()
         Operator.operators.append(self)
 
     @classmethod
@@ -61,7 +63,8 @@ class SelectOperator(Operator):
 
     def __init__(self, node: ops.Selection):
         self.node = node
-        self.columns = [c for c in node.__children__ if isinstance(c, ops.TableColumn)]
+        self.columns = [
+            c for c in node.__children__ if isinstance(c, ops.TableColumn)]
         super().__init__()
 
     def generate(self) -> str:
@@ -99,7 +102,8 @@ class FilterOperator(Operator):
         super().__init__()
 
     def generate(self) -> str:
-        filter_expr = operator_arg_stringify(self.comparator, struct_name="x")
+        self.arg_parser.struct_name = "x"
+        filter_expr = self.arg_parser.parse(self.comparator)
         if Struct.last().is_keyed_stream:
             return f".filter(|(_, x)| {filter_expr})"
         return f".filter(|x| {filter_expr})"
@@ -121,7 +125,8 @@ class FilterOperator(Operator):
 
         if not (isinstance(node, ops.Selection) or isinstance(node, ops.Aggregation)):
             return
-        equalses = list(filter(is_equals_col_lit_or_col_col, node.__children__))
+        equalses = list(
+            filter(is_equals_col_lit_or_col_col, node.__children__))
         log_bins = list(filter((lambda c: isinstance(c, ops.logical.LogicalBinary) and any(
             is_equals_col_lit_or_col_col(cc) for cc in c.__children__)), node.__children__))
 
@@ -167,8 +172,10 @@ class MapOperator(Operator):
 
         # override WindowFunction node resolution, so in case WindowFunction is below mapper, it will be resolved
         # to prev struct's last col name for reason above
-        num_ops = operator_arg_stringify(
-            self.mapper, "x", window_resolve=prev_struct.columns[-1])
+        self.arg_parser.window_resolve = prev_struct.columns[-1]
+        self.arg_parser.struct_name = "x"
+        num_ops = self.arg_parser.parse(
+            self.mapper)
         mid += f"{self.node.name}: {num_ops},}})"
 
         return mid
@@ -196,7 +203,7 @@ class LoneReduceOperator(Operator):
         super().__init__()
 
     def generate(self) -> str:
-        col = operator_arg_stringify(self.reducer.__children__[0])
+        col = self.arg_parser.parse(self.reducer.__children__[0])
         op = self.aggr_ops[type(self.reducer).__name__]
 
         is_reduced_col_nullable = Struct.last().is_col_nullable(col)
@@ -245,8 +252,8 @@ class GroupReduceOperator(Operator):
     def generate(self) -> str:
         mid = ""
         aggr_name = type(self.reducer).__name__
-        bys = [operator_arg_stringify(by) for by in self.bys]
-        col = operator_arg_stringify(self.reducer.__children__[0])
+        bys = [self.arg_parser.parse(by) for by in self.bys]
+        col = self.arg_parser.parse(self.reducer.__children__[0])
         is_reduced_col_nullable = Struct.last().is_col_nullable(col)
 
         # this group_by follows another, so drop_key is required
@@ -296,12 +303,12 @@ class GroupReduceOperator(Operator):
         mid += f".map(|(k, x)| {new_struct.name_struct}{{"
         if len(bys_n_t) == 1:
             mid += f"{new_struct.columns[0]}: k.clone(),"
-        else: 
+        else:
             for i, column in enumerate(new_struct.columns):
                 # skip last
                 if i == len(new_struct.columns) - 1:
                     break
-                mid += f"{column}: k.{i}, "
+                mid += f"{column}: k.{i}.clone(), "
         # when reducing, ibis turns results of non-nullable types to nullable! So new_struct will always have nullable
         # field while reduced col could have been either nullable or non-nullable
         if aggr_name == "Mean":
@@ -342,8 +349,8 @@ class JoinOperator(Operator):
 
         equals = self.join.predicates[0]
         # ibis has left and right switched
-        left_col = operator_arg_stringify(equals.right)
-        right_col = operator_arg_stringify(equals.left)
+        left_col = self.arg_parser.parse(equals.right)
+        right_col = self.arg_parser.parse(equals.left)
         join_t = self.noir_types[type(self.join).__name__]
 
         Struct.with_keyed_stream = {equals.left.name: equals.left.dtype}
@@ -474,7 +481,7 @@ class ExplicitWindowOperator(WindowOperator):
                 text += ".drop_key()"
 
             text += ".group_by(|x| ("
-            for by in [operator_arg_stringify(b) for b in bys]:
+            for by in [self.arg_parser.parse(b) for b in bys]:
                 text += f"x.{by}.clone(), "
             # remove last comma and space
             text = text[:-2]
@@ -513,7 +520,8 @@ class ExplicitWindowOperator(WindowOperator):
             op = WindowFuncGen(
                 [WindowFuncGen.Func(self.alias.name, self.alias.dtype, fold_action="acc.{0} = acc.{0}.zip(x.{1}).map(|(a, b)| max(a, b));")])
         else:
-            raise Exception(f"Window function {type(window.func).__name__} not supported!")
+            raise Exception(
+                f"Window function {type(window.func).__name__} not supported!")
 
         # create the new struct by adding struct_fields to previous struct's columns
         new_cols_types = dict(prev_struct.cols_types)
@@ -591,7 +599,7 @@ class ImplicitWindowOperator(WindowOperator):
         # generate .group_by if needed
         if (group_by := frame.group_by):
             by = group_by[0]
-            col = operator_arg_stringify(by)
+            col = self.arg_parser.parse(by)
             text += f".group_by(|x| x.{col}.clone())"
             # if we have group_by, .fold will generate a KeyedStream so
             # we set Struct.with_keyed_stream with key's name/type so following
@@ -751,7 +759,7 @@ class BotOperator(Operator):
 
     def generate(self) -> str:
         last_struct = Struct.last()
-        
+
         if not self.print_output_to_file:
             bot = f"; {last_struct.name_short}.for_each(|x| {{std::hint::black_box(x);}});"
             with open(utl.ROOT_DIR + "/noir_template/main_bot_no_print.rs") as f:
@@ -806,87 +814,3 @@ class WindowFuncGen:
 
     def type_init(self, type: DataType):
         return self.func_type_init[type]
-
-
-# if operand is literal, return its value
-# if operand is table column, return its index in the original table
-# if resolve_optionals_to_some we're recursively resolving a binary operation and also need struct_name
-def operator_arg_stringify(operand: Node, struct_name=None, window_resolve=None) -> str:
-    math_ops = {"Multiply": "*", "Add": "+", "Subtract": "-", "Divide": "/"}
-    comp_ops = {"Equals": "==", "Greater": ">",
-                "GreaterEqual": ">=", "Less": "<", "LessEqual": "<="}
-    log_ops = {"And": "&", "Or": "|"}
-    if isinstance(operand, ibis.expr.operations.generic.TableColumn):
-        if struct_name:
-            return f"{struct_name}.{operand.name}"
-        return operand.name
-    elif isinstance(operand, ibis.expr.operations.generic.Literal):
-        if operand.dtype.name == "String":
-            return f"\"{operand.value}\""
-        return operand.name
-    elif isinstance(operand, ops.logical.Comparison):
-        left = operator_arg_stringify(
-            operand.left, struct_name, window_resolve)
-        right = operator_arg_stringify(
-            operand.right, struct_name, window_resolve)
-        # careful: ibis considers literals as optionals, while in noir a numeric literal is not an Option<T>
-        is_left_nullable = operand.left.dtype.nullable and not isinstance(
-            operand.left, ops.Literal)
-        is_right_nullable = operand.right.dtype.nullable and not isinstance(
-            operand.right, ops.Literal)
-        op = comp_ops[type(operand).__name__]
-        if is_left_nullable and not is_right_nullable:
-            return f"{left}.clone().is_some_and(|v| v {op} {right})"
-        if not is_left_nullable and is_right_nullable:
-            return f"{right}.clone().is_some_and(|v| {left} {op} v)"
-        if is_left_nullable and is_right_nullable:
-            return f"{left}.clone().zip({right}.clone()).map_or(false, |(a, b)| a {op} b)"
-        return f"{left} {op} {right}"
-    elif isinstance(operand, ops.LogicalBinary):
-        left = operator_arg_stringify(
-            operand.left, struct_name, window_resolve)
-        right = operator_arg_stringify(
-            operand.right, struct_name, window_resolve)
-        return f"{left} {log_ops[type(operand).__name__]} {right}"
-    elif isinstance(operand, ops.numeric.NumericBinary):
-        # resolve recursively
-
-        # for ibis, dividing two int64 results in a float64, but for noir it's still int64
-        # so we need to cast the operands
-        cast = ""
-        if type(operand).__name__ == "Divide":
-            cast = "as f64"
-        # for ibis, any operation including a float64 (e.g. a int64 with a float64) produces a float64
-        # so any time the result is a float64, we cast all its operands (casting f64 to f64 has no effect)
-        if operand.dtype.name == "Float64":
-            cast = "as f64"
-
-        # careful: ibis considers literals as optionals, while in noir a numeric literal is not an Option<T>
-        is_left_nullable = operand.left.dtype.nullable and not isinstance(
-            operand.left, ops.Literal)
-        is_right_nullable = operand.right.dtype.nullable and not isinstance(
-            operand.right, ops.Literal)
-        if is_left_nullable and is_right_nullable:
-            result = f"{operator_arg_stringify(operand.left, struct_name, window_resolve)}\
-                    .zip({operator_arg_stringify(operand.right, struct_name, window_resolve)})\
-                    .map(|(a, b)| a {cast} {math_ops[type(operand).__name__]} b {cast})"
-        elif is_left_nullable and not is_right_nullable:
-            result = f"{operator_arg_stringify(operand.left, struct_name, window_resolve)}\
-                    .map(|v| v {cast} {math_ops[type(operand).__name__]} {operator_arg_stringify(operand.right, struct_name, window_resolve)} {cast})"
-        elif not is_left_nullable and is_right_nullable:
-            result = f"{operator_arg_stringify(operand.right, struct_name, window_resolve)}\
-                    .map(|v| {operator_arg_stringify(operand.left, struct_name, window_resolve)} {cast} {math_ops[type(operand).__name__]} v {cast})"
-        else:
-            result = f"{operator_arg_stringify(operand.left, struct_name, window_resolve)} {cast} {math_ops[type(operand).__name__]} {operator_arg_stringify(operand.right, struct_name, window_resolve)} {cast}"
-
-        return result
-    elif isinstance(operand, ops.WindowFunction):
-        # window resolve case: map is preceded by WindowFunction which used same name as map's result for its result
-        if window_resolve:
-            return f"{struct_name}.{window_resolve}"
-        # alias is above WindowFunction and not dependency, but because .map follows .fold
-        # in this case, we can get the column added by the DatabaseOperator in the struct
-        # it just created, which is second to last (last is new col added by MapOperator)
-        # since python 3.7, dict maintains insertion order
-        return f"{struct_name}.{Struct.last().columns[-2]}"
-    raise Exception(f"Unsupported operand type: {operand}")

@@ -12,7 +12,6 @@ class TestTpcH(TestCompiler):
         super().setUp()
 
     def init_table_files(self, file_suffix=""):
-        # TODO: missing table headers, find in specifications file and add to transformer script
         names = ["customer", "lineitem", "nation", "orders",
                  "part", "partsupp", "region", "supplier"]
         file_prefix = ROOT_DIR + "/data/tpch/"
@@ -47,17 +46,19 @@ class TestTpcH(TestCompiler):
         """
 
         lineitem = self.tables["lineitem"]
+        print(lineitem)
+
         self.query = (lineitem
                       # TODO: - interval ':1' day (3)
                       .filter(lineitem["shipdate"] <= "1998-12-01")
                       .group_by(["returnflag", "linestatus"])
-                      .aggregate(sum_qty=lineitem["quantity"].sum(),
-                                 sum_base_price=lineitem["extendedprice"].sum(
-                      ),
+                      .aggregate(
+                          sum_qty=lineitem["quantity"].sum(),
+                          sum_base_price=lineitem["extendedprice"].sum(),
                           sum_disc_price=(
-                                     lineitem["extendedprice"] * (1 - lineitem["discount"])).sum(),
+                              lineitem["extendedprice"] * (1 - lineitem["discount"])).sum(),
                           sum_charge=(
-                                     lineitem["extendedprice"] * (1 - lineitem["discount"]) * (1 + lineitem["tax"])).sum(),
+                              lineitem["extendedprice"] * (1 - lineitem["discount"]) * (1 + lineitem["tax"])).sum(),
                           avg_qty=lineitem["quantity"].mean(),
                           avg_price=lineitem["extendedprice"].mean(),
                           avg_disc=lineitem["discount"].mean(),
@@ -66,7 +67,7 @@ class TestTpcH(TestCompiler):
 
         if self.perform_compilation:
             compile_ibis_to_noir([(self.files["lineitem"], lineitem)],
-                                 self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
+                                 self.query, self.run_after_gen, self.print_output_to_file, True, self.benchmark)
 
         if self.perform_assertions:
             self.assert_similarity_noir_output()

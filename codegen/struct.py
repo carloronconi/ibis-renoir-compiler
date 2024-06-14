@@ -5,7 +5,7 @@ from ibis.expr.datatypes.core import DataType
 
 class Struct(object):
     name_counter = 0
-    ibis_to_noir_type = {"Int64": "i64", "String": "String", "Float64": "f64"}
+    ibis_to_noir_type = {"Int64": "i64", "String": "String", "Float64": "f64", "Date": "NaiveDate"}
     last_complete_transform: "Struct"
     structs = []
     # copied when generating new structs: toggle if operator turns to keyed/un-keyed
