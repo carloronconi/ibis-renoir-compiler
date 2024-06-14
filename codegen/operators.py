@@ -151,7 +151,7 @@ class MapOperator(Operator):
         typs = prev_struct.types.copy()
         typs.append(self.node.dtype)
 
-        new_struct = Struct.from_args(str(id(self.node)), cols, typs)
+        new_struct = Struct.from_args(cols, typs)
 
         mid = ""
         if new_struct.is_keyed_stream:
@@ -236,69 +236,74 @@ class LoneReduceOperator(Operator):
 
 class GroupReduceOperator(Operator):
     aggr_ops = {"Max": "max(x, y)", "Min": "min(x, y)", "Sum": "x + y",
-                "First": "x"}
+                "First": "x", "Mean": "x + y"}
     aggr_ops_form = {"Max": "a.{0} = max(a.{0}, b.{0})", "Min": "a.{0} = min(a.{0}, b.{0})",
                      "Sum": "a.{0} = a.{0} + b.{0}",
-                     "First": "a.{0} = a.{0}"}
+                     "First": "a.{0} = a.{0}", "Mean": "a.{0} = a.{0} + b.{0}"}
+
+    class AliasInfo:
+        def __init__(self, alias: ops.Alias):
+            self.alias = alias
+            self.reducer = alias.__children__[0]
+            self.aggr_name = type(self.reducer).__name__
+            # TODO: fails with CountStar operator, can be fixed by skipping it as we always have count in new implementation
+            self.col = ArgumentParser().parse(self.reducer.__children__[0])
+            self.is_reduced_col_nullable = Struct.last().is_col_nullable(self.col)
 
     def __init__(self, node: ops.Aggregation):
-        self.alias = next(
-            filter(lambda c: isinstance(c, ops.Alias), node.__children__))
-        self.reducer = self.alias.__children__[0]
+        self.aliases = [
+            c for c in node.__children__ if isinstance(c, ops.Alias)]
         self.bys = node.by
         self.node = node
         super().__init__()
 
     def generate(self) -> str:
         mid = ""
-        aggr_name = type(self.reducer).__name__
+        self.aliases = [self.AliasInfo(alias) for alias in self.aliases]
         bys = [self.arg_parser.parse(by) for by in self.bys]
-        col = self.arg_parser.parse(self.reducer.__children__[0])
-        is_reduced_col_nullable = Struct.last().is_col_nullable(col)
 
+        last_struct = Struct.last()
         # this group_by follows another, so drop_key is required
-        if Struct.last().is_keyed_stream:
+        if last_struct.is_keyed_stream:
             mid += ".drop_key()"
 
-        # for Mean we use specific `.group_by_avg` method, to avoid needing to keep sum and count and
-        # then divide them in the end and map to new struct
-        if aggr_name == "Mean":
-            mid += ".group_by_avg(|x| ("
-            for by in bys:
-                mid += f"x.{by}.clone(), "
-            # remove last comma and space
-            mid = mid[:-2]
-            mid += "), |x| "
-            if is_reduced_col_nullable:
-                mid += f"x.{col}.unwrap_or(0) as f64)"
-            else:
-                mid += f"x.{col} as f64)"
+        # map to a struct with additional count field useful for mean
+        count_struct = Struct.from_args(last_struct.columns + ["reduce_count"],
+                                        last_struct.types + [ibis.dtype("!int64")])
+        mid += f".map(|x| {last_struct.name_struct}{{"
+        for col in last_struct.columns:
+            mid += f"{col}: x.{col}, "
+        mid += "reduce_count: 1})"
 
-        # simple cases with only one accumulator required
-        else:
-            mid += ".group_by(|x| ("
-            for by in bys:
-                mid += f"x.{by}.clone(), "
-            # remove last comma and space
-            mid = mid[:-2]
-            mid += "))"
+        # group by
+        mid += ".group_by(|x| ("
+        for by in bys:
+            mid += f"x.{by}.clone(), "
+        # remove last comma and space
+        mid = mid[:-2]
+        mid += "))"
 
-            if is_reduced_col_nullable:
-                op = self.aggr_ops[aggr_name]
-                mid += f".reduce(|a, b| {{a.{col} = a.{col}.zip(b.{col}).map(|(x, y)| {op});}})"
+        # reduce for each reducer
+        mid += ".reduce(|a, b| {"
+        for alias in self.aliases:
+            if alias.is_reduced_col_nullable:
+                op = self.aggr_ops[alias.aggr_name]
+                mid += f"a.{alias.col} = a.{alias.col}.zip(b.{alias.col}).map(|(x, y)| {op});"
             else:
-                op = self.aggr_ops_form[aggr_name].format(col)
-                mid += f".reduce(|a, b| {op})"
+                op = self.aggr_ops_form[alias.aggr_name].format(alias.col)
+                mid += f"{op};"
+        mid += "a.reduce_count = a.reduce_count + b.reduce_count;})"
+        # TODO: in the final map (where you rename to aggregated col names) remember to divide the sum by the count for mean
 
         bys_n_t = {b.name: b.dtype for b in self.bys}
-        aggr_col_name = self.node.schema.names[-1]
-        aggr_col_type = self.node.schema.types[-1]
+        aggr_col_names = self.node.schema.names
+        aggr_col_types = self.node.schema.types
 
         Struct.with_keyed_stream = bys_n_t
         # new struct will contain the aggregated field plus the "by" fields also preserved by
         # the key of the keyed stream, kept in both to be able to drop_key if other group_by follows
         new_struct = Struct.from_args(
-            str(id(self.alias)), list(bys_n_t.keys()) + [aggr_col_name], list(bys_n_t.values()) + [aggr_col_type])
+            list(bys_n_t.keys()) + [aggr_col_name], list(bys_n_t.values()) + [aggr_col_type])
 
         mid += f".map(|(k, x)| {new_struct.name_struct}{{"
         if len(bys_n_t) == 1:
@@ -527,7 +532,7 @@ class ExplicitWindowOperator(WindowOperator):
         new_cols_types = dict(prev_struct.cols_types)
         for n, t in op.fields():
             new_cols_types[n] = t
-        new_struct = Struct.from_args_dict(str(id(window)), new_cols_types)
+        new_struct = Struct.from_args_dict(new_cols_types)
 
         # generate .fold to apply the reduction function while maintaining other row fields
         text += f".fold({new_struct.name_struct}{{"
@@ -628,7 +633,7 @@ class ImplicitWindowOperator(WindowOperator):
         new_cols_types = dict(prev_struct.cols_types)
         for n, t in op.fields():
             new_cols_types[n] = t
-        new_struct = Struct.from_args_dict(str(id(window)), new_cols_types)
+        new_struct = Struct.from_args_dict(new_cols_types)
 
         # generate initialization (aka first_map) within .reduce_scan
         text += f"|x| (" if not Struct.with_keyed_stream else f"|_, x| ("
@@ -770,7 +775,7 @@ class BotOperator(Operator):
             bot = f";\n{last_struct.name_short}.write_csv_one(\"../out/noir-result.csv\", true);"
         else:
             names_types = Struct.last().with_keyed_stream
-            new_struct = Struct.from_args(str(id(self)), list(names_types.keys()), list(
+            new_struct = Struct.from_args(list(names_types.keys()), list(
                 names_types.values()), with_name_short="collect")
             bot = f";\n{last_struct.name_short}.map(|(k, v)| ({new_struct.name_struct}{{"
             if len(names_types) == 1:
