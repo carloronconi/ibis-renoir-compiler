@@ -1,0 +1,38 @@
+{
+  "results": [
+    {
+      "command": "python3 ../ibis-renoir-compiler test.test_operators.TestNullableOperators.test_nullable_windowing_explicit_window_far --backend renoir --path_suffix _100000000",
+      "mean": 22.331452447639997,
+      "stddev": 0.0697370348462453,
+      "median": 22.343373209139997,
+      "user": 59.84741626,
+      "system": 2.11074458,
+      "min": 22.22117821664,
+      "max": 22.41710401264,
+      "times": [
+        22.402456824639998,
+        22.25453200964,
+        22.41710401264,
+        22.396668241639997,
+        22.37405566064,
+        22.252923879639997,
+        22.33144045164,
+        22.35530596664,
+        22.22117821664,
+        22.308859212639998
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}

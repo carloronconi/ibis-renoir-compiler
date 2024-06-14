@@ -1,0 +1,38 @@
+{
+  "results": [
+    {
+      "command": "python3 ../ibis-renoir-compiler test.test_operators.TestNullableOperators.test_nullable_group_reduce_join_mutate --backend duckdb --path_suffix _100000000",
+      "mean": 27.9285569801,
+      "stddev": 0.41091081211424907,
+      "median": 28.130456711100003,
+      "user": 76.80494169999999,
+      "system": 12.45015608,
+      "min": 27.394146052099998,
+      "max": 28.4283260531,
+      "times": [
+        28.2124382251,
+        28.1779463381,
+        28.1422939951,
+        27.394146052099998,
+        28.1186194271,
+        27.4621353141,
+        28.4283260531,
+        27.5250386471,
+        28.347496903099998,
+        27.4771288461
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}
