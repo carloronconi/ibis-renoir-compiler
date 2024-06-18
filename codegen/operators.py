@@ -713,7 +713,7 @@ class DatabaseOperator(Operator):
         # turning full path to relative path so that rust code contains relative path and expected code can work across machines
         full_path = utl.TAB_FILES[self.table.name]
         rel_path = ".." + full_path.split(utl.ROOT_DIR)[1]
-        return (f";\nlet {struct.name_short} = ctx.stream_csv::<{struct.name_struct}>(\"{rel_path}\");\n" +
+        return (f";\nlet {struct.name_short} = ctx.stream_csv::<{struct.name_struct}>(\"{rel_path}\").batch_mode(BatchMode::fixed(16000));\n" +
                 f"let var_{struct.id_counter + count_structs} = {struct.name_short}")
 
     def does_add_struct(self) -> bool:
