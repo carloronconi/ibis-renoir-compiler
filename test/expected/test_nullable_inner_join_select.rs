@@ -55,14 +55,18 @@ struct Struct_collect {
 }
 
 fn logic(ctx: StreamContext) {
-    let var_0 = ctx.stream_csv::<Struct_var_0>("../data/nullable_op/many_ints.csv");
+    let var_0 = ctx
+        .stream_csv::<Struct_var_0>("../data/nullable_op/many_ints.csv")
+        .batch_mode(BatchMode::fixed(16000));
     let var_1 = var_0.map(|x| Struct_var_1 {
         int1: x.int1,
         int2: x.int2,
         int3: x.int3,
         sum: x.int3.map(|v| v + 100),
     });
-    let var_2 = ctx.stream_csv::<Struct_var_2>("../data/nullable_op/ints_strings.csv");
+    let var_2 = ctx
+        .stream_csv::<Struct_var_2>("../data/nullable_op/ints_strings.csv")
+        .batch_mode(BatchMode::fixed(16000));
     let var_5 = var_2
         .filter(|x| x.int1.clone().is_some_and(|v| v < 200))
         .map(|x| Struct_var_3 {

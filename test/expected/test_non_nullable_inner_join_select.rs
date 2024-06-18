@@ -55,14 +55,18 @@ struct Struct_collect {
 }
 
 fn logic(ctx: StreamContext) {
-    let var_0 = ctx.stream_csv::<Struct_var_0>("../data/non_nullable_op/fruit_right.csv");
+    let var_0 = ctx
+        .stream_csv::<Struct_var_0>("../data/non_nullable_op/fruit_right.csv")
+        .batch_mode(BatchMode::fixed(16000));
     let var_1 = var_0.map(|x| Struct_var_1 {
         fruit: x.fruit,
         weight: x.weight,
         price: x.price,
         sum: x.price.map(|v| v + 100),
     });
-    let var_2 = ctx.stream_csv::<Struct_var_2>("../data/non_nullable_op/fruit_left.csv");
+    let var_2 = ctx
+        .stream_csv::<Struct_var_2>("../data/non_nullable_op/fruit_left.csv")
+        .batch_mode(BatchMode::fixed(16000));
     let var_5 = var_2
         .filter(|x| x.weight > 2)
         .map(|x| Struct_var_3 {

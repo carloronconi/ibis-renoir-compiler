@@ -37,7 +37,9 @@ struct Struct_var_2 {
 }
 
 fn logic(ctx: StreamContext) {
-    let var_0 = ctx.stream_csv::<Struct_var_0>("../data/nexmark/bid.csv");
+    let var_0 = ctx
+        .stream_csv::<Struct_var_0>("../data/nexmark/bid.csv")
+        .batch_mode(BatchMode::fixed(16000));
     let var_2 = var_0
         .map(|x| Struct_var_1 {
             auction: x.auction,

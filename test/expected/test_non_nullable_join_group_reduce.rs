@@ -37,7 +37,9 @@ struct Struct_collect {
 }
 
 fn logic(ctx: StreamContext) {
-    let var_0 = ctx.stream_csv::<Struct_var_0>("../data/non_nullable_op/fruit_left.csv");
+    let var_0 = ctx
+        .stream_csv::<Struct_var_0>("../data/non_nullable_op/fruit_left.csv")
+        .batch_mode(BatchMode::fixed(16000));
     let var_1 = var_0
         .group_by(|x| (x.fruit.clone()))
         .reduce(|a, b| {
@@ -47,7 +49,9 @@ fn logic(ctx: StreamContext) {
             fruit: k.clone(),
             agg4: x.price,
         });
-    let var_2 = ctx.stream_csv::<Struct_var_2>("../data/non_nullable_op/fruit_right.csv");
+    let var_2 = ctx
+        .stream_csv::<Struct_var_2>("../data/non_nullable_op/fruit_right.csv")
+        .batch_mode(BatchMode::fixed(16000));
     let var_3 = var_2
         .group_by(|x| x.fruit.clone())
         .join(var_1)

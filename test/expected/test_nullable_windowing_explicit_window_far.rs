@@ -32,7 +32,9 @@ struct Struct_var_2 {
 }
 
 fn logic(ctx: StreamContext) {
-    let var_0 = ctx.stream_csv::<Struct_var_0>("../data/nullable_op/ints_strings.csv");
+    let var_0 = ctx
+        .stream_csv::<Struct_var_0>("../data/nullable_op/ints_strings.csv")
+        .batch_mode(BatchMode::fixed(16000));
     let var_2 = var_0
         .window_all(CountWindow::new(2, 1, true))
         .fold(

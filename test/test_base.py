@@ -74,10 +74,10 @@ class TestCompiler(unittest.TestCase):
         # for non-nullable tests rebuild query over new memtable as self.tables is non-materialized
         # to be able to define its schema as non-nullable (ibis doesn't allow defining schema when reading from csv)
         if hasattr(self, "query_func"):
-            df_left = pd.read_csv(self.files[0])
-            df_right = pd.read_csv(self.files[1])
-            tables = [ibis.memtable(df_left, schema=self.schema), ibis.memtable(
-                df_right, schema=self.schema)]
+            df_left = pd.read_csv(self.files["fruit_left"])
+            df_right = pd.read_csv(self.files["fruit_right"])
+            tables = {"fruit_left": ibis.memtable(df_left, schema=self.schema), 
+                      "fruit_right": ibis.memtable(df_right, schema=self.schema)}
             self.query = self.query_func(tables)
 
         self.df_ibis = self.query.to_pandas()
