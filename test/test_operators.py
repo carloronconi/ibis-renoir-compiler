@@ -14,11 +14,13 @@ class TestNullableOperators(TestCompiler):
         self.init_table_files()
         super().setUp()
 
-    def init_table_files(self, file_suffix=""):
+    def init_table_files(self, file_suffix="", skip_tables=False):
         names = ["ints_strings", "many_ints"]
         file_prefix = ROOT_DIR + "/data/nullable_op/"
         file_suffix = file_suffix + ".csv"
-        self.init_table_files_with_names(names, file_prefix, file_suffix)
+        self.files = {n: f"{file_prefix}{n}{file_suffix}" for n in names}
+        if not skip_tables:
+            self.tables = {n: ibis.read_csv(f) for n, f in self.files.items()}
 
     def test_nullable_filter_select(self):
         self.query = (self.tables["ints_strings"]
@@ -326,7 +328,7 @@ class TestNonNullableOperators(TestCompiler):
         self.init_table_files()
         super().setUp()
 
-    def init_table_files(self, file_suffix=""):
+    def init_table_files(self, file_suffix="", skip_tables=False):
         names = ["fruit_left", "fruit_right"]
         file_prefix = ROOT_DIR + "/data/non_nullable_op/"
         file_suffix = file_suffix + ".csv"
@@ -334,7 +336,8 @@ class TestNonNullableOperators(TestCompiler):
         self.schema = ibis.schema({"fruit": ibis.dtype("!string"),
                                    "weight": ibis.dtype("!int64"),
                                    "price": ibis.dtype("int64")})
-        self.tables = {n: ibis.table(self.schema) for n, _ in self.files.items()}
+        if not skip_tables:
+            self.tables = {n: ibis.table(self.schema) for n, _ in self.files.items()}
 
     def test_non_nullable_filter_select(self):
         self.query_func = lambda tables: (tables["fruit_left"]

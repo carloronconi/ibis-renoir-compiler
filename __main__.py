@@ -19,7 +19,7 @@ def main():
     parser.add_argument("--path_suffix", 
                         help="Suffix for test files used by test_case. Useful for having same file with growing sizes.", default="", type=str)
     parser.add_argument("--backend", 
-                        help="Which backend to use.", type=str, choices=["renoir", "duckdb", "snowflake", "flink", "polars"], default="renoir")
+                        help="Which backend to use.", type=str, choices=["renoir", "duckdb", "flink", "polars"], default="renoir")
     parser.add_argument("--table_origin", 
                         help="Instead of running the query starting from the csv load, read it directly from backend table. Before running with 'backend', run once with'load' to store the required tables in the backend", 
                         type=str, choices=["csv", "load", "backend"],  default="csv")
@@ -29,7 +29,7 @@ def main():
 
     # because we're not using unittest's harness, we need to set the method name manually
     test_instance = eval(f"{test_class}(\"{test_case}\")")
-    test_instance.init_table_files(file_suffix=args.path_suffix)
+    test_instance.init_table_files(file_suffix=args.path_suffix, skip_tables=(args.table_origin == "backend"))
     if args.table_origin == "load":
         test_instance.store_tables_in_backend(args.backend)
         return

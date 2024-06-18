@@ -12,13 +12,14 @@ class TestNexmark(TestCompiler):
         self.init_table_files()
         super().setUp()
 
-    def init_table_files(self, file_suffix=""):
+    def init_table_files(self, file_suffix="", skip_tables=False):
         names = ["auction", "bid", "person"]
         file_prefix = ROOT_DIR + "/data/nexmark/"
         file_suffix = file_suffix + ".csv"
 
         self.files = {n: f"{file_prefix}{n}{file_suffix}" for n in names}
-        self.tables = {n: ibis.read_csv(f) for n, f in self.files.items()}
+        if not skip_tables:
+            self.tables = {n: ibis.read_csv(f) for n, f in self.files.items()}
 
     def test_nexmark_query_1(self):
         """
