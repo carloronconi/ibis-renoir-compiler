@@ -26,3 +26,4 @@ penguins.ddb
 /data/tpc_data_gen/Cargo.lock
 *COMPARISON*
 *.db
+flink-*
