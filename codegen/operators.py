@@ -246,9 +246,12 @@ class GroupReduceOperator(Operator):
             self.alias = alias
             self.reducer = alias.__children__[0]
             self.aggr_name = type(self.reducer).__name__
-            # TODO: fails with CountStar operator, can be fixed by skipping it as we always have count in new implementation
-            self.col = ArgumentParser().parse(self.reducer.__children__[0])
-            self.is_reduced_col_nullable = Struct.last().is_col_nullable(self.col)
+            if self.aggr_name == "CountStar":
+                self.col = "reduce_count"
+                self.is_reduced_col_nullable = False
+            else:
+                self.col = ArgumentParser().parse(self.reducer.__children__[0])
+                self.is_reduced_col_nullable = Struct.last().is_col_nullable(self.col)
 
     def __init__(self, node: ops.Aggregation):
         self.aliases = [
@@ -270,7 +273,7 @@ class GroupReduceOperator(Operator):
         # map to a struct with additional count field useful for mean
         count_struct = Struct.from_args(last_struct.columns + ["reduce_count"],
                                         last_struct.types + [ibis.dtype("!int64")])
-        mid += f".map(|x| {last_struct.name_struct}{{"
+        mid += f".map(|x| {count_struct.name_struct}{{"
         for col in last_struct.columns:
             mid += f"{col}: x.{col}, "
         mid += "reduce_count: 1})"
@@ -286,44 +289,44 @@ class GroupReduceOperator(Operator):
         # reduce for each reducer
         mid += ".reduce(|a, b| {"
         for alias in self.aliases:
-            if alias.is_reduced_col_nullable:
+            if alias.aggr_name == "CountStar":
+                continue
+            elif alias.is_reduced_col_nullable:
                 op = self.aggr_ops[alias.aggr_name]
                 mid += f"a.{alias.col} = a.{alias.col}.zip(b.{alias.col}).map(|(x, y)| {op});"
             else:
                 op = self.aggr_ops_form[alias.aggr_name].format(alias.col)
                 mid += f"{op};"
         mid += "a.reduce_count = a.reduce_count + b.reduce_count;})"
-        # TODO: in the final map (where you rename to aggregated col names) remember to divide the sum by the count for mean
 
+        # final map copying the keys of the keyed stream to the struct and the aggregated fields
         bys_n_t = {b.name: b.dtype for b in self.bys}
         aggr_col_names = self.node.schema.names
         aggr_col_types = self.node.schema.types
-
         Struct.with_keyed_stream = bys_n_t
         # new struct will contain the aggregated field plus the "by" fields also preserved by
         # the key of the keyed stream, kept in both to be able to drop_key if other group_by follows
         new_struct = Struct.from_args(
-            list(bys_n_t.keys()) + [aggr_col_name], list(bys_n_t.values()) + [aggr_col_type])
+            list(bys_n_t.keys()) + list(aggr_col_names), list(bys_n_t.values()) + list(aggr_col_types))
 
         mid += f".map(|(k, x)| {new_struct.name_struct}{{"
-        if len(bys_n_t) == 1:
-            mid += f"{new_struct.columns[0]}: k.clone(),"
-        else:
-            for i, column in enumerate(new_struct.columns):
-                # skip last
-                if i == len(new_struct.columns) - 1:
-                    break
-                mid += f"{column}: k.{i}.clone(), "
-        # when reducing, ibis turns results of non-nullable types to nullable! So new_struct will always have nullable
-        # field while reduced col could have been either nullable or non-nullable
-        if aggr_name == "Mean":
-            # in this case aggregation produces single result, not struct
-            # and x is always an f64 (not nullable)
-            mid += f"{new_struct.columns[-1]}: Some(x)}})"
-        elif is_reduced_col_nullable:
-            mid += f"{new_struct.columns[-1]}: x.{col}}})"
-        else:
-            mid += f"{new_struct.columns[-1]}: Some(x.{col})}})"
+
+        for i, column in enumerate(new_struct.columns):
+            if (i < len(bys_n_t)):
+                if (len(bys_n_t) == 1):
+                    mid += f"{column}: k.clone(), "
+                else:
+                    mid += f"{column}: k.{i}.clone(), "
+            else:
+                alias = self.aliases[i - len(bys_n_t)]
+                val = f"x.{alias.col}"
+                if alias.aggr_name == "Mean":
+                    val = f"x.{alias.col}.map(|a| a as f64 / x.reduce_count as f64), "
+                elif alias.is_reduced_col_nullable:
+                    mid += f"{column}: {val}, "
+                else:
+                    mid += f"{column}: Some({val}), "
+        mid += "})"
 
         return mid
 
