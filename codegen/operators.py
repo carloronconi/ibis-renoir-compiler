@@ -245,13 +245,14 @@ class GroupReduceOperator(Operator):
         def __init__(self, alias: ops.Alias):
             self.alias = alias
             self.reducer = alias.__children__[0]
-            self.aggr_name = type(self.reducer).__name__
-            if self.aggr_name == "CountStar":
-                self.col = "reduce_count"
+            self.reduced_name = alias.name
+            self.aggregator_name = type(self.reducer).__name__
+            if self.aggregator_name == "CountStar":
+                self.parsed_col = "reduce_count"
                 self.is_reduced_col_nullable = False
             else:
-                self.col = ArgumentParser().parse(self.reducer.__children__[0])
-                self.is_reduced_col_nullable = Struct.last().is_col_nullable(self.col)
+                self.parsed_col = ArgumentParser().parse(self.reducer.__children__[0])
+                self.is_reduced_col_nullable = Struct.last().is_col_nullable(self.parsed_col)
 
     def __init__(self, node: ops.Aggregation):
         self.aliases = [
@@ -289,13 +290,13 @@ class GroupReduceOperator(Operator):
         # reduce for each reducer
         mid += ".reduce(|a, b| {"
         for alias in self.aliases:
-            if alias.aggr_name == "CountStar":
+            if alias.aggregator_name == "CountStar":
                 continue
             elif alias.is_reduced_col_nullable:
-                op = self.aggr_ops[alias.aggr_name]
-                mid += f"a.{alias.col} = a.{alias.col}.zip(b.{alias.col}).map(|(x, y)| {op});"
+                op = self.aggr_ops[alias.aggregator_name]
+                mid += f"a.{alias.parsed_col} = a.{alias.parsed_col}.zip(b.{alias.parsed_col}).map(|(x, y)| {op});"
             else:
-                op = self.aggr_ops_form[alias.aggr_name].format(alias.col)
+                op = self.aggr_ops_form[alias.aggregator_name].format(alias.parsed_col)
                 mid += f"{op};"
         mid += "a.reduce_count = a.reduce_count + b.reduce_count;})"
 
@@ -319,9 +320,9 @@ class GroupReduceOperator(Operator):
                     mid += f"{column}: k.{i}.clone(), "
             else:
                 alias = self.aliases[i - len(bys_n_t)]
-                val = f"x.{alias.col}"
-                if alias.aggr_name == "Mean":
-                    val = f"x.{alias.col}.map(|a| a as f64 / x.reduce_count as f64), "
+                val = f"x.{alias.parsed_col}"
+                if alias.aggregator_name == "Mean":
+                    val = f"x.{alias.parsed_col}.map(|a| a as f64 / x.reduce_count as f64), "
                 elif alias.is_reduced_col_nullable:
                     mid += f"{column}: {val}, "
                 else:
