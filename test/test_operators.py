@@ -15,12 +15,13 @@ class TestNullableOperators(TestCompiler):
         super().setUp()
 
     def init_table_files(self, file_suffix=""):
-        self.files = [f"{ROOT_DIR}/data/nullable_op/ints_strings{file_suffix}.csv",
-                      f"{ROOT_DIR}/data/nullable_op/many_ints{file_suffix}.csv"]
-        self.tables = [ibis.read_csv(file) for file in self.files]
+        names = ["ints_strings", "many_ints"]
+        file_prefix = ROOT_DIR + "/data/nullable_op/"
+        file_suffix = file_suffix + ".csv"
+        self.init_table_files_with_names(names, file_prefix, file_suffix)
 
     def test_nullable_filter_select(self):
-        self.query = (self.tables[0]
+        self.query = (self.tables["ints_strings"]
                       .filter(_.string1 == "unduetre")
                       .select("int1"))
 
@@ -33,7 +34,7 @@ class TestNullableOperators(TestCompiler):
             self.assert_equality_noir_source()
 
     def test_nullable_filter_filter_select_select(self):
-        self.query = (self.tables[0]
+        self.query = (self.tables["ints_strings"]
                       .filter(_.int1 == 123)
                       .filter(_.string1 == "unduetre")
                       .select("int1", "string1")
@@ -48,7 +49,7 @@ class TestNullableOperators(TestCompiler):
             self.assert_equality_noir_source()
 
     def test_nullable_filter_group_select(self):
-        self.query = (self.tables[0]
+        self.query = (self.tables["ints_strings"]
                       .filter(_.string1 == "unduetre")
                       .group_by("string1")
                       .aggregate(int1_agg=_["int1"].first())
@@ -63,7 +64,7 @@ class TestNullableOperators(TestCompiler):
             self.assert_equality_noir_source()
 
     def test_nullable_filter_group_mutate(self):
-        self.query = (self.tables[0]
+        self.query = (self.tables["ints_strings"]
                       .filter(_.string1 == "unduetre")
                       .group_by("string1")
                       .aggregate(int1_agg=_["int1"].first())  # TODO: first() can be flaky as ordering is not guaranteed in either ibis or noir
@@ -78,7 +79,7 @@ class TestNullableOperators(TestCompiler):
             self.assert_equality_noir_source()
 
     def test_nullable_filter_reduce(self):
-        self.query = (self.tables[0]
+        self.query = (self.tables["ints_strings"]
                       .filter(_.string1 == "unduetre")
                       .aggregate(int1_agg=_["int1"].sum()))
         # here example of reduce without group_by
@@ -92,7 +93,7 @@ class TestNullableOperators(TestCompiler):
             self.assert_equality_noir_source()
 
     def test_nullable_filter_group_mutate_reduce(self):
-        self.query = (self.tables[0]
+        self.query = (self.tables["ints_strings"]
                       .filter(_.int1 > 200)
                       .mutate(mul=_.int1 * 20)
                       .group_by("string1")
@@ -126,7 +127,7 @@ class TestNullableOperators(TestCompiler):
             self.assert_equality_noir_source()
 
     def test_nullable_inner_join_select(self):
-        self.query = (self.tables[0]
+        self.query = (self.tables["ints_strings"]
                       .filter(_.int1 < 200)
                       .mutate(mul=_.int1 * 20)
                       .join(self.tables[1]
@@ -142,7 +143,7 @@ class TestNullableOperators(TestCompiler):
             self.assert_equality_noir_source()
 
     def test_nullable_outer_join(self):
-        self.query = (self.tables[0]
+        self.query = (self.tables["ints_strings"]
                       .outer_join(self.tables[1], "int1"))
 
         if self.perform_compilation:
@@ -154,7 +155,7 @@ class TestNullableOperators(TestCompiler):
             self.assert_equality_noir_source()
 
     def test_nullable_left_join(self):
-        self.query = (self.tables[0]
+        self.query = (self.tables["ints_strings"]
                       .left_join(self.tables[1], "int1"))
 
         if self.perform_compilation:
@@ -171,10 +172,10 @@ class TestNullableOperators(TestCompiler):
         - mutate (could also be select) after join (which produces a KeyedStream of a tuple of joined structs)
         - group-reduce KeyedStream join with Stream (KeyedStream wants to join with another KeyedStream)
         """
-        self.query = (self.tables[1]
+        self.query = (self.tables["many_ints"]
                       .group_by("int1")
                       .aggregate(agg2=_.int2.sum())
-                      .inner_join(self.tables[0], "int1")
+                      .inner_join(self.tables["ints_strings"], "int1")
                       .mutate(mut4=_.int4 + 100))
 
         if self.perform_compilation:
@@ -189,10 +190,10 @@ class TestNullableOperators(TestCompiler):
         """
         Tests joining KeyedStream with other var which is KeyedStream already
         """
-        self.query = (self.tables[1]
+        self.query = (self.tables["many_ints"]
                       .group_by("int1")
                       .aggregate(agg2=_.int2.sum())
-                      .inner_join(self.tables[0]
+                      .inner_join(self.tables["ints_strings"]
                                   .group_by("int1").aggregate(agg4=_.int4.sum()), "int1"))
 
         if self.perform_compilation:
@@ -207,8 +208,8 @@ class TestNullableOperators(TestCompiler):
         """
         Tests joining left non-KeyedStream with right KeyedStream
         """
-        self.query = (self.tables[1]
-                      .inner_join(self.tables[0]
+        self.query = (self.tables["many_ints"]
+                      .inner_join(self.tables["ints_strings"]
                                   .group_by("int1")
                                   .aggregate(agg4=_.int4.sum()), "int1"))
 
@@ -224,7 +225,7 @@ class TestNullableOperators(TestCompiler):
         # here implicit windowing takes all the rows in the table, because no group_by is performed before the mutate
         # and the window is not explicitly defined
         self.query = (self
-                      .tables[0]
+                      .tables["ints_strings"]
                       .mutate(int4_demean=_.int4 - _.int4.mean(), int4_mean=_.int4.mean()))
 
         if self.perform_compilation:
@@ -239,7 +240,7 @@ class TestNullableOperators(TestCompiler):
         # here implicit windowing takes all the rows in the table, because no group_by is performed before the mutate
         # and the window is not explicitly defined
         self.query = (self
-                      .tables[0]
+                      .tables["ints_strings"]
                       .mutate(int4_sum=_.int4.sum()))
 
         if self.perform_compilation:
@@ -254,7 +255,7 @@ class TestNullableOperators(TestCompiler):
         # here windowing is implicit over the whole group that was grouped before the mutate aggregation
         # so group_mean is actually the mean of the whole group having same string1
         self.query = (self
-                      .tables[0]
+                      .tables["ints_strings"]
                       .group_by("string1")
                       .mutate(int4_demean=_.int4 - _.int4.mean(), group_mean=_.int4.mean()))
 
@@ -276,7 +277,7 @@ class TestNullableOperators(TestCompiler):
         # semantic difference: ibis takes up to 1 preceding row and itself, for a total of 2, while noir takes exactly 2 so produces fewer result rows
         # i.e. ibis takes all windows with size 2 and below, while noir only takes windows with size 2
         w = ibis.window(group_by="string1", preceding=1, following=0)
-        self.query = (self.tables[0]
+        self.query = (self.tables["ints_strings"]
                       .mutate(group_percent=_.int4 * 100 / _.int4.sum().over(w), group_sum=_.int4.sum().over(w)))
 
         if self.perform_compilation:
@@ -291,7 +292,7 @@ class TestNullableOperators(TestCompiler):
         # same as previous but without group_by
         # here we test mean aggregation function instead of sum
         w = ibis.window(preceding=1, following=0)
-        self.query = (self.tables[0]
+        self.query = (self.tables["ints_strings"]
                       .mutate(group_mean=_.int4.mean().over(w)))
 
         if self.perform_compilation:
@@ -307,7 +308,7 @@ class TestNullableOperators(TestCompiler):
         # makes WindowFunction not direct __children__ of Alias but child of child
         # so for now not recognized as ExplicitWindowOperator
         w = ibis.window(preceding=1, following=0)
-        self.query = (self.tables[0]
+        self.query = (self.tables["ints_strings"]
                       .mutate(group_perc=_.int4 * 100 / _.int4.mean().over(w)))
 
         if self.perform_compilation:
@@ -326,21 +327,23 @@ class TestNonNullableOperators(TestCompiler):
         super().setUp()
 
     def init_table_files(self, file_suffix=""):
-        self.files = [f"{ROOT_DIR}/data/non_nullable_op/fruit_left{file_suffix}.csv",
-                      f"{ROOT_DIR}/data/non_nullable_op/fruit_right{file_suffix}.csv"]
+        names = ["fruit_left", "fruit_right"]
+        file_prefix = ROOT_DIR + "/data/non_nullable_op/"
+        file_suffix = file_suffix + ".csv"
+        self.files = {n: f"{file_prefix}{n}{file_suffix}" for n in names}
         self.schema = ibis.schema({"fruit": ibis.dtype("!string"),
                                    "weight": ibis.dtype("!int64"),
                                    "price": ibis.dtype("int64")})
-        self.tables = [ibis.table(self.schema) for _ in self.files]
+        self.tables = {n: ibis.table(self.schema) for n, _ in self.files.items()}
 
     def test_non_nullable_filter_select(self):
-        self.query_func = lambda tables: (tables[0]
+        self.query_func = lambda tables: (tables["fruit_left"]
                                           .filter(_.fruit == "Apple")
                                           .select("price"))
         self.query = self.query_func(self.tables)
 
         if self.perform_compilation:
-            compile_ibis_to_noir([(self.files[0], self.tables[0])],
+            compile_ibis_to_noir([(self.files["fruit_left"], self.tables["fruit_left"])],
                                  self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
@@ -348,7 +351,7 @@ class TestNonNullableOperators(TestCompiler):
             self.assert_equality_noir_source()
 
     def test_non_nullable_filter_filter_select_select(self):
-        self.query_func = lambda tables:  (tables[0]
+        self.query_func = lambda tables:  (tables["fruit_left"]
                                            .filter(_.price > 3)
                                            .filter(_.fruit == "Apple")
                                            .select("fruit", "weight")
@@ -357,7 +360,7 @@ class TestNonNullableOperators(TestCompiler):
         self.query = self.query_func(self.tables)
 
         if self.perform_compilation:
-            compile_ibis_to_noir([(self.files[0], self.tables[0])],
+            compile_ibis_to_noir([(self.files["fruit_left"], self.tables["fruit_left"])],
                                  self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
@@ -365,7 +368,7 @@ class TestNonNullableOperators(TestCompiler):
             self.assert_equality_noir_source()
 
     def test_non_nullable_filter_group_select(self):
-        self.query_func = lambda tables:  (tables[0]
+        self.query_func = lambda tables:  (tables["fruit_left"]
                                            .filter(_.fruit == "Orange")
                                            .group_by("fruit")
                                            .aggregate(int1_agg=_["price"].first())
@@ -374,7 +377,7 @@ class TestNonNullableOperators(TestCompiler):
         self.query = self.query_func(self.tables)
 
         if self.perform_compilation:
-            compile_ibis_to_noir([(self.files[0], self.tables[0])],
+            compile_ibis_to_noir([(self.files["fruit_left"], self.tables["fruit_left"])],
                                  self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
@@ -382,7 +385,7 @@ class TestNonNullableOperators(TestCompiler):
             self.assert_equality_noir_source()
 
     def test_non_nullable_filter_group_mutate(self):
-        self.query_func = lambda tables: (tables[0]
+        self.query_func = lambda tables: (tables["fruit_left"]
                                           .filter(_.fruit == "Orange")
                                           .group_by("fruit")
                                           .aggregate(int1_agg=_["price"].first())
@@ -391,7 +394,7 @@ class TestNonNullableOperators(TestCompiler):
         self.query = self.query_func(self.tables)
 
         if self.perform_compilation:
-            compile_ibis_to_noir([(self.files[0], self.tables[0])],
+            compile_ibis_to_noir([(self.files["fruit_left"], self.tables["fruit_left"])],
                                  self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
@@ -399,14 +402,14 @@ class TestNonNullableOperators(TestCompiler):
             self.assert_equality_noir_source()
 
     def test_non_nullable_filter_reduce(self):
-        self.query_func = lambda tables: (tables[0]
+        self.query_func = lambda tables: (tables["fruit_left"]
                                           .filter(_.fruit == "Orange")
                                           .aggregate(int1_agg=_["weight"].sum()))
 
         self.query = self.query_func(self.tables)
 
         if self.perform_compilation:
-            compile_ibis_to_noir([(self.files[0], self.tables[0])],
+            compile_ibis_to_noir([(self.files["fruit_left"], self.tables["fruit_left"])],
                                  self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
@@ -414,7 +417,7 @@ class TestNonNullableOperators(TestCompiler):
             self.assert_equality_noir_source()
 
     def test_non_nullable_filter_group_mutate_reduce(self):
-        self.query_func = lambda tables: (tables[0]
+        self.query_func = lambda tables: (tables["fruit_left"]
                                           .filter(_.weight > 4)
                                           .mutate(mul=_.price * 20)
                                           .group_by("fruit")
@@ -423,7 +426,7 @@ class TestNonNullableOperators(TestCompiler):
         self.query = self.query_func(self.tables)
 
         if self.perform_compilation:
-            compile_ibis_to_noir([(self.files[0], self.tables[0])],
+            compile_ibis_to_noir([(self.files["fruit_left"], self.tables["fruit_left"])],
                                  self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
@@ -431,10 +434,10 @@ class TestNonNullableOperators(TestCompiler):
             self.assert_equality_noir_source()
 
     def test_non_nullable_inner_join_select(self):
-        self.query_func = lambda tables: (tables[0]
+        self.query_func = lambda tables: (tables["fruit_left"]
                                           .filter(_.weight > 2)
                                           .mutate(mul=_.price + 10)
-                                          .join(tables[1]
+                                          .join(tables["fruit_right"]
                                                 .mutate(sum=_.price + 100), "fruit")
                                           .select(["fruit", "weight", "price"]))
 
@@ -449,8 +452,8 @@ class TestNonNullableOperators(TestCompiler):
             self.assert_equality_noir_source()
 
     def test_non_nullable_left_join(self):
-        self.query_func = lambda tables: (tables[0]
-                                          .left_join(tables[1], "fruit"))
+        self.query_func = lambda tables: (tables["fruit_left"]
+                                          .left_join(tables["fruit_right"], "fruit"))
 
         self.query = self.query_func(self.tables)
 
@@ -463,8 +466,8 @@ class TestNonNullableOperators(TestCompiler):
             self.assert_equality_noir_source()
 
     def test_non_nullable_outer_join(self):
-        self.query_func = lambda tables: (tables[0]
-                                          .outer_join(tables[1], "fruit"))
+        self.query_func = lambda tables: (tables["fruit_left"]
+                                          .outer_join(tables["fruit_right"], "fruit"))
 
         self.query = self.query_func(self.tables)
 
@@ -477,10 +480,10 @@ class TestNonNullableOperators(TestCompiler):
             self.assert_equality_noir_source()
 
     def test_non_nullable_group_reduce_join_mutate(self):
-        self.query_func = lambda tables: (tables[1]
+        self.query_func = lambda tables: (tables["fruit_right"]
                                           .group_by("fruit")
                                           .aggregate(agg2=_.weight.sum())
-                                          .inner_join(tables[0], "fruit")
+                                          .inner_join(tables["fruit_left"], "fruit")
                                           .mutate(mut4=_.price + 100))
 
         self.query = self.query_func(self.tables)
@@ -494,10 +497,10 @@ class TestNonNullableOperators(TestCompiler):
             self.assert_equality_noir_source()
 
     def test_non_nullable_group_reduce_group_reduce_join(self):
-        self.query_func = lambda tables: (tables[1]
+        self.query_func = lambda tables: (tables["fruit_right"]
                                           .group_by("fruit")
                                           .aggregate(agg2=_.price.sum())
-                                          .inner_join(tables[0]
+                                          .inner_join(tables["fruit_left"]
                                                       .group_by("fruit").aggregate(agg4=_.weight.sum()), "fruit"))
 
         self.query = self.query_func(self.tables)
@@ -511,8 +514,8 @@ class TestNonNullableOperators(TestCompiler):
             self.assert_equality_noir_source()
 
     def test_non_nullable_join_group_reduce(self):
-        self.query_func = lambda tables: (tables[1]
-                                          .inner_join(tables[0]
+        self.query_func = lambda tables: (tables["fruit_right"]
+                                          .inner_join(tables["fruit_left"]
                                                       .group_by("fruit")
                                                       .aggregate(agg4=_.price.sum()), "fruit"))
 

@@ -27,7 +27,8 @@ class TestCompiler(unittest.TestCase):
 
         self._testMethodName = methodName
         # initialize benchmark data for current test name
-        self.benchmark = Benchmark(methodName) if os.getenv("PERFORM_BENCHMARK", "true") == "true" else None
+        self.benchmark = Benchmark(methodName) if os.getenv(
+            "PERFORM_BENCHMARK", "true") == "true" else None
         self.perform_compilation = True
         self.print_output_to_file = True
 
@@ -39,8 +40,27 @@ class TestCompiler(unittest.TestCase):
         except FileNotFoundError:
             pass
 
+    def store_tables_in_backend(self, backend: str):
+        if backend == "renoir":
+            return
+        # create or connect to in-file database
+        connection = ibis.connect(f"{backend}://{backend}.db")
+        # store tables required by this test class instance on the db
+        for name, table in self.tables.items():
+            connection.create_table(name, table.to_pandas(), overwrite=True)
+
+    def read_tables_from_backend(self, backend: str):
+        if backend == "renoir":
+            return
+        connection = ibis.connect(f"{backend}://{backend}.db")
+        self.tables = {n: connection.table(n) for n in self.tables.keys()}
+
     def init_table_files(self, file_suffix=""):
         raise NotImplementedError
+    
+    def init_table_files_with_names(self, names, file_prefix, file_suffix):
+        self.files = {n: f"{file_prefix}{n}{file_suffix}" for n in names}
+        self.tables = {n: ibis.read_csv(f) for n, f in self.files.items()}
 
     def tearDown(self) -> None:
         if not self.benchmark:
