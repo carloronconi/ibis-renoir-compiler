@@ -9,6 +9,7 @@ import ibis
 from difflib import unified_diff
 from codegen import ROOT_DIR, Benchmark
 from ibis import _
+from pyflink.table import EnvironmentSettings, TableEnvironment
 
 
 class TestCompiler(unittest.TestCase):
@@ -52,7 +53,12 @@ class TestCompiler(unittest.TestCase):
     def read_tables_from_backend(self, backend: str):
         if backend == "renoir":
             return
-        connection = ibis.connect(f"{backend}://{backend}.db")
+        if backend == "flink":
+            self.connection_path = "flink://localhost:9092"
+            print("FLINK!")
+        else:
+            self.connection_path = f"{backend}://{backend}.db"
+        connection = ibis.connect(self.connection_path)
         self.tables = {n: connection.table(n) for n in self.tables.keys()}
 
     def init_table_files(self, file_suffix="", skip_tables=False):

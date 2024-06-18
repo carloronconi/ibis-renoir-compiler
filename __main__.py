@@ -14,14 +14,14 @@ def main():
     # Example hyperfine usage comparing renoir and polars:
     # hyperfine --warmup 5 "python ../ibis-renoir-compiler test.test_operators.TestNullableOperators.test_nullable_filter_filter_select_select --paths /home/carlo/Projects/ibis-renoir-compiler/data/int-1-string-1.csv /home/carlo/Projects/ibis-renoir-compiler/data/int-3.csv --backend renoir" "python ../ibis-renoir-compiler test.test_operators.TestNullableOperators.test_nullable_filter_filter_select_select --paths /home/carlo/Projects/ibis-renoir-compiler/data/int-1-string-1.csv /home/carlo/Projects/ibis-renoir-compiler/data/int-3.csv --backend polars" --export-json result.json
     parser = argparse.ArgumentParser("ibis-renoir-compiler")
-    parser.add_argument("test_case", 
+    parser.add_argument("test_case",
                         help="Which testcase to run. Use `python -m benchmark.discover_tests` to see the current list of tests.", type=str)
-    parser.add_argument("--path_suffix", 
+    parser.add_argument("--path_suffix",
                         help="Suffix for test files used by test_case. Useful for having same file with growing sizes.", default="", type=str)
-    parser.add_argument("--backend", 
+    parser.add_argument("--backend",
                         help="Which backend to use.", type=str, choices=["renoir", "duckdb", "flink", "polars"], default="renoir")
-    parser.add_argument("--table_origin", 
-                        help="Instead of running the query starting from the csv load, read it directly from backend table. Before running with 'backend', run once with'load' to store the required tables in the backend", 
+    parser.add_argument("--table_origin",
+                        help="Instead of running the query starting from the csv load, read it directly from backend table. Before running with 'backend', run once with'load' to store the required tables in the backend",
                         type=str, choices=["csv", "load", "backend"],  default="csv")
     args = parser.parse_args()
 
@@ -29,7 +29,8 @@ def main():
 
     # because we're not using unittest's harness, we need to set the method name manually
     test_instance = eval(f"{test_class}(\"{test_case}\")")
-    test_instance.init_table_files(file_suffix=args.path_suffix, skip_tables=(args.table_origin == "backend"))
+    test_instance.init_table_files(
+        file_suffix=args.path_suffix, skip_tables=(args.table_origin == "backend"))
     if args.table_origin == "load":
         test_instance.store_tables_in_backend(args.backend)
         return
@@ -54,16 +55,16 @@ def main():
     # Else, the test we ran simply populated the query attribute with the ibis query
     # and we can run it using to_pandas(), after setting the backend to the desired one
     # Flink requires special setup
-    if (args.backend == "flink"):
+    if args.table_origin == "csv" and args.backend == "flink":
         table_env = TableEnvironment.create(
             EnvironmentSettings.in_streaming_mode())
         con = ibis.flink.connect(table_env)
         ibis.set_backend(con)
+    elif args.table_origin == "csv":
+        ibis.set_backend(args.backend)
+    # table_origin == "backend"
     else:
-        if args.table_origin == "csv":
-            ibis.set_backend(args.backend)
-        else:  
-            ibis.set_backend(ibis.connect(f"{args.backend}://{args.backend}.db"))
+        ibis.set_backend(ibis.connect(test_instance.connection_path))
     test_instance.query.to_pandas().head()
     print(f"finished running query with: {ibis.get_backend().name}")
 
