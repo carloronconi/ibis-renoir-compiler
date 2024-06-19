@@ -33,8 +33,9 @@ def main():
 
     # because we're not using unittest's harness, we need to set the method name manually
     test_instance = eval(f"{test_class}(\"{test_case}\")")
-    test_instance.init_table_files(
-        file_suffix=args.path_suffix, skip_tables=(args.table_origin == "backend"))
+    # renoir is tested in the same way regardless of the table_origin: we always load from csv
+    test_instance.init_table_files(file_suffix=args.path_suffix, skip_tables=(
+        args.table_origin == "backend" and args.backend != "renoir"))
     if args.table_origin == "load":
         test_instance.store_tables_in_backend(args.backend)
         return
@@ -92,7 +93,10 @@ def main():
         ibis.set_backend(args.backend)
     # table_origin == "backend"
     else:
-        ibis.set_backend(ibis.connect(test_instance.connection_path))
+        if args.table_origin == "csv":
+            ibis.set_backend(args.backend)
+        else:
+            ibis.set_backend(ibis.connect(test_instance.connection_path))
     print(test_instance.query.to_pandas().head())
     print(f"finished running query with: {ibis.get_backend().name}")
 
