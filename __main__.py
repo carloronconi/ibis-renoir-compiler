@@ -1,9 +1,13 @@
+import ibis.backends
 import test
 import argparse
 import test.test_nexmark
 import test.test_operators
 import ibis
+from pyflink.table import EnvironmentSettings, TableEnvironment, StreamTableEnvironment
+from pyflink.java_gateway import get_gateway
 from pyflink.table import EnvironmentSettings, TableEnvironment
+from pyflink.common import Configuration
 
 
 def main():
@@ -56,16 +60,40 @@ def main():
     # and we can run it using to_pandas(), after setting the backend to the desired one
     # Flink requires special setup
     if args.table_origin == "csv" and args.backend == "flink":
-        table_env = TableEnvironment.create(
-            EnvironmentSettings.in_streaming_mode())
-        con = ibis.flink.connect(table_env)
+
+        gateway = get_gateway()
+        string_class = gateway.jvm.String
+        string_array = gateway.new_array(string_class, 0)
+        stream_env = gateway.jvm.org.apache.flink.streaming.api.environment.StreamExecutionEnvironment
+        j_stream_exection_environment = stream_env.createRemoteEnvironment(
+            "localhost", 
+            8081, 
+            string_array
+        )
+
+        # Crea una configurazione
+        config = Configuration()
+        config.set_string("jobmanager.rpc.address", "localhost")
+        config.set_integer("jobmanager.rpc.port", 9091)
+
+        # Crea le impostazioni dell'ambiente utilizzando la configurazione
+        env_settings = EnvironmentSettings.new_instance() \
+            .in_streaming_mode() \
+            .with_configuration(config) \
+            .build()
+
+        # Crea il TableEnvironment con le impostazioni specificate
+        table_env = TableEnvironment.create(env_settings)
+
+        con = ibis.flink.connect()
         ibis.set_backend(con)
+        print(con)
     elif args.table_origin == "csv":
         ibis.set_backend(args.backend)
     # table_origin == "backend"
     else:
         ibis.set_backend(ibis.connect(test_instance.connection_path))
-    test_instance.query.to_pandas().head()
+    print(test_instance.query.to_pandas().head())
     print(f"finished running query with: {ibis.get_backend().name}")
 
 
