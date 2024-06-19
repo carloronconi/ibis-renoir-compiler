@@ -1,0 +1,38 @@
+{
+  "results": [
+    {
+      "command": "python3 ../ibis-renoir-compiler test.test_operators.TestNullableOperators.test_nullable_windowing_implicit_sum --backend duckdb --path_suffix _10000000",
+      "mean": 9.23380326838,
+      "stddev": 0.07788275455063884,
+      "median": 9.22325970868,
+      "user": 9.440698299999998,
+      "system": 2.7189590800000003,
+      "min": 9.14562135118,
+      "max": 9.409510862180001,
+      "times": [
+        9.26588841018,
+        9.21837537318,
+        9.22814404418,
+        9.16879939118,
+        9.19415826718,
+        9.28848602118,
+        9.25787965918,
+        9.161169304180001,
+        9.14562135118,
+        9.409510862180001
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}
