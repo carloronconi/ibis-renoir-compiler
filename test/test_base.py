@@ -53,7 +53,7 @@ class TestCompiler(unittest.TestCase):
         if backend == "renoir":
             return
         connection = ibis.connect(f"{backend}://{backend}.db")
-        self.tables = {n: connection.table(n) for n in self.tables.keys()}
+        self.tables = {n: connection.table(n) for n in self.files.keys()}
 
     def init_table_files(self, file_suffix="", skip_tables=False):
         raise NotImplementedError      
