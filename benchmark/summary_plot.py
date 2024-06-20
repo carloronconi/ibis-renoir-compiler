@@ -46,7 +46,7 @@ for i, (test_name, backend_results) in enumerate(results.items()):
 
 # Create a custom legend
 handles = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=color, markersize=10) for backend, color in color_map.items()]
-ax.legend(handles, color_map.keys())
+ax.legend(handles, color_map.keys(), loc='upper left', bbox_to_anchor=(1, 1))
 
 ax.set_xlabel('Test name')
 ax.set_ylabel('Time [s]')
@@ -55,6 +55,33 @@ ax.set_title(f'Mean run time of each backend & test on dataset size {dataset_siz
 # Rotate x-axis labels
 plt.xticks(rotation=45, ha='right')
 # Adjust the bottom margin to make more space for the x-axis labels
-plt.subplots_adjust(bottom=0.5)
+plt.subplots_adjust(bottom=0.5, right=0.8)
 
 plt.savefig(args.directory + '/summary_plot.png')
+
+# Normalize the results
+normalized_results = {test_name: {backend_name: mean_time / max(backend_results.values()) for backend_name, mean_time in backend_results.items()} for test_name, backend_results in results.items()}
+
+# Create a new figure for the normalized plot
+fig_normalized, ax_normalized = plt.subplots(figsize=(10, 6))
+
+# Plot the normalized results
+for i, (test_name, backend_results) in enumerate(normalized_results.items()):
+    for backend_name, mean_time in backend_results.items():
+        # Use the color map to set the color of the dot
+        ax_normalized.scatter(test_name, mean_time, color=color_map[backend_name], label=f'{backend_name} on {test_name}')
+
+# Create a custom legend
+handles = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=color, markersize=10) for backend, color in color_map.items()]
+ax_normalized.legend(handles, color_map.keys(), loc='upper left', bbox_to_anchor=(1, 1))
+
+ax_normalized.set_xlabel('Test name')
+ax_normalized.set_ylabel('Normalized Time')
+ax_normalized.set_title(f'Normalized mean run time of each backend & test on dataset size {dataset_size}')
+
+# Rotate x-axis labels
+plt.xticks(rotation=45, ha='right')
+# Adjust the bottom margin to make more space for the x-axis labels
+plt.subplots_adjust(bottom=0.5, right=0.8)
+
+plt.savefig(args.directory + '/normalized_summary_plot.png')
