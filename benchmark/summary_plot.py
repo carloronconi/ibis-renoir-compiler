@@ -91,18 +91,24 @@ plt.savefig(args.directory + '/plt_norm_summary_plot.png')
 # Convert results to a DataFrame
 df = pd.DataFrame([(test_name, backend_name, mean_time) for test_name, backend_results in results.items() for backend_name, mean_time in backend_results.items()], columns=['Test name', 'Backend', 'Time'])
 df_normalized = pd.DataFrame([(test_name, backend_name, mean_time) for test_name, backend_results in normalized_results.items() for backend_name, mean_time in backend_results.items()], columns=['Test name', 'Backend', 'Normalized Time'])
+# Reverse when switching x and y axis
+df['Test name'] = pd.Categorical(df['Test name'], categories=df['Test name'].unique()[::-1])
+df_normalized['Test name'] = pd.Categorical(df_normalized['Test name'], categories=df_normalized['Test name'].unique()[::-1])
+
 
 # Create the scatter plot
-fig = px.scatter(df, x='Test name', y='Time', color='Backend', title=f'<b>Mean run time of each backend & test on dataset size {dataset_size}', labels={'Time': 'Time [s]'})
+fig = px.scatter(df, y='Test name', x='Time', color='Backend', title=f'<b>Mean run time of each backend & test on dataset size {dataset_size}', labels={'Time': 'Time [s]'})
 fig.update_layout(legend=dict(orientation="v", yanchor="top", y=1, xanchor="left", x=1.01), title_x=0.5, height=600, width=1000)
-fig.update_yaxes(nticks=10)
+fig.update_xaxes(nticks=10)
+#fig.update_yaxes(autorange="reversed")
 
 # Save the plot
 fig.write_image(args.directory + '/px_std_summary_plot.png')
 
 # Create the normalized scatter plot
-fig_normalized = px.scatter(df_normalized, x='Test name', y='Normalized Time', color='Backend', title=f'<b>Normalized mean run time of each backend & test on dataset size {dataset_size}', labels={'Normalized Time': 'Normalized Time'})
+fig_normalized = px.scatter(df_normalized, y='Test name', x='Normalized Time', color='Backend', title=f'<b>Normalized mean run time of each backend & test on dataset size {dataset_size}', labels={'Normalized Time': 'Normalized Time'})
 fig_normalized.update_layout(legend=dict(orientation="v", yanchor="top", y=1, xanchor="left", x=1.01), title_x=0.5, height=600, width=1000)
+#fig.update_yaxes(autorange="reversed")
 
 # Save the normalized plot
 fig_normalized.write_image(args.directory + '/px_norm_summary_plot.png')
