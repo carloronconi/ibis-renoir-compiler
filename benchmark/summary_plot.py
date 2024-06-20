@@ -2,6 +2,8 @@ import argparse
 import glob
 import json
 import matplotlib.pyplot as plt
+import pandas as pd
+import plotly.express as px
 
 parser = argparse.ArgumentParser(description='Process some files.')
 parser.add_argument('directory', type=str, help='The directory to process files from')
@@ -57,7 +59,7 @@ plt.xticks(rotation=45, ha='right')
 # Adjust the bottom margin to make more space for the x-axis labels
 plt.subplots_adjust(bottom=0.5, right=0.8)
 
-plt.savefig(args.directory + '/summary_plot.png')
+plt.savefig(args.directory + '/plt_std_summary_plot.png')
 
 # Normalize the results
 normalized_results = {test_name: {backend_name: mean_time / max(backend_results.values()) for backend_name, mean_time in backend_results.items()} for test_name, backend_results in results.items()}
@@ -84,4 +86,23 @@ plt.xticks(rotation=45, ha='right')
 # Adjust the bottom margin to make more space for the x-axis labels
 plt.subplots_adjust(bottom=0.5, right=0.8)
 
-plt.savefig(args.directory + '/normalized_summary_plot.png')
+plt.savefig(args.directory + '/plt_norm_summary_plot.png')
+
+# Convert results to a DataFrame
+df = pd.DataFrame([(test_name, backend_name, mean_time) for test_name, backend_results in results.items() for backend_name, mean_time in backend_results.items()], columns=['Test name', 'Backend', 'Time'])
+df_normalized = pd.DataFrame([(test_name, backend_name, mean_time) for test_name, backend_results in normalized_results.items() for backend_name, mean_time in backend_results.items()], columns=['Test name', 'Backend', 'Normalized Time'])
+
+# Create the scatter plot
+fig = px.scatter(df, x='Test name', y='Time', color='Backend', title=f'Mean run time of each backend & test on dataset size {dataset_size}', labels={'Time': 'Time [s]'})
+fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1), title_x=0.5)
+fig.update_yaxes(nticks=10)
+
+# Save the plot
+fig.write_image(args.directory + '/px_std_summary_plot.png')
+
+# Create the normalized scatter plot
+fig_normalized = px.scatter(df_normalized, x='Test name', y='Normalized Time', color='Backend', title=f'Normalized mean run time of each backend & test on dataset size {dataset_size}', labels={'Normalized Time': 'Normalized Time'})
+fig_normalized.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1), title_x=0.5)
+
+# Save the normalized plot
+fig_normalized.write_image(args.directory + '/px_norm_summary_plot.png')
