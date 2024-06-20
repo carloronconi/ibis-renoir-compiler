@@ -17,7 +17,7 @@ dataset_size = json_files[0].split('_')[-2]
 
 for json_file in json_files:
     backend_name = json_file.split('_')[-1].split('.json')[0]
-    test_name = json_file.split('hyperfine_')[-1].rsplit('_', 2)[0]
+    test_name = json_file.split('hyperfine_test_')[-1].rsplit('_', 2)[0]
 
     with open(json_file, 'r') as f:
         data = json.load(f)
@@ -36,6 +36,9 @@ color_map = {b: cmap(i / len(backend_names)) for i, b in enumerate(backend_names
 
 fig, ax = plt.subplots(figsize=(10, 6))
 
+# Sort the results dictionary by test_name
+results = dict(sorted(results.items()))
+
 for i, (test_name, backend_results) in enumerate(results.items()):
     for backend_name, mean_time in backend_results.items():
         # Use the color map to set the color of the dot
@@ -45,9 +48,9 @@ for i, (test_name, backend_results) in enumerate(results.items()):
 handles = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=color, markersize=10) for backend, color in color_map.items()]
 ax.legend(handles, color_map.keys())
 
-ax.set_xlabel('Test')
-ax.set_ylabel('Time')
-ax.set_title(f'Mean Run Time of Each Backend & Test on Dataset Size {dataset_size}')
+ax.set_xlabel('Test name')
+ax.set_ylabel('Time [s]')
+ax.set_title(f'Mean run time of each backend & test on dataset size {dataset_size}')
 
 # Rotate x-axis labels
 plt.xticks(rotation=45, ha='right')
