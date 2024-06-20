@@ -9,13 +9,15 @@ backends=("duckdb" "polars" "flink" "renoir")
 # the git repository only contains the base non-suffixed files, so in case you use this variable you
 # need to generate the extended files first.
 # For nexmark, `cd data/nexmark_data_gen && cargo run -- 100000000`
-size_suffix="_100000000"
+size_suffix="_10000000"
 
 # change to skip the first n tests
 skip=0
 
-source .venv/bin/activate
+source .venv3.11/bin/activate
 mkdir -p log/$1
+memo="log/$1/memo_log.csv"
+echo "test_name,backend,elapsed_s,resident_k,user,system,status" > $memo
 i=0
 # use grep to filter the tests you want to run, with option -v "test_name" to exclude single test pattern
 # or -v -e "test_name1" -e "test_name2" to exclude multiple patterns
@@ -28,7 +30,8 @@ python3 -m benchmark.discover_tests | grep -v "non_nullable" | while IFS= read -
     trim=${name##*.}
     for backend in "${backends[@]}"; do
         hyperfine --warmup 1 \
-        "python3 ../ibis-renoir-compiler $name --backend $backend --path_suffix $size_suffix" \
+        "time -a -o $memo -f '$trim,$backend,%e,%M,%U,%S,%x' \
+        python3 ../ibis-renoir-compiler $name --backend $backend --path_suffix $size_suffix" \
         --export-json log/$1/hyperfine_${trim}${size_suffix}_${backend}.json
         printf "\n"
         # copy every time we run a test so if we quit before finish all tests we still have both
