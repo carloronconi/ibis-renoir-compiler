@@ -1,0 +1,38 @@
+{
+  "results": [
+    {
+      "command": "/usr/bin/time -a -o log/7zeros_all_sola1_wmemo/memo_log.csv -f 'test_nexmark_query_6,flink,%e,%M,%U,%S,%x'         python3 ../ibis-renoir-compiler test.test_nexmark.TestNexmark.test_nexmark_query_6 --backend flink --path_suffix _10000000",
+      "mean": 3.46799643354,
+      "stddev": 0.019236816268739656,
+      "median": 3.46759783104,
+      "user": 6.375352759999999,
+      "system": 1.4010231999999996,
+      "min": 3.44201723604,
+      "max": 3.49376487604,
+      "times": [
+        3.45923877004,
+        3.44214333404,
+        3.45274178504,
+        3.49376487604,
+        3.46095904304,
+        3.48751353004,
+        3.48881222704,
+        3.47853691504,
+        3.44201723604,
+        3.47423661904
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}

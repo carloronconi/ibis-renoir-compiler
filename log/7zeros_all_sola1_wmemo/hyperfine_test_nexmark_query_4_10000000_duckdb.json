@@ -1,0 +1,38 @@
+{
+  "results": [
+    {
+      "command": "/usr/bin/time -a -o log/7zeros_all_sola1_wmemo/memo_log.csv -f 'test_nexmark_query_4,duckdb,%e,%M,%U,%S,%x'         python3 ../ibis-renoir-compiler test.test_nexmark.TestNexmark.test_nexmark_query_4 --backend duckdb --path_suffix _10000000",
+      "mean": 1.6853088974000001,
+      "stddev": 0.008237222307731659,
+      "median": 1.6879453797000001,
+      "user": 5.702324860000001,
+      "system": 1.26102474,
+      "min": 1.6705972267000002,
+      "max": 1.6964739637000001,
+      "times": [
+        1.6777621097000002,
+        1.6894949347000001,
+        1.6812682367,
+        1.6900483077000001,
+        1.6892358537000003,
+        1.6774509077000002,
+        1.6866549057,
+        1.6964739637000001,
+        1.6941025277000001,
+        1.6705972267000002
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}

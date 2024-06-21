@@ -1,0 +1,38 @@
+{
+  "results": [
+    {
+      "command": "/usr/bin/time -a -o log/7zeros_all_sola1_wmemo/memo_log.csv -f 'test_nullable_windowing_implicit_sum,duckdb,%e,%M,%U,%S,%x'         python3 ../ibis-renoir-compiler test.test_operators.TestNullableOperators.test_nullable_windowing_implicit_sum --backend duckdb --path_suffix _10000000",
+      "mean": 9.191325773300003,
+      "stddev": 0.0810933609258248,
+      "median": 9.1651876087,
+      "user": 9.096473999999999,
+      "system": 2.7245433799999996,
+      "min": 9.103753321200001,
+      "max": 9.3294280472,
+      "times": [
+        9.3294280472,
+        9.1196774782,
+        9.2643128332,
+        9.1290140342,
+        9.1305804502,
+        9.2432997682,
+        9.103753321200001,
+        9.2727903602,
+        9.1997947672,
+        9.120606673200001
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}

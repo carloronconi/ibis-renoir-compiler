@@ -1,0 +1,38 @@
+{
+  "results": [
+    {
+      "command": "/usr/bin/time -a -o log/7zeros_all_sola1_wmemo/memo_log.csv -f 'test_nullable_filter_filter_select_select,polars,%e,%M,%U,%S,%x'         python3 ../ibis-renoir-compiler test.test_operators.TestNullableOperators.test_nullable_filter_filter_select_select --backend polars --path_suffix _10000000",
+      "mean": 1.75041516128,
+      "stddev": 0.006121300878788336,
+      "median": 1.74798414778,
+      "user": 1.9209495,
+      "system": 0.8464354399999999,
+      "min": 1.74341812228,
+      "max": 1.7603595222800001,
+      "times": [
+        1.7603595222800001,
+        1.7597947602800001,
+        1.74341812228,
+        1.74673243928,
+        1.74652447328,
+        1.74747148328,
+        1.7564433992800002,
+        1.74849681228,
+        1.7492581822800002,
+        1.7456524182800002
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "results": [
+    {
+      "command": "/usr/bin/time -a -o log/7zeros_all_sola1_wmemo/memo_log.csv -f 'test_nullable_filter_reduce,renoir,%e,%M,%U,%S,%x'         python3 ../ibis-renoir-compiler test.test_operators.TestNullableOperators.test_nullable_filter_reduce --backend renoir --path_suffix _10000000",
+      "mean": 2.7051711007200003,
+      "stddev": 0.018753834188904018,
+      "median": 2.7079499239200002,
+      "user": 13.04121702,
+      "system": 1.0709784199999999,
+      "min": 2.67554038042,
+      "max": 2.73492196242,
+      "times": [
+        2.73492196242,
+        2.67554038042,
+        2.69254369842,
+        2.70724073442,
+        2.7271402354200003,
+        2.7053254844200003,
+        2.67906475842,
+        2.7095429064200003,
+        2.71173173342,
+        2.70865911342
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}

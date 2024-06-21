@@ -1,0 +1,38 @@
+{
+  "results": [
+    {
+      "command": "/usr/bin/time -a -o log/7zeros_all_sola1_wmemo/memo_log.csv -f 'test_nullable_left_join,polars,%e,%M,%U,%S,%x'         python3 ../ibis-renoir-compiler test.test_operators.TestNullableOperators.test_nullable_left_join --backend polars --path_suffix _10000000",
+      "mean": 13.08426136734,
+      "stddev": 0.20845377626271747,
+      "median": 13.01346017874,
+      "user": 17.85196826,
+      "system": 1.7781448599999998,
+      "min": 12.793955096240001,
+      "max": 13.500117411240002,
+      "times": [
+        12.94070604524,
+        12.98921959924,
+        13.060874831240001,
+        13.035343452240001,
+        12.983124531240001,
+        12.793955096240001,
+        13.500117411240002,
+        13.20112694724,
+        13.346568854240001,
+        12.99157690524
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}

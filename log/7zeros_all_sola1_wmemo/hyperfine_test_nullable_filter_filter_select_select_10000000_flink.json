@@ -1,0 +1,38 @@
+{
+  "results": [
+    {
+      "command": "/usr/bin/time -a -o log/7zeros_all_sola1_wmemo/memo_log.csv -f 'test_nullable_filter_filter_select_select,flink,%e,%M,%U,%S,%x'         python3 ../ibis-renoir-compiler test.test_operators.TestNullableOperators.test_nullable_filter_filter_select_select --backend flink --path_suffix _10000000",
+      "mean": 3.4199593547999996,
+      "stddev": 0.011254660177330057,
+      "median": 3.4199098364,
+      "user": 2.27166754,
+      "system": 0.9190537999999998,
+      "min": 3.4007186714,
+      "max": 3.4358268834,
+      "times": [
+        3.4117069914,
+        3.4149245404,
+        3.4286439773999997,
+        3.4096408464,
+        3.4186669764,
+        3.4007186714,
+        3.4232218164,
+        3.4350901484,
+        3.4211526964,
+        3.4358268834
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}

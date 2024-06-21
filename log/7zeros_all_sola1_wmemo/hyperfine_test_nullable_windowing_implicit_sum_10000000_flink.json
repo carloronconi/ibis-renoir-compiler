@@ -1,0 +1,38 @@
+{
+  "results": [
+    {
+      "command": "/usr/bin/time -a -o log/7zeros_all_sola1_wmemo/memo_log.csv -f 'test_nullable_windowing_implicit_sum,flink,%e,%M,%U,%S,%x'         python3 ../ibis-renoir-compiler test.test_operators.TestNullableOperators.test_nullable_windowing_implicit_sum --backend flink --path_suffix _10000000",
+      "mean": 11.04962023318,
+      "stddev": 0.11571180266755748,
+      "median": 11.00389412238,
+      "user": 10.048821499999999,
+      "system": 2.772982,
+      "min": 10.91253819788,
+      "max": 11.25784644088,
+      "times": [
+        11.25784644088,
+        11.248077884879999,
+        10.99736631888,
+        10.96656945288,
+        11.00533508088,
+        10.981398562879999,
+        11.05287683688,
+        10.91253819788,
+        11.00245316388,
+        11.071740391879999
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}

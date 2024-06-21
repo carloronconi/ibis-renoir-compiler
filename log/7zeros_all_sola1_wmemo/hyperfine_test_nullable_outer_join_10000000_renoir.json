@@ -1,0 +1,38 @@
+{
+  "results": [
+    {
+      "command": "/usr/bin/time -a -o log/7zeros_all_sola1_wmemo/memo_log.csv -f 'test_nullable_outer_join,renoir,%e,%M,%U,%S,%x'         python3 ../ibis-renoir-compiler test.test_operators.TestNullableOperators.test_nullable_outer_join --backend renoir --path_suffix _10000000",
+      "mean": 6.13138070304,
+      "stddev": 0.043961736957652,
+      "median": 6.11676694184,
+      "user": 46.881993079999994,
+      "system": 3.3217320999999997,
+      "min": 6.08866349984,
+      "max": 6.24168352684,
+      "times": [
+        6.133977922840001,
+        6.11619200284,
+        6.08866349984,
+        6.10894511884,
+        6.13799801284,
+        6.117341880840001,
+        6.24168352684,
+        6.10284401184,
+        6.10479236684,
+        6.16136868684
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}

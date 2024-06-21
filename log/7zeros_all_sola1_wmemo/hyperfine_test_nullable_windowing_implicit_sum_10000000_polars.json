@@ -1,0 +1,38 @@
+{
+  "results": [
+    {
+      "command": "/usr/bin/time -a -o log/7zeros_all_sola1_wmemo/memo_log.csv -f 'test_nullable_windowing_implicit_sum,polars,%e,%M,%U,%S,%x'         python3 ../ibis-renoir-compiler test.test_operators.TestNullableOperators.test_nullable_windowing_implicit_sum --backend polars --path_suffix _10000000",
+      "mean": 9.1743622879,
+      "stddev": 0.020065596019360324,
+      "median": 9.172113788,
+      "user": 9.13798364,
+      "system": 2.6736731600000003,
+      "min": 9.1397529735,
+      "max": 9.2059248795,
+      "times": [
+        9.1764084845,
+        9.1643147815,
+        9.1678190915,
+        9.1397529735,
+        9.166805265499999,
+        9.1797177755,
+        9.1835718015,
+        9.2026222735,
+        9.156685552499999,
+        9.2059248795
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}

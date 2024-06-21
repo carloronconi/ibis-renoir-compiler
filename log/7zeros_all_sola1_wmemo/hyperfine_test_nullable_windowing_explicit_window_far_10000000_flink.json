@@ -1,0 +1,38 @@
+{
+  "results": [
+    {
+      "command": "/usr/bin/time -a -o log/7zeros_all_sola1_wmemo/memo_log.csv -f 'test_nullable_windowing_explicit_window_far,flink,%e,%M,%U,%S,%x'         python3 ../ibis-renoir-compiler test.test_operators.TestNullableOperators.test_nullable_windowing_explicit_window_far --backend flink --path_suffix _10000000",
+      "mean": 6.921838883000001,
+      "stddev": 0.041229903400595756,
+      "median": 6.9138843501,
+      "user": 7.2855037199999995,
+      "system": 4.32939436,
+      "min": 6.876343605100001,
+      "max": 7.0191644401,
+      "times": [
+        6.891719264100001,
+        6.9086147621,
+        6.9397586241,
+        6.8927666401000005,
+        6.876343605100001,
+        6.933893379100001,
+        6.9191539381,
+        6.944310430100001,
+        7.0191644401,
+        6.8926637471
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}

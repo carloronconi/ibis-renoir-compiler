@@ -1,0 +1,38 @@
+{
+  "results": [
+    {
+      "command": "/usr/bin/time -a -o log/7zeros_all_sola1_wmemo/memo_log.csv -f 'test_nullable_filter_group_mutate,duckdb,%e,%M,%U,%S,%x'         python3 ../ibis-renoir-compiler test.test_operators.TestNullableOperators.test_nullable_filter_group_mutate --backend duckdb --path_suffix _10000000",
+      "mean": 0.9885002493,
+      "stddev": 0.006453866895883289,
+      "median": 0.9893615519000001,
+      "user": 2.54335954,
+      "system": 0.8693709399999999,
+      "min": 0.9798877159,
+      "max": 0.9971993639,
+      "times": [
+        0.9922369259,
+        0.9955719699,
+        0.9812086479000001,
+        0.9971993639,
+        0.9927337579,
+        0.9864861779,
+        0.9855142229,
+        0.9931218349000001,
+        0.9798877159,
+        0.9810418759
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}

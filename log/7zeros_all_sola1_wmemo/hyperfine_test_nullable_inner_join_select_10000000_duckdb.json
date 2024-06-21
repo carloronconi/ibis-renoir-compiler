@@ -1,0 +1,38 @@
+{
+  "results": [
+    {
+      "command": "/usr/bin/time -a -o log/7zeros_all_sola1_wmemo/memo_log.csv -f 'test_nullable_inner_join_select,duckdb,%e,%M,%U,%S,%x'         python3 ../ibis-renoir-compiler test.test_operators.TestNullableOperators.test_nullable_inner_join_select --backend duckdb --path_suffix _10000000",
+      "mean": 1.2188858920999999,
+      "stddev": 0.010117016367365745,
+      "median": 1.2197668605,
+      "user": 4.268894479999999,
+      "system": 0.9211486000000001,
+      "min": 1.1997011625,
+      "max": 1.2322521894999998,
+      "times": [
+        1.2093542535,
+        1.2223251234999999,
+        1.2164165185,
+        1.2307703685,
+        1.2258459954999998,
+        1.2233794244999998,
+        1.2172085975,
+        1.2322521894999998,
+        1.2116052874999999,
+        1.1997011625
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}

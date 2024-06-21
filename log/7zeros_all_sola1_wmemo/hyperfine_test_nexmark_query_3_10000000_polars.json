@@ -1,0 +1,38 @@
+{
+  "results": [
+    {
+      "command": "/usr/bin/time -a -o log/7zeros_all_sola1_wmemo/memo_log.csv -f 'test_nexmark_query_3,polars,%e,%M,%U,%S,%x'         python3 ../ibis-renoir-compiler test.test_nexmark.TestNexmark.test_nexmark_query_3 --backend polars --path_suffix _10000000",
+      "mean": 1.2251381063,
+      "stddev": 0.004195770434248567,
+      "median": 1.2246165233,
+      "user": 1.3393969399999999,
+      "system": 0.8973614999999999,
+      "min": 1.2191697022999999,
+      "max": 1.2337219653,
+      "times": [
+        1.2191697022999999,
+        1.2337219653,
+        1.2280568693,
+        1.2218799033,
+        1.2251028203,
+        1.2217827323,
+        1.2277558833,
+        1.2225720903,
+        1.2241302263,
+        1.2272088703
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}

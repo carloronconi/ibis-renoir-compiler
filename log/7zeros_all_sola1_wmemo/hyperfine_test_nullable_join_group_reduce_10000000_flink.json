@@ -1,0 +1,38 @@
+{
+  "results": [
+    {
+      "command": "/usr/bin/time -a -o log/7zeros_all_sola1_wmemo/memo_log.csv -f 'test_nullable_join_group_reduce,flink,%e,%M,%U,%S,%x'         python3 ../ibis-renoir-compiler test.test_operators.TestNullableOperators.test_nullable_join_group_reduce --backend flink --path_suffix _10000000",
+      "mean": 3.9958392781199996,
+      "stddev": 0.024271129325412616,
+      "median": 4.00367736172,
+      "user": 10.682055499999999,
+      "system": 1.48373058,
+      "min": 3.95055166772,
+      "max": 4.02255945772,
+      "times": [
+        4.01504999672,
+        3.95055166772,
+        4.01199257872,
+        4.02255945772,
+        3.99602275672,
+        3.96660196572,
+        4.01780031072,
+        3.98571867372,
+        3.98076340672,
+        4.01133196672
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}

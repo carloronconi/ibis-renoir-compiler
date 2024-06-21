@@ -1,0 +1,38 @@
+{
+  "results": [
+    {
+      "command": "/usr/bin/time -a -o log/7zeros_all_sola1_wmemo/memo_log.csv -f 'test_nullable_filter_reduce,duckdb,%e,%M,%U,%S,%x'         python3 ../ibis-renoir-compiler test.test_operators.TestNullableOperators.test_nullable_filter_reduce --backend duckdb --path_suffix _10000000",
+      "mean": 0.9836650122200001,
+      "stddev": 0.006671947082481149,
+      "median": 0.9846190914200001,
+      "user": 2.53012574,
+      "system": 0.87142614,
+      "min": 0.9758299114200001,
+      "max": 0.9987347454200001,
+      "times": [
+        0.9854757624200001,
+        0.97925142742,
+        0.9762845584200001,
+        0.9793820444200001,
+        0.9758299114200001,
+        0.9987347454200001,
+        0.9853947704200001,
+        0.9849690434200001,
+        0.98426913942,
+        0.9870587194200001
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}

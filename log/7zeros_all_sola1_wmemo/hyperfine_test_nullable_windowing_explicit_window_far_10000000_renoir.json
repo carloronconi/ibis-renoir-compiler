@@ -1,0 +1,38 @@
+{
+  "results": [
+    {
+      "command": "/usr/bin/time -a -o log/7zeros_all_sola1_wmemo/memo_log.csv -f 'test_nullable_windowing_explicit_window_far,renoir,%e,%M,%U,%S,%x'         python3 ../ibis-renoir-compiler test.test_operators.TestNullableOperators.test_nullable_windowing_explicit_window_far --backend renoir --path_suffix _10000000",
+      "mean": 3.6892097696999997,
+      "stddev": 0.056349371848653344,
+      "median": 3.674272082,
+      "user": 13.318083419999999,
+      "system": 1.2156334599999998,
+      "min": 3.612206901,
+      "max": 3.821220437,
+      "times": [
+        3.665075096,
+        3.821220437,
+        3.665289516,
+        3.67957303,
+        3.739716001,
+        3.697417449,
+        3.668971134,
+        3.658962561,
+        3.683665572,
+        3.612206901
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}
