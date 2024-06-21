@@ -22,11 +22,15 @@ for json_file in json_files:
     test_name = json_file.split('hyperfine_test_')[-1].rsplit('_', 2)[0]
 
     with open(json_file, 'r') as f:
-        data = json.load(f)
-
-    # Add the mean time to the nested dictionary
-    # There is a single result for each test
-    mean_time = data["results"][0]["mean"]
+        try:
+            data = json.load(f)
+            # Add the mean time to the nested dictionary
+            # There is a single result for each test
+            mean_time = data["results"][0]["mean"]
+        except json.JSONDecodeError:
+            print(f"Storing negative time due to invalid encoding: {json_file}")
+            mean_time = -0.1
+    
     if test_name not in results:
         results[test_name] = {}
     results[test_name][backend_name] = mean_time
