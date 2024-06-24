@@ -54,8 +54,7 @@ def main():
 
             # if table origin is cached, we need to pre-load the tables in the backends before submitting the queries
             # otherwise, we measure the time of both loading the table and running the query
-            test_instance.init_table_files(file_suffix=args.path_suffix,
-                                           skip_tables=(args.table_origin == "cached"))
+            test_instance.init_table_files(file_suffix=args.path_suffix)
             if args.table_origin == "cached":
                 test_instance.preload_tables(backend)
 
@@ -70,8 +69,6 @@ def run_once(test_case: str, test_instance: test.TestCompiler, run_count: int, b
     test_instance.benchmark.run_count = run_count
     test_instance.benchmark.backend_name = backend
 
-    print(f"running query with with: {ibis.get_backend().name}")
-
     start_time = time.perf_counter()
     eval(f"test_instance.{test_case}()", {"test_instance": test_instance})
     # If the backend is renoir, we have already performed the compilation to renoir code and ran it
@@ -81,8 +78,11 @@ def run_once(test_case: str, test_instance: test.TestCompiler, run_count: int, b
         test_instance.query.execute()
 
     end_time = time.perf_counter()
-    test_instance.benchmark.total_time = end_time - start_time
+    total_time = end_time - start_time
+    test_instance.benchmark.total_time = total_time
     test_instance.benchmark.log()
+
+    print(f"ran once - backend: {backend}\trun: {run_count:03}\ttime: {total_time:.10f}\tquery: {test_case}")
 
 
 if __name__ == "__main__":

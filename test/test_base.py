@@ -73,12 +73,10 @@ class TestCompiler(unittest.TestCase):
         # duckdb and polars allow preloading tables
         for name, table in self.tables.items():
             con = ibis.get_backend()
-            # TODO: check if polars actually improves run time when doing this
-            # being dataframe-based, we might need to cache in dataframe instead and load from it
             con.create_table(name, table.to_pandas(), overwrite=True)
             self.tables[name] = con.table(name)
 
-    def init_table_files(self, file_suffix="", skip_tables=False):
+    def init_table_files(self, file_suffix=""):
         raise NotImplementedError      
 
     def tearDown(self) -> None:

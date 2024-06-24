@@ -32,7 +32,7 @@ def compile_ibis_to_noir(files_tables: list[tuple[str, PhysicalTable]],
     Operator.print_output_to_file = print_output_to_file
     gen_noir_code()
 
-    if subprocess.run(f"cd {utl.ROOT_DIR}/noir_template && cargo-fmt && cargo build --release", shell=True).returncode != 0:
+    if subprocess.run(f"cd {utl.ROOT_DIR}/noir_template && cargo-fmt > /dev/null 2>&1 && cargo build --release > /dev/null 2>&1", shell=True).returncode != 0:
         raise Exception("Failed to compile generated noir code!")
 
     if benchmark:
@@ -43,7 +43,7 @@ def compile_ibis_to_noir(files_tables: list[tuple[str, PhysicalTable]],
         if benchmark:
             start_time = time.perf_counter()
         # add options to print renoir output: capture_output = True, text = True
-        if subprocess.run(f"cd {utl.ROOT_DIR}/noir_template && cargo run --release", shell=True).returncode != 0:
+        if subprocess.run(f"cd {utl.ROOT_DIR}/noir_template && cargo run --release > /dev/null 2>&1", shell=True).returncode != 0:
             raise Exception("Noir code panicked!")
         if benchmark:
             end_time = time.perf_counter()
@@ -66,8 +66,6 @@ def post_order_dfs(root: Node):
 
 
 def gen_noir_code():
-    print("generating noir code...")
-
     mid = ""
     for op in Operator.operators:
         # operators can also modify structs while generating, so generate mid before top
@@ -84,5 +82,3 @@ def gen_noir_code():
         f.write(top)
         f.write(mid)
         f.write(bot)
-
-    print("done generating code")
