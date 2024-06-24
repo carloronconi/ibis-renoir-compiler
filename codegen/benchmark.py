@@ -8,6 +8,7 @@ class Benchmark:
     def __init__(self, name):
         self.name = name
         self.logger = setup_logger()
+        self.total_time = -1
         self.renoir_compile_time = -1
         self.renoir_execute_time = -1
         self.ibis_time = -1
@@ -15,7 +16,7 @@ class Benchmark:
         self.backend_name = "renoir"
 
     def log(self):
-        message = f"{self.name},{self.backend_name},{self.run_count},{self.renoir_compile_time:.10f}s,{self.renoir_execute_time:.10f}s,{self.ibis_time:.10f}s"
+        message = f"{self.name},{self.backend_name},{self.run_count},{self.total_time:.10f}s,{self.renoir_compile_time:.10f}s,{self.renoir_execute_time:.10f}s,{self.ibis_time:.10f}s"
         self.logger.info(message)
 
 

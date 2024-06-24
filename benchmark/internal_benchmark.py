@@ -4,6 +4,7 @@ import argparse
 import test.test_nexmark
 import test.test_operators
 import ibis
+import time
 
 
 def main():
@@ -53,7 +54,6 @@ def main():
                 test_instance.preload_tables(backend)
 
             for _ in range(args.warmup):
-                # TODO: start timer here
                 run_once(test_case, test_instance, -1)
 
             for i in range(args.runs):
@@ -65,14 +65,18 @@ def run_once(test_case: str, test_instance: test.TestCompiler, run_count: int, b
     test_instance.benchmark.backend_name = backend
 
     print(f"running query with with: {ibis.get_backend().name}")
+
+    start_time = time.perf_counter()
     eval(f"test_instance.{test_case}()", {"test_instance": test_instance})
     # If the backend is renoir, we have already performed the compilation to renoir code and ran it
     # after this line
 
-    if backend == "renoir":
-        test_instance.benchmark.log()
-        return
-    test_instance.query.to_pandas().head()
+    if backend != "renoir":
+        test_instance.query.execute()
+
+    end_time = time.perf_counter()
+    test_instance.benchmark.total_time = end_time - start_time
+    test_instance.benchmark.log()
 
 
 if __name__ == "__main__":
