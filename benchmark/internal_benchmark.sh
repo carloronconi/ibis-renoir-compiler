@@ -9,7 +9,7 @@
 source .venv3.11/bin/activate
 
 python -m benchmark.internal_benchmark \
-    --test_pattern TestNullable \
+    --test_patterns TestNullable TestNexmark \
     --runs 10 \
     --warmup 1 \
     --table_origin cached \

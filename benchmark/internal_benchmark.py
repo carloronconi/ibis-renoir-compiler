@@ -11,9 +11,9 @@ import codegen.benchmark as bm
 
 def main():
     parser = argparse.ArgumentParser("ibis-renoir-compiler")
-    parser.add_argument("--test_pattern",
+    parser.add_argument("--test_patterns",
                         help="Pattern to select which tests to run among those discoverable by unittest. By default all are included",
-                        default="", type=str)
+                        default=[""], type=str, nargs='+')
     parser.add_argument("--runs",
                         help="Number of runs to perform for each test. Defaults to 10",
                         type=int, default=10)
@@ -35,7 +35,7 @@ def main():
                         type=str, default=datetime.now().strftime("%Y-%m-%d_%H:%M:%S"))
     args = parser.parse_args()
 
-    tests_full = [t for t in bench.main() if args.test_pattern in t]
+    tests_full = [t for t in bench.main() if any(pat in t for pat in args.test_patterns)]
     tests_split: list[tuple] = [t.rsplit(".", 1) for t in tests_full]
 
     for test_class, test_case in tests_split:
