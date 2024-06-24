@@ -19,7 +19,13 @@ class TestNullableOperators(TestCompiler):
         file_prefix = ROOT_DIR + "/data/nullable_op/"
         file_suffix = file_suffix + ".csv"
         self.files = {n: f"{file_prefix}{n}{file_suffix}" for n in names}
-        self.tables = {n: ibis.read_csv(f) for n, f in self.files.items()}
+        schemas = {"ints_strings":  ibis.schema({"int1": ibis.dtype("int64"),
+                                                 "string1": ibis.dtype("string"),
+                                                 "int4": ibis.dtype("int64")}),
+                   "many_ints":     ibis.schema({"int1": ibis.dtype("int64"),
+                                                 "int2": ibis.dtype("int64"),
+                                                 "int3": ibis.dtype("int64")})}
+        self.tables = {n: ibis.read_csv(f, schema=None) for n, f in self.files.items()}
 
     def test_nullable_filter_select(self):
         self.query = (self.tables["ints_strings"]
@@ -68,7 +74,8 @@ class TestNullableOperators(TestCompiler):
         self.query = (self.tables["ints_strings"]
                       .filter(_.string1 == "unduetre")
                       .group_by("string1")
-                      .aggregate(int1_agg=_["int1"].first())  # TODO: first() can be flaky as ordering is not guaranteed in either ibis or noir
+                      # TODO: first() can be flaky as ordering is not guaranteed in either ibis or noir
+                      .aggregate(int1_agg=_["int1"].first())
                       .mutate(mul=_.int1_agg * 20))  # mutate always results in alias preceded by Multiply (or other bin op)
 
         if self.perform_compilation:
@@ -335,7 +342,8 @@ class TestNonNullableOperators(TestCompiler):
         self.schema = ibis.schema({"fruit": ibis.dtype("!string"),
                                    "weight": ibis.dtype("!int64"),
                                    "price": ibis.dtype("int64")})
-        self.tables = {n: ibis.table(self.schema) for n, _ in self.files.items()}
+        self.tables = {n: ibis.table(self.schema)
+                       for n, _ in self.files.items()}
 
     def test_non_nullable_filter_select(self):
         self.query_func = lambda tables: (tables["fruit_left"]
