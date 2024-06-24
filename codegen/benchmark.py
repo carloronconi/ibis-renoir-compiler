@@ -5,9 +5,9 @@ from datetime import datetime
 
 
 class Benchmark:
-    def __init__(self, name):
+    def __init__(self, name, dir=None):
         self.name = name
-        self.logger = setup_logger()
+        self.logger = setup_logger(dir)
         self.total_time = -1
         self.renoir_compile_time = -1
         self.renoir_execute_time = -1
@@ -20,13 +20,15 @@ class Benchmark:
         self.logger.info(message)
 
 
-def setup_logger() -> logging.Logger:
-    logger = logging.getLogger("codegen_log")
-    file = utl.ROOT_DIR + "/log/codegen_log.csv"
+def setup_logger(dir) -> logging.Logger:
+    name = f"{dir}/codegen_log" if dir else "codegen_log"
+    logger = logging.getLogger(name)
+    file = utl.ROOT_DIR + f"/log/{name}.csv"
     if not os.path.isfile(file):
+        os.makedirs(os.path.dirname(file), exist_ok=True)
         with open(file, "w") as f:
             f.write(
-                "level,timestamp,test_name,backend_name,run_count,renoir_compile_time,renoir_execution_time,ibis_total_time\n")
+                "level,timestamp,test_name,backend_name,run_count,total_time,renoir_compile_time,renoir_execution_time,ibis_time\n")
     if not logger.hasHandlers():
         handler = logging.FileHandler(file, mode='a')
         handler.setFormatter(CustomFormatter(

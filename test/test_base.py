@@ -64,7 +64,7 @@ class TestCompiler(unittest.TestCase):
         elif backend == "polars":
             ibis.set_backend("polars")
         else:
-            raise ValueError("Backend not supported - check if it requires special ibis setup before adding")
+            raise ValueError(f"Backend {backend} not supported - check if it requires special ibis setup before adding")
         
     def preload_tables(self, backend: str):
         if backend == ("renoir" or "flink"):

@@ -5,6 +5,8 @@ import test.test_nexmark
 import test.test_operators
 import ibis
 import time
+from datetime import datetime
+import codegen.benchmark as bm
 
 
 def main():
@@ -23,20 +25,24 @@ def main():
                         default="", type=str)
     parser.add_argument("--backends",
                         help="List of backends to use among duckdb, flink, polars, renoir. Defaults to all.",
-                        type=list[str], default=["duckdb", "flink", "polars", "renoir"])
+                        type=str, nargs='+', default=["duckdb", "flink", "polars", "renoir"])
     parser.add_argument("--table_origin",
                         help="Instead of running the query starting from the csv load, read it directly from backend table. \
                               No need to perform load as instrumented run can load before running without affecting the measured data",
                         type=str, choices=["csv", "cached"],  default="csv")
+    parser.add_argument("--dir",
+                        help="Where to store the log file. Defaults to directory from timestamp.",
+                        type=str, default=datetime.now().strftime("%Y-%m-%d_%H:%M:%S"))
     args = parser.parse_args()
 
-    tests_full = [t for t in bench.main() if args.pattern in t]
+    tests_full = [t for t in bench.main() if args.test_pattern in t]
     tests_split: list[tuple] = [t.rsplit(".", 1) for t in tests_full]
 
     for test_class, test_case in tests_split:
         for backend in args.backends:
             test_instance: test.TestCompiler = eval(
                 f"{test_class}(\"{test_case}\")")
+            test_instance.benchmark = bm.Benchmark(test_case, args.dir)
 
             # in case the backend is renoir, we leave the default duckdb backend to read the tables to create the AST
             # otherwise, we load the tables with the desired one
@@ -54,10 +60,10 @@ def main():
                 test_instance.preload_tables(backend)
 
             for _ in range(args.warmup):
-                run_once(test_case, test_instance, -1)
+                run_once(test_case, test_instance, -1, backend)
 
             for i in range(args.runs):
-                run_once(test_case, test_instance, i)
+                run_once(test_case, test_instance, i, backend)
 
 
 def run_once(test_case: str, test_instance: test.TestCompiler, run_count: int, backend: str):
