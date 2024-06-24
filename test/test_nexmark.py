@@ -9,16 +9,47 @@ class TestNexmark(TestCompiler):
     CURRENT_TIME = 2330277279926
 
     def setUp(self):
-        self.init_table_files()
+        self.init_files()
+        self.init_tables()
         super().setUp()
 
-    def init_table_files(self, file_suffix=""):
+    def init_files(self, file_suffix=""):
         names = ["auction", "bid", "person"]
         file_prefix = ROOT_DIR + "/data/nexmark/"
         file_suffix = file_suffix + ".csv"
-
         self.files = {n: f"{file_prefix}{n}{file_suffix}" for n in names}
-        self.tables = {n: ibis.read_csv(f) for n, f in self.files.items()}
+
+    def init_table_files(self, file_suffix=""):
+        if ibis.get_backend().name == "flink":
+            schemas = {"auction":   ibis.schema({"id": ibis.dtype("int64"),
+                                                 "item_name": ibis.dtype("string"),
+                                                 "description": ibis.dtype("string"),
+                                                 "initial_bid": ibis.dtype("int64"),
+                                                 "reserve": ibis.dtype("int64"),
+                                                 "date_time": ibis.dtype("int64"),
+                                                 "expires": ibis.dtype("int64"),
+                                                 "seller": ibis.dtype("int64"),
+                                                 "category": ibis.dtype("int64"),
+                                                 "extra": ibis.dtype("string")}),
+                       "bid":       ibis.schema({"auction": ibis.dtype("int64"),
+                                                 "bidder": ibis.dtype("int64"),
+                                                 "price": ibis.dtype("int64"),
+                                                 "channel": ibis.dtype("string"),
+                                                 "url": ibis.dtype("string"),
+                                                 "date_time": ibis.dtype("int64"),
+                                                 "extra": ibis.dtype("string")}),
+                       "person":    ibis.schema({"id": ibis.dtype("int64"),
+                                                 "name": ibis.dtype("string"),
+                                                 "email_address": ibis.dtype("string"),
+                                                 "credit_card": ibis.dtype("string"),
+                                                 "city": ibis.dtype("string"),
+                                                 "state": ibis.dtype("string"),
+                                                 "date_time": ibis.dtype("int64"),
+                                                 "extra": ibis.dtype("string")})}
+            self.tables = {n: ibis.read_csv(
+                f, schema=schemas[n]) for n, f in self.files.items()}
+        else:
+            self.tables = {n: ibis.read_csv(f) for n, f in self.files.items()}
 
     def test_nexmark_query_1(self):
         """

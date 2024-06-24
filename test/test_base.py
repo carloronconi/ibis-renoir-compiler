@@ -10,6 +10,9 @@ from difflib import unified_diff
 from codegen import ROOT_DIR, Benchmark
 from ibis import _
 from pyflink.table import EnvironmentSettings, TableEnvironment
+import os
+from shutil import move
+from tempfile import NamedTemporaryFile
 
 
 class TestCompiler(unittest.TestCase):
@@ -67,7 +70,7 @@ class TestCompiler(unittest.TestCase):
             raise ValueError(f"Backend {backend} not supported - check if it requires special ibis setup before adding")
         
     def preload_tables(self, backend: str):
-        if backend == ("renoir" or "flink"):
+        if backend == "renoir" or backend == "flink":
             # streaming backends don't allow preloading tables
             return
         # duckdb and polars allow preloading tables
@@ -76,8 +79,38 @@ class TestCompiler(unittest.TestCase):
             con.create_table(name, table.to_pandas(), overwrite=True)
             self.tables[name] = con.table(name)
 
-    def init_table_files(self, file_suffix=""):
+    def chop_file_headers(self):
+        self.headers = {}
+        for name, file_path in self.files.items():
+            temp_path = None
+            with open(file_path, 'r') as f_in:
+                with NamedTemporaryFile(mode='w', delete=False) as f_out:
+                    temp_path = f_out.name
+                    self.headers[name] = next(f_in)  # skip first line
+                    for line in f_in:
+                        f_out.write(line)
+
+            os.remove(file_path)
+            move(temp_path, file_path)
+
+    def restore_file_headers(self):
+        for name, file_path in self.files.items():
+            temp_path = None
+            with open(file_path, 'r') as f_in:
+                with NamedTemporaryFile(mode='w', delete=False) as f_out:
+                    temp_path = f_out.name
+                    f_out.write(self.headers[name])
+                    for line in f_in:
+                        f_out.write(line)
+
+            os.remove(file_path)
+            move(temp_path, file_path)
+
+    def init_files(self, file_suffix=""):
         raise NotImplementedError      
+    
+    def init_tables(self):
+        raise NotImplementedError 
 
     def tearDown(self) -> None:
         if not self.benchmark:

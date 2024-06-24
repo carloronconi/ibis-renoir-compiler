@@ -51,10 +51,15 @@ def main():
 
             test_instance.init_benchmark_settings(
                 perform_compilation=(backend == "renoir"))
+            
+            test_instance.init_files(file_suffix=args.path_suffix)
+            if backend == "flink":
+                # flink doesn't support csv files with headers
+                test_instance.chop_file_headers()
+            test_instance.init_tables()
 
             # if table origin is cached, we need to pre-load the tables in the backends before submitting the queries
             # otherwise, we measure the time of both loading the table and running the query
-            test_instance.init_table_files(file_suffix=args.path_suffix)
             if args.table_origin == "cached":
                 test_instance.preload_tables(backend)
 
@@ -63,6 +68,9 @@ def main():
 
             for i in range(args.runs):
                 run_once(test_case, test_instance, i, backend)
+            
+            if backend == "flink":
+                test_instance.restore_file_headers()
 
 
 def run_once(test_case: str, test_instance: test.TestCompiler, run_count: int, backend: str):
@@ -75,13 +83,18 @@ def run_once(test_case: str, test_instance: test.TestCompiler, run_count: int, b
     # after this line
 
     if backend != "renoir":
-        test_instance.query.execute()
+        try:
+            test_instance.query.execute()
+        except ibis.common.exceptions.UnsupportedOperationError:
+            print(f"failed once - backend: {backend}\tunsupported query: {test_case}")
+            test_instance.benchmark.total_time = -1
+            test_instance.benchmark.log()
+            return
 
     end_time = time.perf_counter()
     total_time = end_time - start_time
     test_instance.benchmark.total_time = total_time
     test_instance.benchmark.log()
-
     print(f"ran once - backend: {backend}\trun: {run_count:03}\ttime: {total_time:.10f}\tquery: {test_case}")
 
 
