@@ -11,15 +11,30 @@ from test.test_base import TestCompiler
 class TestNullableOperators(TestCompiler):
 
     def setUp(self):
-        self.init_table_files()
+        self.init_files()
+        self.init_tables()
         super().setUp()
 
-    def init_table_files(self, file_suffix="", skip_tables=False):
+    def init_files(self, file_suffix=""):
         names = ["ints_strings", "many_ints"]
         file_prefix = ROOT_DIR + "/data/nullable_op/"
         file_suffix = file_suffix + ".csv"
         self.files = {n: f"{file_prefix}{n}{file_suffix}" for n in names}
-        if not skip_tables:
+
+    def init_tables(self):
+        if ibis.get_backend().name == "flink":
+            # flink requires to explicitly specify schema and doesn't support headers
+            # we take care of headers when running benchmark, so that when we run the query
+            # and it's loaded from file the same issue doesn't occur
+            schemas = {"ints_strings":  ibis.schema({"int1": ibis.dtype("int64"),
+                                                     "string1": ibis.dtype("string"),
+                                                     "int4": ibis.dtype("int64")}),
+                       "many_ints":     ibis.schema({"int1": ibis.dtype("int64"),
+                                                     "int2": ibis.dtype("int64"),
+                                                     "int3": ibis.dtype("int64")})}
+            self.tables = {n: ibis.read_csv(
+                f, schema=schemas[n]) for n, f in self.files.items()}
+        else:
             self.tables = {n: ibis.read_csv(f) for n, f in self.files.items()}
 
     def test_nullable_filter_select(self):
@@ -54,7 +69,7 @@ class TestNullableOperators(TestCompiler):
         self.query = (self.tables["ints_strings"]
                       .filter(_.string1 == "unduetre")
                       .group_by("string1")
-                      .aggregate(int1_agg=_["int1"].first())
+                      .aggregate(int1_agg=_["int1"].sum())
                       .select(["int1_agg"]))
 
         if self.perform_compilation:
@@ -69,7 +84,7 @@ class TestNullableOperators(TestCompiler):
         self.query = (self.tables["ints_strings"]
                       .filter(_.string1 == "unduetre")
                       .group_by("string1")
-                      .aggregate(int1_agg=_["int1"].first())  # TODO: first() can be flaky as ordering is not guaranteed in either ibis or noir
+                      .aggregate(int1_agg=_["int1"].sum())
                       .mutate(mul=_.int1_agg * 20))  # mutate always results in alias preceded by Multiply (or other bin op)
 
         if self.perform_compilation:
@@ -325,19 +340,22 @@ class TestNullableOperators(TestCompiler):
 class TestNonNullableOperators(TestCompiler):
 
     def setUp(self):
-        self.init_table_files()
+        self.init_files()
+        self.init_tables()
         super().setUp()
 
-    def init_table_files(self, file_suffix="", skip_tables=False):
+    def init_files(self, file_suffix=""):
         names = ["fruit_left", "fruit_right"]
         file_prefix = ROOT_DIR + "/data/non_nullable_op/"
         file_suffix = file_suffix + ".csv"
         self.files = {n: f"{file_prefix}{n}{file_suffix}" for n in names}
+
+    def init_tables(self):
         self.schema = ibis.schema({"fruit": ibis.dtype("!string"),
                                    "weight": ibis.dtype("!int64"),
                                    "price": ibis.dtype("int64")})
-        if not skip_tables:
-            self.tables = {n: ibis.table(self.schema) for n, _ in self.files.items()}
+        self.tables = {n: ibis.table(self.schema)
+                       for n, _ in self.files.items()}
 
     def test_non_nullable_filter_select(self):
         self.query_func = lambda tables: (tables["fruit_left"]
@@ -374,7 +392,7 @@ class TestNonNullableOperators(TestCompiler):
         self.query_func = lambda tables:  (tables["fruit_left"]
                                            .filter(_.fruit == "Orange")
                                            .group_by("fruit")
-                                           .aggregate(int1_agg=_["price"].first())
+                                           .aggregate(int1_agg=_["price"].sum())
                                            .select(["int1_agg"]))
 
         self.query = self.query_func(self.tables)
@@ -391,7 +409,7 @@ class TestNonNullableOperators(TestCompiler):
         self.query_func = lambda tables: (tables["fruit_left"]
                                           .filter(_.fruit == "Orange")
                                           .group_by("fruit")
-                                          .aggregate(int1_agg=_["price"].first())
+                                          .aggregate(int1_agg=_["price"].sum())
                                           .mutate(mul=_.int1_agg * 20))
 
         self.query = self.query_func(self.tables)
