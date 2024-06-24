@@ -4,7 +4,6 @@ import argparse
 import test.test_nexmark
 import test.test_operators
 import ibis
-from pyflink.table import EnvironmentSettings, TableEnvironment
 
 
 def main():
@@ -27,7 +26,7 @@ def main():
     parser.add_argument("--table_origin",
                         help="Instead of running the query starting from the csv load, read it directly from backend table. \
                               No need to perform load as instrumented run can load before running without affecting the measured data",
-                        type=str, choices=["csv", "backend"],  default="csv")
+                        type=str, choices=["csv", "cached"],  default="csv")
     args = parser.parse_args()
 
     tests_full = [t for t in bench.main() if args.pattern in t]
@@ -35,57 +34,45 @@ def main():
 
     for test_class, test_case in tests_split:
         for backend in args.backends:
-            test_instance = eval(f"{test_class}(\"{test_case}\")")
-            # in case the backend is renoir, we leave the default duckdb backend to load the tables
-            # otherwise, we load the tables with the desired one
-            if backend != "renoir":
-                ibis.set_backend(backend)
-            # TODO: not sure of what the intended process should be in the two cases
-            if args.table_origin == "backend":
-                test_instance.init_table_files(file_suffix=args.path_suffix,
-                                               skip_tables=(args.table_origin == "backend" and args.backend != "renoir"))
-                
-    # TODO: old stuff from __main__.py to be converted
-    # renoir is tested in the same way regardless of the table_origin: we always load from csv
-    test_instance.init_table_files(file_suffix=args.path_suffix, skip_tables=(
-        args.table_origin == "backend" and args.backend != "renoir"))
-    if args.table_origin == "load":
-        test_instance.store_tables_in_backend(args.backend)
-        return
-    test_instance.run_after_gen = True
-    test_instance.render_query_graph = False
-    # leaving logging on doesn't seem to affect performance
-    # test_instance.benchmark = None
-    test_instance.perform_assertions = False
-    test_instance.perform_compilation = True if args.backend == "renoir" else False
-    # when running performance benchmarks, don't write to file
-    test_instance.print_output_to_file = False
-    if args.table_origin == "backend":
-        test_instance.read_tables_from_backend(args.backend)
+            test_instance: test.TestCompiler = eval(
+                f"{test_class}(\"{test_case}\")")
 
+            # in case the backend is renoir, we leave the default duckdb backend to read the tables to create the AST
+            # otherwise, we load the tables with the desired one
+            test_instance.set_backend(
+                backend, cached=args.table_origin == "cached")
+
+            test_instance.init_benchmark_settings(
+                perform_compilation=(backend == "renoir"))
+
+            # if table origin is cached, we need to pre-load the tables in the backends before submitting the queries
+            # otherwise, we measure the time of both loading the table and running the query
+            test_instance.init_table_files(file_suffix=args.path_suffix,
+                                           skip_tables=(args.table_origin == "cached"))
+            if args.table_origin == "cached":
+                test_instance.preload_tables(backend)
+
+            for _ in range(args.warmup):
+                # TODO: start timer here
+                run_once(test_case, test_instance, -1)
+
+            for i in range(args.runs):
+                run_once(test_case, test_instance, i)
+
+
+def run_once(test_case: str, test_instance: test.TestCompiler, run_count: int, backend: str):
+    test_instance.benchmark.run_count = run_count
+    test_instance.benchmark.backend_name = backend
+
+    print(f"running query with with: {ibis.get_backend().name}")
     eval(f"test_instance.{test_case}()", {"test_instance": test_instance})
     # If the backend is renoir, we have already performed the compilation to renoir code and ran it
-    if (args.backend == "renoir"):
-        if (test_instance.benchmark is not None):
-            test_instance.benchmark.log()
-        return
+    # after this line
 
-    # Else, the test we ran simply populated the query attribute with the ibis query
-    # and we can run it using to_pandas(), after setting the backend to the desired one
-    # Flink requires special setup
-    if (args.backend == "flink"):
-        table_env = TableEnvironment.create(
-            EnvironmentSettings.in_streaming_mode())
-        con = ibis.flink.connect(table_env)
-        ibis.set_backend(con)
-    else:
-        if args.table_origin == "csv":
-            ibis.set_backend(args.backend)
-        else:
-            ibis.set_backend(ibis.connect(
-                f"{args.backend}://{args.backend}.db"))
+    if backend == "renoir":
+        test_instance.benchmark.log()
+        return
     test_instance.query.to_pandas().head()
-    print(f"finished running query with: {ibis.get_backend().name}")
 
 
 if __name__ == "__main__":

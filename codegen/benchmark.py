@@ -11,18 +11,11 @@ class Benchmark:
         self.renoir_compile_time = -1
         self.renoir_execute_time = -1
         self.ibis_time = -1
-
-    def set_renoir_compile(self, time: float):
-        self.renoir_compile_time = time
-
-    def set_renoir_execute(self, time: float):
-        self.renoir_execute_time = time
-
-    def set_ibis(self, time: float):
-        self.ibis_time = time
+        self.run_count = -1
+        self.backend_name = "renoir"
 
     def log(self):
-        message = f"{self.name},{self.renoir_compile_time:.10f}s,{self.renoir_execute_time:.10f}s,{self.ibis_time:.10f}s"
+        message = f"{self.name},{self.backend_name},{self.run_count},{self.renoir_compile_time:.10f}s,{self.renoir_execute_time:.10f}s,{self.ibis_time:.10f}s"
         self.logger.info(message)
 
 
@@ -31,7 +24,8 @@ def setup_logger() -> logging.Logger:
     file = utl.ROOT_DIR + "/log/codegen_log.csv"
     if not os.path.isfile(file):
         with open(file, "w") as f:
-            f.write("level,timestamp,test_name,renoir_compile_time,renoir_execution_time,ibis_total_time\n")
+            f.write(
+                "level,timestamp,test_name,backend_name,run_count,renoir_compile_time,renoir_execution_time,ibis_total_time\n")
     if not logger.hasHandlers():
         handler = logging.FileHandler(file, mode='a')
         handler.setFormatter(CustomFormatter(

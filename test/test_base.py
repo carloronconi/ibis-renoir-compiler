@@ -9,6 +9,7 @@ import ibis
 from difflib import unified_diff
 from codegen import ROOT_DIR, Benchmark
 from ibis import _
+from pyflink.table import EnvironmentSettings, TableEnvironment
 
 
 class TestCompiler(unittest.TestCase):
@@ -40,20 +41,42 @@ class TestCompiler(unittest.TestCase):
         except FileNotFoundError:
             pass
 
-    def store_tables_in_backend(self, backend: str):
-        if backend == "renoir":
-            return
-        # create or connect to in-file database
-        connection = ibis.connect(f"{backend}://{backend}.db")
-        # store tables required by this test class instance on the db
-        for name, table in self.tables.items():
-            connection.create_table(name, table.to_pandas(), overwrite=True)
+    def init_benchmark_settings(self, perform_compilation: bool):
+        self.run_after_gen = True
+        self.render_query_graph = False
+        self.perform_assertions = False
+        self.perform_compilation = perform_compilation
+        self.print_output_to_file = False
 
-    def read_tables_from_backend(self, backend: str):
-        if backend == "renoir":
+    def set_backend(self, backend: str, cached: bool):
+        if backend == "renoir" or (backend == "duckdb" and not cached):
+            # in-memory duckdb, for renoir it's used just to create the AST
+            # while for duckdb it's used to store the tables
+            ibis.set_backend("duckdb")
+        elif backend == "duckdb" and cached:
+            # in-storage duckdb instance
+            ibis.set_backend(ibis.connect("duckdb://duckdb.db"))
+        elif backend == "flink":
+            table_env = TableEnvironment.create(
+                EnvironmentSettings.in_streaming_mode())
+            con = ibis.flink.connect(table_env)
+            ibis.set_backend(con)
+        elif backend == "polars":
+            ibis.set_backend("polars")
+        else:
+            raise ValueError("Backend not supported - check if it requires special ibis setup before adding")
+        
+    def preload_tables(self, backend: str):
+        if backend == ("renoir" or "flink"):
+            # streaming backends don't allow preloading tables
             return
-        connection = ibis.connect(f"{backend}://{backend}.db")
-        self.tables = {n: connection.table(n) for n in self.files.keys()}
+        # duckdb and polars allow preloading tables
+        for name, table in self.tables.items():
+            con = ibis.get_backend()
+            # TODO: check if polars actually improves run time when doing this
+            # being dataframe-based, we might need to cache in dataframe instead and load from it
+            con.create_table(name, table.to_pandas(), overwrite=True)
+            self.tables[name] = con.table(name)
 
     def init_table_files(self, file_suffix="", skip_tables=False):
         raise NotImplementedError      
@@ -86,7 +109,7 @@ class TestCompiler(unittest.TestCase):
             os.makedirs(directory)
         self.df_ibis.to_csv(directory + "/ibis-benchmark.csv")
         end_time = time.perf_counter()
-        self.benchmark.set_ibis(end_time - start_time)
+        self.benchmark.ibis_time = end_time - start_time
 
     def assert_equality_noir_source(self):
         test_expected_file = "/test/expected/" + \
