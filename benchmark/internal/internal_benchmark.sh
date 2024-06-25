@@ -8,13 +8,12 @@
 
 source .venv3.11/bin/activate
 
-python -m benchmark.internal_benchmark \
+python -m benchmark.internal.internal_benchmark \
     --test_patterns TestNullable TestNexmark \
     --runs 1 \
     --warmup 1 \
     --table_origin cached \
-    --dir $1 \
+    --dir internal/$1 \
     --backends duckdb polars flink renoir \
-    --path_suffix _10000000 \    
-&& cp benchmark/internal_benchmark.sh log/$1/internal_benchmark.sh
+&& cp benchmark/internal/internal_benchmark.sh log/internal/$1/internal_benchmark.sh
 

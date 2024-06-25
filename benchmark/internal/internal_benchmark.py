@@ -1,4 +1,4 @@
-import benchmark.load_tests as bench
+import benchmark.discover.load_tests as bench
 import test
 import argparse
 import test.test_nexmark

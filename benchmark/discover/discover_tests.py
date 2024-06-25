@@ -1,4 +1,4 @@
-import benchmark.load_tests as bench
+import benchmark.discover.load_tests as bench
 
 def main():
     test_cases = bench.main()
