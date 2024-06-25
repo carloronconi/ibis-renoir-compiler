@@ -85,8 +85,8 @@ def run_once(test_case: str, test_instance: test.TestCompiler, run_count: int, b
     if backend != "renoir":
         try:
             test_instance.query.execute()
-        except ibis.common.exceptions.UnsupportedOperationError:
-            print(f"failed once - backend: {backend}\tunsupported query: {test_case}")
+        except Exception as e:
+            print(f"failed once - backend: {backend}\t\tunsupported query: {test_case}\texception: {e}")
             test_instance.benchmark.total_time = -1
             test_instance.benchmark.log()
             return
