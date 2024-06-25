@@ -30,7 +30,7 @@ def main():
     parser.add_argument("--table_origin",
                         help="Instead of running the query starting from the csv load, read it directly from backend table. \
                               No need to perform load as instrumented run can load before running without affecting the measured data",
-                        type=str, choices=["csv", "cached"],  default="csv")
+                        type=str, nargs='+', choices=["csv", "cached"],  default="csv")
     parser.add_argument("--dir",
                         help="Where to store the log file. Defaults to directory from timestamp.",
                         type=str, default=datetime.now().strftime("%Y-%m-%d_%H:%M:%S"))
@@ -42,37 +42,39 @@ def main():
 
     for test_class, test_case in tests_split:
         for backend in args.backends:
-            test_instance: test.TestCompiler = eval(
-                f"{test_class}(\"{test_case}\")")
-            test_instance.benchmark = bm.Benchmark(test_case, args.dir)
-
-            # in case the backend is renoir, we leave the default duckdb backend to read the tables to create the AST
-            # otherwise, we load the tables with the desired one
-            test_instance.set_backend(
-                backend, cached=args.table_origin == "cached")
-
-            test_instance.init_benchmark_settings(
-                perform_compilation=(backend == "renoir"))
-
-            test_instance.init_files(file_suffix=args.path_suffix)
-            if backend == "flink":
-                # flink doesn't support csv files with headers
-                test_instance.chop_file_headers()
-            test_instance.init_tables()
-
-            # if table origin is cached, we need to pre-load the tables in the backends before submitting the queries
-            # otherwise, we measure the time of both loading the table and running the query
-            if args.table_origin == "cached":
-                test_instance.preload_tables(backend)
-
-            for _ in range(args.warmup):
-                run_once(test_case, test_instance, -1, backend)
-
-            for i in range(args.runs):
-                run_once(test_case, test_instance, i, backend)
-
-            if backend == "flink":
-                test_instance.restore_file_headers()
+            for table_origin in args.table_origin:
+                test_instance: test.TestCompiler = eval(
+                    f"{test_class}(\"{test_case}\")")
+                test_instance.benchmark = bm.Benchmark(test_case, args.dir)
+                test_instance.benchmark.table_origin = table_origin
+    
+                # in case the backend is renoir, we leave the default duckdb backend to read the tables to create the AST
+                # otherwise, we load the tables with the desired one
+                test_instance.set_backend(
+                    backend, cached=table_origin == "cached")
+    
+                test_instance.init_benchmark_settings(
+                    perform_compilation=(backend == "renoir"))
+    
+                test_instance.init_files(file_suffix=args.path_suffix)
+                if backend == "flink":
+                    # flink doesn't support csv files with headers
+                    test_instance.chop_file_headers()
+                test_instance.init_tables()
+    
+                # if table origin is cached, we need to pre-load the tables in the backends before submitting the queries
+                # otherwise, we measure the time of both loading the table and running the query
+                if table_origin == "cached":
+                    test_instance.preload_tables(backend)
+    
+                for _ in range(args.warmup):
+                    run_once(test_case, test_instance, -1, backend)
+    
+                for i in range(args.runs):
+                    run_once(test_case, test_instance, i, backend)
+    
+                if backend == "flink":
+                    test_instance.restore_file_headers()
 
 
 def run_once(test_case: str, test_instance: test.TestCompiler, run_count: int, backend: str):
