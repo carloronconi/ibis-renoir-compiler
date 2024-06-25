@@ -1,5 +1,4 @@
 .idea
-.vscode
 .venv*
 /out
 /log/codegen_log.csv
