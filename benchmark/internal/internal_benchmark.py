@@ -3,11 +3,11 @@ import test
 import argparse
 import test.test_nexmark
 import test.test_operators
-import ibis
 import time
 import codegen.benchmark as bm
-import tracemalloc
 from datetime import datetime
+import os
+import psutil
 
 
 def main():
@@ -36,7 +36,8 @@ def main():
                         type=str, default=datetime.now().strftime("%Y-%m-%d_%H:%M:%S"))
     args = parser.parse_args()
 
-    tests_full = [t for t in bench.main() if any(pat in t for pat in args.test_patterns)]
+    tests_full = [t for t in bench.main() if any(
+        pat in t for pat in args.test_patterns)]
     tests_split: list[tuple] = [t.rsplit(".", 1) for t in tests_full]
 
     for test_class, test_case in tests_split:
@@ -78,35 +79,42 @@ def run_once(test_case: str, test_instance: test.TestCompiler, run_count: int, b
     test_instance.benchmark.run_count = run_count
     test_instance.benchmark.backend_name = backend
 
-    tracemalloc.reset_peak()
-    tracemalloc.start()
+    start_memo = process_memory()
     start_time = time.perf_counter()
-    
+
     eval(f"test_instance.{test_case}()", {"test_instance": test_instance})
     # If the backend is renoir, we have already performed the compilation to renoir code and ran it
     # after this line
 
-    _, max_memory = tracemalloc.get_traced_memory()
+    end_memo = process_memory()
 
     if backend != "renoir":
         try:
             test_instance.query.execute()
-            _, max_memory = tracemalloc.get_traced_memory()
+            end_memo = process_memory()
         except Exception as e:
             print(
                 f"failed once - backend: {backend}\t\tunsupported query: {test_case}\texception: {e}")
-            test_instance.benchmark.total_time_s = -1
-            test_instance.benchmark.max_memory_B = max_memory
+            test_instance.benchmark.max_memory_B = process_memory() - start_memo
             test_instance.benchmark.log()
             return
 
     end_time = time.perf_counter()
     total_time = end_time - start_time
     test_instance.benchmark.total_time_s = total_time
-    test_instance.benchmark.max_memory_B = max_memory
+    total_memo = end_memo - start_memo
+    test_instance.benchmark.max_memory_B = total_memo
     test_instance.benchmark.log()
     print(
         f"ran once - backend: {backend}\trun: {run_count:03}\ttime: {total_time:.10f}\tquery: {test_case}")
+
+
+def process_memory():
+    process = psutil.Process(os.getpid())
+    memo = process.memory_info().rss
+    for child in process.children(recursive=True):
+        memo += child.memory_info().rss
+    return memo
 
 
 if __name__ == "__main__":
