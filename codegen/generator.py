@@ -37,7 +37,7 @@ def compile_ibis_to_noir(files_tables: list[tuple[str, PhysicalTable]],
 
     if benchmark:
         end_time = time.perf_counter()
-        benchmark.renoir_compile_time = end_time - start_time
+        benchmark.renoir_compile_time_s = end_time - start_time
 
     if run_after_gen:
         if benchmark:
@@ -47,7 +47,7 @@ def compile_ibis_to_noir(files_tables: list[tuple[str, PhysicalTable]],
             raise Exception("Noir code panicked!")
         if benchmark:
             end_time = time.perf_counter()
-            benchmark.renoir_execute_time = end_time - start_time
+            benchmark.renoir_execute_time_s = end_time - start_time
 
 
 def post_order_dfs(root: Node):

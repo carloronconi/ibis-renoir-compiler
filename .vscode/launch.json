@@ -8,14 +8,14 @@
             "name": "Internal benchmark: debug",
             "type": "debugpy",
             "request": "launch",
-            "module": "benchmark.internal_benchmark",
+            "module": "benchmark.internal.internal_benchmark",
             "console": "integratedTerminal",
             "args": ["--test_pattern", "TestNullable", "TestNexmark",
-                    "--runs", "2", 
+                    "--runs", "1", 
                     "--warmup", "1", 
                     "--table_origin", "cached", 
                     "--dir", "provaprova", 
-                    "--backends", "flink"],
+                    "--backends", "duckdb", "polars", "flink", "renoir"],
             "justMyCode": false
         },
         {

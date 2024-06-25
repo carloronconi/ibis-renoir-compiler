@@ -6,29 +6,40 @@ from datetime import datetime
 
 class Benchmark:
     def __init__(self, name, dir=None):
-        self.name = name
-        self.logger = setup_logger(dir)
-        self.total_time = -1
-        self.renoir_compile_time = -1
-        self.renoir_execute_time = -1
-        self.ibis_time = -1
-        self.run_count = -1
+        self.test_name = name
         self.backend_name = "renoir"
+        self.run_count = -1
+        self.total_time_s = -1
+        self.renoir_compile_time_s = -1
+        self.renoir_execute_time_s = -1
+        self.ibis_time_s = -1
+        self.max_memory_B = -1
+        self.logger = setup_logger(dir, self)
 
     def log(self):
-        message = f"{self.name},{self.backend_name},{self.run_count},{self.total_time:.10f}s,{self.renoir_compile_time:.10f}s,{self.renoir_execute_time:.10f}s,{self.ibis_time:.10f}s"
+        message = ""
+        for attr, val in self.__dict__.items():
+            if attr == "logger":
+                continue
+            message += f"{val},"
+        message = message[:-1]
         self.logger.info(message)
 
 
-def setup_logger(dir) -> logging.Logger:
+def setup_logger(dir, bench: Benchmark) -> logging.Logger:
     name = f"{dir}/codegen_log" if dir else "codegen_log"
     logger = logging.getLogger(name)
     file = utl.ROOT_DIR + f"/log/{name}.csv"
     if not os.path.isfile(file):
         os.makedirs(os.path.dirname(file), exist_ok=True)
+        header = "level,timestamp,"
+        for attr in bench.__dict__.keys():
+            if attr == "logger":
+                continue
+            header += f"{attr},"
+        header = header[:-1]
         with open(file, "w") as f:
-            f.write(
-                "level,timestamp,test_name,backend_name,run_count,total_time,renoir_compile_time,renoir_execution_time,ibis_time\n")
+            f.write(header + "\n")
     if not logger.hasHandlers():
         handler = logging.FileHandler(file, mode='a')
         handler.setFormatter(CustomFormatter(

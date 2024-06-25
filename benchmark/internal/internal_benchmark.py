@@ -5,8 +5,9 @@ import test.test_nexmark
 import test.test_operators
 import ibis
 import time
-from datetime import datetime
 import codegen.benchmark as bm
+import tracemalloc
+from datetime import datetime
 
 
 def main():
@@ -51,7 +52,7 @@ def main():
 
             test_instance.init_benchmark_settings(
                 perform_compilation=(backend == "renoir"))
-            
+
             test_instance.init_files(file_suffix=args.path_suffix)
             if backend == "flink":
                 # flink doesn't support csv files with headers
@@ -68,7 +69,7 @@ def main():
 
             for i in range(args.runs):
                 run_once(test_case, test_instance, i, backend)
-            
+
             if backend == "flink":
                 test_instance.restore_file_headers()
 
@@ -77,25 +78,35 @@ def run_once(test_case: str, test_instance: test.TestCompiler, run_count: int, b
     test_instance.benchmark.run_count = run_count
     test_instance.benchmark.backend_name = backend
 
+    tracemalloc.reset_peak()
+    tracemalloc.start()
     start_time = time.perf_counter()
+    
     eval(f"test_instance.{test_case}()", {"test_instance": test_instance})
     # If the backend is renoir, we have already performed the compilation to renoir code and ran it
     # after this line
 
+    _, max_memory = tracemalloc.get_traced_memory()
+
     if backend != "renoir":
         try:
             test_instance.query.execute()
+            _, max_memory = tracemalloc.get_traced_memory()
         except Exception as e:
-            print(f"failed once - backend: {backend}\t\tunsupported query: {test_case}\texception: {e}")
-            test_instance.benchmark.total_time = -1
+            print(
+                f"failed once - backend: {backend}\t\tunsupported query: {test_case}\texception: {e}")
+            test_instance.benchmark.total_time_s = -1
+            test_instance.benchmark.max_memory_B = max_memory
             test_instance.benchmark.log()
             return
 
     end_time = time.perf_counter()
     total_time = end_time - start_time
-    test_instance.benchmark.total_time = total_time
+    test_instance.benchmark.total_time_s = total_time
+    test_instance.benchmark.max_memory_B = max_memory
     test_instance.benchmark.log()
-    print(f"ran once - backend: {backend}\trun: {run_count:03}\ttime: {total_time:.10f}\tquery: {test_case}")
+    print(
+        f"ran once - backend: {backend}\trun: {run_count:03}\ttime: {total_time:.10f}\tquery: {test_case}")
 
 
 if __name__ == "__main__":

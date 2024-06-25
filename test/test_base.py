@@ -74,10 +74,9 @@ class TestCompiler(unittest.TestCase):
             # streaming backends don't allow preloading tables
             return
         # duckdb and polars allow preloading tables
+        con = ibis.get_backend()
         for name, table in self.tables.items():
-            con = ibis.get_backend()
-            con.create_table(name, table.to_pandas(), overwrite=True)
-            self.tables[name] = con.table(name)
+            self.tables[name] = con.create_table(name, table.to_pandas(), overwrite=True)
 
     def chop_file_headers(self):
         self.headers = {}
@@ -116,7 +115,7 @@ class TestCompiler(unittest.TestCase):
         if not self.benchmark:
             return
         # only run ibis query if not already run in assert_similarity_noir_output
-        if not hasattr(self.benchmark, "ibis_time"):
+        if not hasattr(self.benchmark, "ibis_time_s"):
             self.run_ibis_query()
         self.benchmark.log()
 
@@ -140,7 +139,7 @@ class TestCompiler(unittest.TestCase):
             os.makedirs(directory)
         self.df_ibis.to_csv(directory + "/ibis-benchmark.csv")
         end_time = time.perf_counter()
-        self.benchmark.ibis_time = end_time - start_time
+        self.benchmark.ibis_time_s = end_time - start_time
 
     def assert_equality_noir_source(self):
         test_expected_file = "/test/expected/" + \
