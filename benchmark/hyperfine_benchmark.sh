@@ -31,7 +31,7 @@ python3 -m benchmark.discover_tests | grep -v "non_nullable" | while IFS= read -
     for backend in "${backends[@]}"; do
         hyperfine --warmup 1 \
         "/usr/bin/time -a -o $memo -f '$trim,$backend,%e,%M,%U,%S,%x' \
-        python3 ../ibis-renoir-compiler $name --backend $backend --path_suffix $size_suffix" \
+        python3 -m benchmark.hyperfine_benchmark $name --backend $backend --path_suffix $size_suffix" \
         --export-json log/$1/hyperfine_${trim}${size_suffix}_${backend}.json
         printf "\n"
         # copy every time we run a test so if we quit before finish all tests we still have both
