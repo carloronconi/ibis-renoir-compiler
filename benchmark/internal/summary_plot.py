@@ -5,7 +5,7 @@ import plotly.express as px
 def main():
     parser = argparse.ArgumentParser(description='Plot summary of internal benchmark run.')
     parser.add_argument('dir', type=str, help='The directory containing the internal benchmark results')
-    parser.add_argument('--plot-type', choices=['backend', 'origin'], required=True, help='Choose the plot type: "backend" or "table_origin"')
+    parser.add_argument('--plot-type', choices=['backend', 'origin'], default='origin', help='Choose the plot type: "backend" or "origin"')
     args = parser.parse_args()
 
     file = args.dir + "/codegen_log.csv"

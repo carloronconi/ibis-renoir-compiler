@@ -11,8 +11,8 @@ INFO,2024-06-26 13:21:58.900,test_nullable_filter_filter_select_select,duckdb,1,
 INFO,2024-06-26 13:21:58.963,test_nullable_filter_filter_select_select,duckdb,2,0.060643368982709944,-1,-1,-1,0,cached,None
 INFO,2024-06-26 13:21:59.025,test_nullable_filter_filter_select_select,duckdb,3,0.06000279600266367,-1,-1,-1,0,cached,None
 INFO,2024-06-26 13:21:59.089,test_nullable_filter_filter_select_select,duckdb,4,0.06124844902660698,-1,-1,-1,0,cached,None
-INFO,2024-06-26 13:26:59.285,test_nullable_filter_filter_select_select,polars,-1,-1,-1,-1,-1,-1,csv,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case, backend, table_origin
-INFO,2024-06-26 13:32:02.108,test_nullable_filter_filter_select_select,polars,-1,-1,-1,-1,-1,-1,cached,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case, backend, table_origin
+INFO,2024-06-26 13:26:59.285,test_nullable_filter_filter_select_select,polars,-1,-1,-1,-1,-1,-1,csv,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 13:32:02.108,test_nullable_filter_filter_select_select,polars,-1,-1,-1,-1,-1,-1,cached,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
 INFO,2024-06-26 13:32:13.555,test_nullable_filter_filter_select_select,flink,-1,5.916239749989472,-1,-1,-1,2745765888,csv,None
 INFO,2024-06-26 13:32:19.273,test_nullable_filter_filter_select_select,flink,0,5.715164268971421,-1,-1,-1,93999104,csv,None
 INFO,2024-06-26 13:32:23.025,test_nullable_filter_filter_select_select,flink,1,3.7489051460288465,-1,-1,-1,88715264,csv,None
@@ -49,8 +49,8 @@ INFO,2024-06-26 13:33:47.209,test_nullable_filter_group_mutate,duckdb,1,0.250238
 INFO,2024-06-26 13:33:47.461,test_nullable_filter_group_mutate,duckdb,2,0.25033398997038603,-1,-1,-1,0,cached,None
 INFO,2024-06-26 13:33:47.713,test_nullable_filter_group_mutate,duckdb,3,0.2492255059769377,-1,-1,-1,131072,cached,None
 INFO,2024-06-26 13:33:48.063,test_nullable_filter_group_mutate,duckdb,4,0.34711381793022156,-1,-1,-1,0,cached,None
-INFO,2024-06-26 13:38:48.230,test_nullable_filter_group_mutate,polars,-1,-1,-1,-1,-1,-1,csv,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case, backend, table_origin
-INFO,2024-06-26 13:43:51.106,test_nullable_filter_group_mutate,polars,-1,-1,-1,-1,-1,-1,cached,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case, backend, table_origin
+INFO,2024-06-26 13:38:48.230,test_nullable_filter_group_mutate,polars,-1,-1,-1,-1,-1,-1,csv,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 13:43:51.106,test_nullable_filter_group_mutate,polars,-1,-1,-1,-1,-1,-1,cached,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
 INFO,2024-06-26 13:43:58.842,test_nullable_filter_group_mutate,flink,-1,3.907849767943844,-1,-1,-1,70819840,csv,None
 INFO,2024-06-26 13:44:03.742,test_nullable_filter_group_mutate,flink,0,4.896775281988084,-1,-1,-1,458186752,csv,None
 INFO,2024-06-26 13:44:07.910,test_nullable_filter_group_mutate,flink,1,4.166129692923278,-1,-1,-1,-937672704,csv,None
@@ -87,9 +87,9 @@ INFO,2024-06-26 13:46:42.933,test_nullable_filter_group_mutate_reduce,duckdb,1,7
 INFO,2024-06-26 13:46:50.190,test_nullable_filter_group_mutate_reduce,duckdb,2,7.254498281981796,-1,-1,-1,-159744,cached,None
 INFO,2024-06-26 13:46:57.422,test_nullable_filter_group_mutate_reduce,duckdb,3,7.229905575979501,-1,-1,-1,131072,cached,None
 INFO,2024-06-26 13:47:04.638,test_nullable_filter_group_mutate_reduce,duckdb,4,7.213251926936209,-1,-1,-1,0,cached,None
-INFO,2024-06-26 13:52:04.829,test_nullable_filter_group_mutate_reduce,polars,-1,-1,-1,-1,-1,-1,csv,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case, backend, table_origin
-INFO,2024-06-26 13:57:07.657,test_nullable_filter_group_mutate_reduce,polars,-1,-1,-1,-1,-1,-1,cached,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case, backend, table_origin
-INFO,2024-06-26 14:02:14.626,test_nullable_filter_group_mutate_reduce,flink,-1,-1,-1,-1,-1,-1,csv,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case, backend, table_origin
+INFO,2024-06-26 13:52:04.829,test_nullable_filter_group_mutate_reduce,polars,-1,-1,-1,-1,-1,-1,csv,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 13:57:07.657,test_nullable_filter_group_mutate_reduce,polars,-1,-1,-1,-1,-1,-1,cached,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 14:02:14.626,test_nullable_filter_group_mutate_reduce,flink,-1,-1,-1,-1,-1,-1,csv,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
 INFO,2024-06-26 14:02:18.340,test_nullable_filter_group_mutate_reduce,renoir,-1,-1,-1,-1,-1,-1,cached,EnvironmentSettings does not exist in the JVM
 INFO,2024-06-26 14:02:21.680,test_nullable_filter_group_mutate_reduce,renoir,-1,3.251350317033939,1.774598688003607,1.4438728900859132,-1,0,csv,None
 INFO,2024-06-26 14:02:24.785,test_nullable_filter_group_mutate_reduce,renoir,0,3.1022577199619263,1.611620615934953,1.4572240479756147,-1,131072,csv,None
@@ -115,8 +115,8 @@ INFO,2024-06-26 14:03:17.021,test_nullable_filter_group_select,duckdb,1,0.292493
 INFO,2024-06-26 14:03:17.281,test_nullable_filter_group_select,duckdb,2,0.257111006998457,-1,-1,-1,0,cached,None
 INFO,2024-06-26 14:03:17.540,test_nullable_filter_group_select,duckdb,3,0.2562615320784971,-1,-1,-1,0,cached,None
 INFO,2024-06-26 14:03:17.798,test_nullable_filter_group_select,duckdb,4,0.2564029030036181,-1,-1,-1,131072,cached,None
-INFO,2024-06-26 14:08:17.970,test_nullable_filter_group_select,polars,-1,-1,-1,-1,-1,-1,csv,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case, backend, table_origin
-INFO,2024-06-26 14:13:20.931,test_nullable_filter_group_select,polars,-1,-1,-1,-1,-1,-1,cached,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case, backend, table_origin
+INFO,2024-06-26 14:08:17.970,test_nullable_filter_group_select,polars,-1,-1,-1,-1,-1,-1,csv,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 14:13:20.931,test_nullable_filter_group_select,polars,-1,-1,-1,-1,-1,-1,cached,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
 INFO,2024-06-26 14:13:20.932,test_nullable_filter_group_select,renoir,-1,-1,-1,-1,-1,-1,csv,EnvironmentSettings does not exist in the JVM
 INFO,2024-06-26 14:13:20.933,test_nullable_filter_group_select,renoir,-1,-1,-1,-1,-1,-1,cached,'c'
 INFO,2024-06-26 14:13:23.136,test_nullable_filter_group_select,renoir,-1,2.113067755009979,1.6681219479069114,0.4083590148948133,-1,-561496064,csv,None
@@ -143,8 +143,8 @@ INFO,2024-06-26 14:14:11.155,test_nullable_filter_reduce,duckdb,1,0.254528161021
 INFO,2024-06-26 14:14:11.414,test_nullable_filter_reduce,duckdb,2,0.25667762907687575,-1,-1,-1,0,cached,None
 INFO,2024-06-26 14:14:11.675,test_nullable_filter_reduce,duckdb,3,0.2580786539474502,-1,-1,-1,131072,cached,None
 INFO,2024-06-26 14:14:11.933,test_nullable_filter_reduce,duckdb,4,0.2554804760729894,-1,-1,-1,0,cached,None
-INFO,2024-06-26 14:19:12.077,test_nullable_filter_reduce,polars,-1,-1,-1,-1,-1,-1,csv,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case, backend, table_origin
-INFO,2024-06-26 14:24:14.917,test_nullable_filter_reduce,polars,-1,-1,-1,-1,-1,-1,cached,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case, backend, table_origin
+INFO,2024-06-26 14:19:12.077,test_nullable_filter_reduce,polars,-1,-1,-1,-1,-1,-1,csv,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 14:24:14.917,test_nullable_filter_reduce,polars,-1,-1,-1,-1,-1,-1,cached,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
 INFO,2024-06-26 14:24:14.917,test_nullable_filter_reduce,renoir,-1,-1,-1,-1,-1,-1,csv,EnvironmentSettings does not exist in the JVM
 INFO,2024-06-26 14:24:14.918,test_nullable_filter_reduce,renoir,-1,-1,-1,-1,-1,-1,cached,'c'
 INFO,2024-06-26 14:24:17.061,test_nullable_filter_reduce,renoir,-1,2.056306482059881,1.5714947540545836,0.4476978820748627,-1,-561496064,csv,None
@@ -171,8 +171,8 @@ INFO,2024-06-26 14:25:00.226,test_nullable_filter_select,duckdb,1,0.257075958070
 INFO,2024-06-26 14:25:00.488,test_nullable_filter_select,duckdb,2,0.2593202641000971,-1,-1,-1,0,cached,None
 INFO,2024-06-26 14:25:00.748,test_nullable_filter_select,duckdb,3,0.2575714990962297,-1,-1,-1,131072,cached,None
 INFO,2024-06-26 14:25:01.043,test_nullable_filter_select,duckdb,4,0.2922205039067194,-1,-1,-1,0,cached,None
-INFO,2024-06-26 14:30:01.217,test_nullable_filter_select,polars,-1,-1,-1,-1,-1,-1,csv,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case, backend, table_origin
-INFO,2024-06-26 14:35:04.124,test_nullable_filter_select,polars,-1,-1,-1,-1,-1,-1,cached,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case, backend, table_origin
+INFO,2024-06-26 14:30:01.217,test_nullable_filter_select,polars,-1,-1,-1,-1,-1,-1,csv,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 14:35:04.124,test_nullable_filter_select,polars,-1,-1,-1,-1,-1,-1,cached,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
 INFO,2024-06-26 14:35:04.125,test_nullable_filter_select,renoir,-1,-1,-1,-1,-1,-1,csv,EnvironmentSettings does not exist in the JVM
 INFO,2024-06-26 14:35:04.125,test_nullable_filter_select,renoir,-1,-1,-1,-1,-1,-1,cached,'c'
 INFO,2024-06-26 14:35:05.516,test_nullable_filter_select,renoir,-1,1.3006540889618918,0.8525741609046236,0.4107003449462354,-1,-561496064,csv,None
@@ -199,8 +199,8 @@ INFO,2024-06-26 14:36:12.908,test_nullable_group_reduce_group_reduce_join,duckdb
 INFO,2024-06-26 14:36:15.784,test_nullable_group_reduce_group_reduce_join,duckdb,2,2.8728783710394055,-1,-1,-1,131072,cached,None
 INFO,2024-06-26 14:36:18.656,test_nullable_group_reduce_group_reduce_join,duckdb,3,2.86955385399051,-1,-1,-1,0,cached,None
 INFO,2024-06-26 14:36:21.546,test_nullable_group_reduce_group_reduce_join,duckdb,4,2.887503723963164,-1,-1,-1,0,cached,None
-INFO,2024-06-26 14:41:21.726,test_nullable_group_reduce_group_reduce_join,polars,-1,-1,-1,-1,-1,-1,csv,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case, backend, table_origin
-INFO,2024-06-26 14:46:24.540,test_nullable_group_reduce_group_reduce_join,polars,-1,-1,-1,-1,-1,-1,cached,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case, backend, table_origin
+INFO,2024-06-26 14:41:21.726,test_nullable_group_reduce_group_reduce_join,polars,-1,-1,-1,-1,-1,-1,csv,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 14:46:24.540,test_nullable_group_reduce_group_reduce_join,polars,-1,-1,-1,-1,-1,-1,cached,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
 INFO,2024-06-26 14:46:24.540,test_nullable_group_reduce_group_reduce_join,renoir,-1,-1,-1,-1,-1,-1,csv,EnvironmentSettings does not exist in the JVM
 INFO,2024-06-26 14:46:24.541,test_nullable_group_reduce_group_reduce_join,renoir,-1,-1,-1,-1,-1,-1,cached,'c'
 INFO,2024-06-26 14:46:31.026,test_nullable_group_reduce_group_reduce_join,renoir,-1,6.3942380079533905,3.5499089780496433,2.805355684948154,-1,0,csv,None
@@ -227,8 +227,8 @@ INFO,2024-06-26 14:48:28.744,test_nullable_group_reduce_join_mutate,duckdb,1,2.1
 INFO,2024-06-26 14:48:30.959,test_nullable_group_reduce_join_mutate,duckdb,2,2.2119551439536735,-1,-1,-1,0,cached,None
 INFO,2024-06-26 14:48:33.198,test_nullable_group_reduce_join_mutate,duckdb,3,2.2365908820647746,-1,-1,-1,131072,cached,None
 INFO,2024-06-26 14:48:35.395,test_nullable_group_reduce_join_mutate,duckdb,4,2.1949458880117163,-1,-1,-1,0,cached,None
-INFO,2024-06-26 14:53:35.605,test_nullable_group_reduce_join_mutate,polars,-1,-1,-1,-1,-1,-1,csv,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case, backend, table_origin
-INFO,2024-06-26 14:58:38.519,test_nullable_group_reduce_join_mutate,polars,-1,-1,-1,-1,-1,-1,cached,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case, backend, table_origin
+INFO,2024-06-26 14:53:35.605,test_nullable_group_reduce_join_mutate,polars,-1,-1,-1,-1,-1,-1,csv,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 14:58:38.519,test_nullable_group_reduce_join_mutate,polars,-1,-1,-1,-1,-1,-1,cached,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
 INFO,2024-06-26 14:58:38.519,test_nullable_group_reduce_join_mutate,renoir,-1,-1,-1,-1,-1,-1,csv,EnvironmentSettings does not exist in the JVM
 INFO,2024-06-26 14:58:38.520,test_nullable_group_reduce_join_mutate,renoir,-1,-1,-1,-1,-1,-1,cached,'c'
 INFO,2024-06-26 14:58:44.810,test_nullable_group_reduce_join_mutate,renoir,-1,6.19798509508837,3.631881527020596,2.5260566000360996,-1,0,csv,None
@@ -255,8 +255,8 @@ INFO,2024-06-26 15:00:19.782,test_nullable_inner_join_select,duckdb,1,0.10685257
 INFO,2024-06-26 15:00:19.891,test_nullable_inner_join_select,duckdb,2,0.10656733403448015,-1,-1,-1,262144,cached,None
 INFO,2024-06-26 15:00:20.000,test_nullable_inner_join_select,duckdb,3,0.10741566098295152,-1,-1,-1,0,cached,None
 INFO,2024-06-26 15:00:20.110,test_nullable_inner_join_select,duckdb,4,0.10700081300456077,-1,-1,-1,0,cached,None
-INFO,2024-06-26 15:05:20.295,test_nullable_inner_join_select,polars,-1,-1,-1,-1,-1,-1,csv,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case, backend, table_origin
-INFO,2024-06-26 15:10:23.123,test_nullable_inner_join_select,polars,-1,-1,-1,-1,-1,-1,cached,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case, backend, table_origin
+INFO,2024-06-26 15:05:20.295,test_nullable_inner_join_select,polars,-1,-1,-1,-1,-1,-1,csv,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 15:10:23.123,test_nullable_inner_join_select,polars,-1,-1,-1,-1,-1,-1,cached,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
 INFO,2024-06-26 15:10:23.123,test_nullable_inner_join_select,renoir,-1,-1,-1,-1,-1,-1,csv,EnvironmentSettings does not exist in the JVM
 INFO,2024-06-26 15:10:23.124,test_nullable_inner_join_select,renoir,-1,-1,-1,-1,-1,-1,cached,'c'
 INFO,2024-06-26 15:10:26.622,test_nullable_inner_join_select,renoir,-1,3.4095113310031593,2.348207812057808,1.019043295062147,-1,0,csv,None
@@ -283,8 +283,8 @@ INFO,2024-06-26 15:11:49.406,test_nullable_join_group_reduce,duckdb,1,1.89400887
 INFO,2024-06-26 15:11:51.256,test_nullable_join_group_reduce,duckdb,2,1.847490236046724,-1,-1,-1,0,cached,None
 INFO,2024-06-26 15:11:53.118,test_nullable_join_group_reduce,duckdb,3,1.8588861390016973,-1,-1,-1,0,cached,None
 INFO,2024-06-26 15:11:55.002,test_nullable_join_group_reduce,duckdb,4,1.881710187997669,-1,-1,-1,131072,cached,None
-INFO,2024-06-26 15:16:55.110,test_nullable_join_group_reduce,polars,-1,-1,-1,-1,-1,-1,csv,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case, backend, table_origin
-INFO,2024-06-26 15:21:58.011,test_nullable_join_group_reduce,polars,-1,-1,-1,-1,-1,-1,cached,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case, backend, table_origin
+INFO,2024-06-26 15:16:55.110,test_nullable_join_group_reduce,polars,-1,-1,-1,-1,-1,-1,csv,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 15:21:58.011,test_nullable_join_group_reduce,polars,-1,-1,-1,-1,-1,-1,cached,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
 INFO,2024-06-26 15:21:58.012,test_nullable_join_group_reduce,renoir,-1,-1,-1,-1,-1,-1,csv,EnvironmentSettings does not exist in the JVM
 INFO,2024-06-26 15:21:58.012,test_nullable_join_group_reduce,renoir,-1,-1,-1,-1,-1,-1,cached,'c'
 INFO,2024-06-26 15:22:04.088,test_nullable_join_group_reduce,renoir,-1,5.984494126052596,3.5091601370368153,2.432086989050731,-1,-561496064,csv,None
@@ -311,8 +311,8 @@ INFO,2024-06-26 15:25:35.694,test_nullable_left_join,duckdb,1,13.10407764709089,
 INFO,2024-06-26 15:25:48.879,test_nullable_left_join,duckdb,2,13.182183381053619,-1,-1,-1,0,cached,None
 INFO,2024-06-26 15:26:02.146,test_nullable_left_join,duckdb,3,13.264874423970468,-1,-1,-1,0,cached,None
 INFO,2024-06-26 15:26:15.384,test_nullable_left_join,duckdb,4,13.235481651965529,-1,-1,-1,0,cached,None
-INFO,2024-06-26 15:31:15.568,test_nullable_left_join,polars,-1,-1,-1,-1,-1,-1,csv,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case, backend, table_origin
-INFO,2024-06-26 15:36:18.531,test_nullable_left_join,polars,-1,-1,-1,-1,-1,-1,cached,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case, backend, table_origin
+INFO,2024-06-26 15:31:15.568,test_nullable_left_join,polars,-1,-1,-1,-1,-1,-1,csv,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 15:36:18.531,test_nullable_left_join,polars,-1,-1,-1,-1,-1,-1,cached,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
 INFO,2024-06-26 15:36:18.532,test_nullable_left_join,renoir,-1,-1,-1,-1,-1,-1,csv,EnvironmentSettings does not exist in the JVM
 INFO,2024-06-26 15:36:18.532,test_nullable_left_join,renoir,-1,-1,-1,-1,-1,-1,cached,'c'
 INFO,2024-06-26 15:36:23.609,test_nullable_left_join,renoir,-1,4.988810279057361,2.374967414070852,2.570534828933887,-1,-561496064,csv,None
@@ -339,8 +339,8 @@ INFO,2024-06-26 15:43:36.509,test_nullable_outer_join,duckdb,1,44.56699093105271
 INFO,2024-06-26 15:44:21.134,test_nullable_outer_join,duckdb,2,44.62281160301063,-1,-1,-1,0,cached,None
 INFO,2024-06-26 15:45:08.628,test_nullable_outer_join,duckdb,3,47.49155321600847,-1,-1,-1,0,cached,None
 INFO,2024-06-26 15:45:52.951,test_nullable_outer_join,duckdb,4,44.32013124099467,-1,-1,-1,131072,cached,None
-INFO,2024-06-26 15:50:53.052,test_nullable_outer_join,polars,-1,-1,-1,-1,-1,-1,csv,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case, backend, table_origin
-INFO,2024-06-26 15:55:55.985,test_nullable_outer_join,polars,-1,-1,-1,-1,-1,-1,cached,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case, backend, table_origin
+INFO,2024-06-26 15:50:53.052,test_nullable_outer_join,polars,-1,-1,-1,-1,-1,-1,csv,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 15:55:55.985,test_nullable_outer_join,polars,-1,-1,-1,-1,-1,-1,cached,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
 INFO,2024-06-26 15:55:55.986,test_nullable_outer_join,renoir,-1,-1,-1,-1,-1,-1,csv,EnvironmentSettings does not exist in the JVM
 INFO,2024-06-26 15:55:55.987,test_nullable_outer_join,renoir,-1,-1,-1,-1,-1,-1,cached,'c'
 INFO,2024-06-26 15:56:01.502,test_nullable_outer_join,renoir,-1,5.422901978017762,2.309079908998683,3.070762076997198,-1,-561496064,csv,None
@@ -595,8 +595,8 @@ INFO,2024-06-26 16:14:46.344,test_nexmark_query_1,duckdb,1,0.6794382269727066,-1
 INFO,2024-06-26 16:14:47.027,test_nexmark_query_1,duckdb,2,0.6807103110477328,-1,-1,-1,0,cached,None
 INFO,2024-06-26 16:14:47.741,test_nexmark_query_1,duckdb,3,0.712019169004634,-1,-1,-1,131072,cached,None
 INFO,2024-06-26 16:14:48.418,test_nexmark_query_1,duckdb,4,0.6736236209981143,-1,-1,-1,0,cached,None
-INFO,2024-06-26 16:19:48.602,test_nexmark_query_1,polars,-1,-1,-1,-1,-1,-1,csv,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case, backend, table_origin
-INFO,2024-06-26 16:24:54.858,test_nexmark_query_1,polars,-1,-1,-1,-1,-1,-1,cached,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case, backend, table_origin
+INFO,2024-06-26 16:19:48.602,test_nexmark_query_1,polars,-1,-1,-1,-1,-1,-1,csv,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 16:24:54.858,test_nexmark_query_1,polars,-1,-1,-1,-1,-1,-1,cached,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
 INFO,2024-06-26 16:24:54.858,test_nexmark_query_1,renoir,-1,-1,-1,-1,-1,-1,csv,EnvironmentSettings does not exist in the JVM
 INFO,2024-06-26 16:24:54.859,test_nexmark_query_1,renoir,-1,-1,-1,-1,-1,-1,cached,'c'
 INFO,2024-06-26 16:24:56.787,test_nexmark_query_1,renoir,-1,1.679367199074477,0.8316885760286823,0.7714553710538894,-1,0,csv,None
@@ -623,8 +623,8 @@ INFO,2024-06-26 16:26:03.914,test_nexmark_query_2,duckdb,1,0.293772274046205,-1,
 INFO,2024-06-26 16:26:04.204,test_nexmark_query_2,duckdb,2,0.2882258329773322,-1,-1,-1,0,cached,None
 INFO,2024-06-26 16:26:04.495,test_nexmark_query_2,duckdb,3,0.2884358689188957,-1,-1,-1,131072,cached,None
 INFO,2024-06-26 16:26:04.787,test_nexmark_query_2,duckdb,4,0.28864588390570134,-1,-1,-1,131072,cached,None
-INFO,2024-06-26 16:31:05.046,test_nexmark_query_2,polars,-1,-1,-1,-1,-1,-1,csv,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case, backend, table_origin
-INFO,2024-06-26 16:36:11.478,test_nexmark_query_2,polars,-1,-1,-1,-1,-1,-1,cached,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case, backend, table_origin
+INFO,2024-06-26 16:31:05.046,test_nexmark_query_2,polars,-1,-1,-1,-1,-1,-1,csv,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 16:36:11.478,test_nexmark_query_2,polars,-1,-1,-1,-1,-1,-1,cached,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
 INFO,2024-06-26 16:36:11.479,test_nexmark_query_2,renoir,-1,-1,-1,-1,-1,-1,csv,EnvironmentSettings does not exist in the JVM
 INFO,2024-06-26 16:36:11.479,test_nexmark_query_2,renoir,-1,-1,-1,-1,-1,-1,cached,'c'
 INFO,2024-06-26 16:36:13.482,test_nexmark_query_2,renoir,-1,1.7498254720121622,0.8897251109592617,0.7555185579694808,-1,0,csv,None
@@ -651,8 +651,8 @@ INFO,2024-06-26 16:37:16.036,test_nexmark_query_3,duckdb,1,0.9153485540300608,-1
 INFO,2024-06-26 16:37:16.918,test_nexmark_query_3,duckdb,2,0.8802864589961246,-1,-1,-1,0,cached,None
 INFO,2024-06-26 16:37:17.756,test_nexmark_query_3,duckdb,3,0.8356658939737827,-1,-1,-1,0,cached,None
 INFO,2024-06-26 16:37:18.597,test_nexmark_query_3,duckdb,4,0.8381421790691093,-1,-1,-1,-131072,cached,None
-INFO,2024-06-26 16:42:18.924,test_nexmark_query_3,polars,-1,-1,-1,-1,-1,-1,csv,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case, backend, table_origin
-INFO,2024-06-26 16:47:25.376,test_nexmark_query_3,polars,-1,-1,-1,-1,-1,-1,cached,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case, backend, table_origin
+INFO,2024-06-26 16:42:18.924,test_nexmark_query_3,polars,-1,-1,-1,-1,-1,-1,csv,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 16:47:25.376,test_nexmark_query_3,polars,-1,-1,-1,-1,-1,-1,cached,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
 INFO,2024-06-26 16:47:25.376,test_nexmark_query_3,renoir,-1,-1,-1,-1,-1,-1,csv,EnvironmentSettings does not exist in the JVM
 INFO,2024-06-26 16:47:25.377,test_nexmark_query_3,renoir,-1,-1,-1,-1,-1,-1,cached,'c'
 INFO,2024-06-26 16:47:28.877,test_nexmark_query_3,renoir,-1,2.829645916004665,2.4210825640475377,0.33448227494955063,-1,-1728978944,csv,None
@@ -679,7 +679,7 @@ INFO,2024-06-26 16:48:59.190,test_nexmark_query_4,duckdb,1,0.6954031529603526,-1
 INFO,2024-06-26 16:48:59.892,test_nexmark_query_4,duckdb,2,0.6994637870229781,-1,-1,-1,-131072,cached,None
 INFO,2024-06-26 16:49:00.596,test_nexmark_query_4,duckdb,3,0.7023591429460794,-1,-1,-1,0,cached,None
 INFO,2024-06-26 16:49:01.293,test_nexmark_query_4,duckdb,4,0.6944746089866385,-1,-1,-1,131072,cached,None
-INFO,2024-06-26 16:54:01.578,test_nexmark_query_4,polars,-1,-1,-1,-1,-1,-1,csv,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case, backend, table_origin
+INFO,2024-06-26 16:54:01.578,test_nexmark_query_4,polars,-1,-1,-1,-1,-1,-1,csv,run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
 INFO,2024-06-26 16:54:07.807,test_nexmark_query_4,polars,-1,0.2072711819782853,-1,-1,-1,-22581248,cached,None
 INFO,2024-06-26 16:54:08.015,test_nexmark_query_4,polars,0,0.20523697510361671,-1,-1,-1,0,cached,None
 INFO,2024-06-26 16:54:08.222,test_nexmark_query_4,polars,1,0.20528422400821,-1,-1,-1,0,cached,None
