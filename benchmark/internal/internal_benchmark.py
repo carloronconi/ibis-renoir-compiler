@@ -56,7 +56,7 @@ def main():
                     # in case the backend is renoir, we leave the default duckdb backend to read the tables to create the AST
                     # otherwise, we load the tables with the desired one
                     test_instance.set_backend(
-                        backend, cached=table_origin == "cached")
+                        backend, cached=(table_origin == "cached"))
 
                     test_instance.init_benchmark_settings(
                         perform_compilation=(backend == "renoir"))
@@ -119,7 +119,9 @@ def print_and_log(backend, test_case, table_origin, benchmark, exception):
     """
     print(
         f"failed once - backend: {backend}\ttable origin: {table_origin}\tquery: {test_case}\texception: {exception.__class__.__name__}\n{exception}")
-    benchmark.exception = f"{exception.__class__.__name__}: {exception}".replace(",", " ")
+    benchmark.exception = (f"{exception.__class__.__name__}: {exception}"
+                           .replace(",", " ")
+                           .replace("\n", " "))
     benchmark.log()
 
 
@@ -137,7 +139,7 @@ def run_timed(func, timeout):
         p.kill()
         p.join()
         raise TimeoutError(
-            f"run_timed killed function `{func.__name__}` after timeout of {timeout}s - skipping other runs with same combination of test_case, backend, table_origin")
+            f"run_timed killed function `{func.__name__}` after timeout of {timeout}s - skipping other runs with same combination of test_case + backend + table_origin")
 
 
 def process_memory():
