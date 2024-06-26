@@ -8,6 +8,10 @@ import codegen.benchmark as bm
 from datetime import datetime
 import os
 import psutil
+import multiprocessing
+
+
+RUN_ONCE_TIMEOUT_S = 60 * 5  # 5 minutes
 
 
 def main():
@@ -47,32 +51,32 @@ def main():
                     f"{test_class}(\"{test_case}\")")
                 test_instance.benchmark = bm.Benchmark(test_case, args.dir)
                 test_instance.benchmark.table_origin = table_origin
-    
+
                 # in case the backend is renoir, we leave the default duckdb backend to read the tables to create the AST
                 # otherwise, we load the tables with the desired one
                 test_instance.set_backend(
                     backend, cached=table_origin == "cached")
-    
+
                 test_instance.init_benchmark_settings(
                     perform_compilation=(backend == "renoir"))
-    
+
                 test_instance.init_files(file_suffix=args.path_suffix)
                 if backend == "flink":
                     # flink doesn't support csv files with headers
                     test_instance.chop_file_headers()
                 test_instance.init_tables()
-    
+
                 # if table origin is cached, we need to pre-load the tables in the backends before submitting the queries
                 # otherwise, we measure the time of both loading the table and running the query
                 if table_origin == "cached":
                     test_instance.preload_tables(backend)
-    
+
                 for _ in range(args.warmup):
                     run_once(test_case, test_instance, -1, backend)
-    
+
                 for i in range(args.runs):
                     run_once(test_case, test_instance, i, backend)
-    
+
                 if backend == "flink":
                     test_instance.restore_file_headers()
 
@@ -84,7 +88,13 @@ def run_once(test_case: str, test_instance: test.TestCompiler, run_count: int, b
     start_memo = process_memory()
     start_time = time.perf_counter()
 
-    eval(f"test_instance.{test_case}()", {"test_instance": test_instance})
+    try:
+        run_timed(eval(f"test_instance.{test_case}()", {"test_instance": test_instance}),
+                  RUN_ONCE_TIMEOUT_S)
+    except TimeoutError as e:
+        print_and_log(backend, test_case, start_memo,
+                      test_instance.benchmark, e)
+        return
     # If the backend is renoir, we have already performed the compilation to renoir code and ran it
     # after this line
 
@@ -92,13 +102,11 @@ def run_once(test_case: str, test_instance: test.TestCompiler, run_count: int, b
 
     if backend != "renoir":
         try:
-            test_instance.query.execute()
+            run_timed(test_instance.query.execute, RUN_ONCE_TIMEOUT_S)
             end_memo = process_memory()
         except Exception as e:
-            print(
-                f"failed once - backend: {backend}\t\tunsupported query: {test_case}\texception: {e}")
-            test_instance.benchmark.max_memory_B = process_memory() - start_memo
-            test_instance.benchmark.log()
+            print_and_log(backend, test_case, start_memo,
+                          test_instance.benchmark, e)
             return
 
     end_time = time.perf_counter()
@@ -109,6 +117,34 @@ def run_once(test_case: str, test_instance: test.TestCompiler, run_count: int, b
     test_instance.benchmark.log()
     print(
         f"ran once - backend: {backend}\trun: {run_count:03}\ttime: {total_time:.10f}\tquery: {test_case}")
+
+
+def print_and_log(backend, test_case, start_memo, benchmark, exception):
+    """
+    Looks like a code smell, but actually we want to capture exceptions and log them instead of crashing the whole
+    benchmarking process, so we can collect data from other tests even if one fails.
+    """
+    print(
+        f"failed once - backend: {backend}\t\tquery: {test_case}\texception: {exception.__class__.__name__}\n{exception}")
+    benchmark.max_memory_B = process_memory() - start_memo
+    benchmark.log()
+
+
+def run_timed(func, timeout):
+    """
+    Runs the given function with a timeout in seconds, killing it if it takes too long.
+    Useful for running tests that might hang: I'm looking at you, Flink.
+    """
+    p = multiprocessing.Process(target=func)
+    p.start()
+    # main thread waits for the timeout or the process to finish
+    p.join(timeout)
+    if p.is_alive():
+        # if process still running after timeout, kill it
+        p.kill()
+        p.join()
+        raise TimeoutError(
+            f"run_timed killed function `{func.__name__}` after timeout of {timeout}s")
 
 
 def process_memory():
