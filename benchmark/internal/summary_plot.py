@@ -23,13 +23,15 @@ def main():
         fig = px.scatter(agg_reset, x='test_name', y='total_time_s_mean', color='table_origin',
                          facet_col='backend_name',
                          labels={'test_name': 'Test Name', 'total_time_s_mean': 'Mean Total Time (s)', 'table_origin': 'Table Origin'},
-                         title='Mean Total Time per Test by Backend and Table Origin')
+                         title='Mean Total Time per Test by Backend and Table Origin',
+                         error_y='total_time_s_std')
     elif args.plot_type == 'origin':
         fig = px.scatter(agg_reset, x='test_name', y='total_time_s_mean', color='backend_name',
                          facet_col='table_origin',
                          labels={'test_name': 'Test Name', 'total_time_s_mean': 'Mean Total Time (s)', 'backend_name': 'Backend'},
-                         title='Mean Total Time per Test by Table Origin and Backend')
-
+                         title='Mean Total Time per Test by Table Origin and Backend',
+                         error_y='total_time_s_std')
+        
     fig.update_layout(xaxis_title='Test Name',
                       yaxis_title='Mean Total Time (s)',
                       legend=dict(orientation="h", yanchor="bottom", y=-0.25, xanchor="center", x=0.5))
