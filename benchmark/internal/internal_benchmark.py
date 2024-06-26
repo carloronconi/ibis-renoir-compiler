@@ -119,7 +119,7 @@ def print_and_log(backend, test_case, table_origin, benchmark, exception):
     """
     print(
         f"failed once - backend: {backend}\ttable origin: {table_origin}\tquery: {test_case}\texception: {exception.__class__.__name__}\n{exception}")
-    benchmark.exception = exception
+    benchmark.exception = f"{exception.__class__.__name__}: {exception}".replace(",", " ")
     benchmark.log()
 
 
