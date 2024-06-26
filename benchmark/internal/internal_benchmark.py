@@ -71,14 +71,16 @@ def main():
                 if table_origin == "cached":
                     test_instance.preload_tables(backend)
 
-                for _ in range(args.warmup):
-                    run_once(test_case, test_instance, -1, backend)
-
-                for i in range(args.runs):
-                    run_once(test_case, test_instance, i, backend)
-
-                if backend == "flink":
-                    test_instance.restore_file_headers()
+                try:
+                    for i in range(args.warmup + args.runs):
+                        count = i - args.warmup if i >= args.warmup else -1
+                        run_once(test_case, test_instance, count, backend)
+                except Exception as e:
+                    print_and_log(backend, test_case, table_origin,
+                                  test_instance.benchmark, e)
+                finally:
+                    if backend == "flink":
+                        test_instance.restore_file_headers()
 
 
 def run_once(test_case: str, test_instance: test.TestCompiler, run_count: int, backend: str):
@@ -88,26 +90,16 @@ def run_once(test_case: str, test_instance: test.TestCompiler, run_count: int, b
     start_memo = process_memory()
     start_time = time.perf_counter()
 
-    try:
-        run_timed(eval(f"test_instance.{test_case}()", {"test_instance": test_instance}),
-                  RUN_ONCE_TIMEOUT_S)
-    except TimeoutError as e:
-        print_and_log(backend, test_case, start_memo,
-                      test_instance.benchmark, e)
-        return
+    run_timed(eval(f"test_instance.{test_case}()", {"test_instance": test_instance}),
+              RUN_ONCE_TIMEOUT_S)
     # If the backend is renoir, we have already performed the compilation to renoir code and ran it
     # after this line
 
     end_memo = process_memory()
 
     if backend != "renoir":
-        try:
-            run_timed(test_instance.query.execute, RUN_ONCE_TIMEOUT_S)
-            end_memo = process_memory()
-        except Exception as e:
-            print_and_log(backend, test_case, start_memo,
-                          test_instance.benchmark, e)
-            return
+        run_timed(test_instance.query.execute, RUN_ONCE_TIMEOUT_S)
+        end_memo = process_memory()
 
     end_time = time.perf_counter()
     total_time = end_time - start_time
@@ -119,14 +111,13 @@ def run_once(test_case: str, test_instance: test.TestCompiler, run_count: int, b
         f"ran once - backend: {backend}\trun: {run_count:03}\ttime: {total_time:.10f}\tquery: {test_case}")
 
 
-def print_and_log(backend, test_case, start_memo, benchmark, exception):
+def print_and_log(backend, test_case, table_origin, benchmark, exception):
     """
     Looks like a code smell, but actually we want to capture exceptions and log them instead of crashing the whole
     benchmarking process, so we can collect data from other tests even if one fails.
     """
     print(
-        f"failed once - backend: {backend}\t\tquery: {test_case}\texception: {exception.__class__.__name__}\n{exception}")
-    benchmark.max_memory_B = process_memory() - start_memo
+        f"failed once - backend: {backend}\ttable origin: {table_origin}\tquery: {test_case}\texception: {exception.__class__.__name__}\n{exception}")
     benchmark.log()
 
 
@@ -144,7 +135,7 @@ def run_timed(func, timeout):
         p.kill()
         p.join()
         raise TimeoutError(
-            f"run_timed killed function `{func.__name__}` after timeout of {timeout}s")
+            f"run_timed killed function `{func.__name__}` after timeout of {timeout}s - skipping other runs with same combination of test_case, backend, table_origin")
 
 
 def process_memory():
