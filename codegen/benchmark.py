@@ -15,6 +15,7 @@ class Benchmark:
         self.ibis_time_s = -1
         self.max_memory_B = -1
         self.table_origin = "None"
+        self.exception = "None"
         self.logger = setup_logger(dir, self)
 
     def log(self):

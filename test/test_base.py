@@ -93,6 +93,8 @@ class TestCompiler(unittest.TestCase):
             move(temp_path, file_path)
 
     def restore_file_headers(self):
+        if not hasattr(self, "headers"):
+            return
         for name, file_path in self.files.items():
             temp_path = None
             with open(file_path, 'r') as f_in:

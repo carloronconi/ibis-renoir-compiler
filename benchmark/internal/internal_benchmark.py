@@ -47,31 +47,32 @@ def main():
     for test_class, test_case in tests_split:
         for backend in args.backends:
             for table_origin in args.table_origin:
-                test_instance: test.TestCompiler = eval(
-                    f"{test_class}(\"{test_case}\")")
-                test_instance.benchmark = bm.Benchmark(test_case, args.dir)
-                test_instance.benchmark.table_origin = table_origin
-
-                # in case the backend is renoir, we leave the default duckdb backend to read the tables to create the AST
-                # otherwise, we load the tables with the desired one
-                test_instance.set_backend(
-                    backend, cached=table_origin == "cached")
-
-                test_instance.init_benchmark_settings(
-                    perform_compilation=(backend == "renoir"))
-
-                test_instance.init_files(file_suffix=args.path_suffix)
-                if backend == "flink":
-                    # flink doesn't support csv files with headers
-                    test_instance.chop_file_headers()
-                test_instance.init_tables()
-
-                # if table origin is cached, we need to pre-load the tables in the backends before submitting the queries
-                # otherwise, we measure the time of both loading the table and running the query
-                if table_origin == "cached":
-                    test_instance.preload_tables(backend)
-
                 try:
+                    test_instance: test.TestCompiler = eval(
+                        f"{test_class}(\"{test_case}\")")
+                    test_instance.benchmark = bm.Benchmark(test_case, args.dir)
+                    test_instance.benchmark.table_origin = table_origin
+
+                    # in case the backend is renoir, we leave the default duckdb backend to read the tables to create the AST
+                    # otherwise, we load the tables with the desired one
+                    test_instance.set_backend(
+                        backend, cached=table_origin == "cached")
+
+                    test_instance.init_benchmark_settings(
+                        perform_compilation=(backend == "renoir"))
+
+                    test_instance.init_files(file_suffix=args.path_suffix)
+                    if backend == "flink":
+                        # flink doesn't support csv files with headers
+                        test_instance.chop_file_headers()
+                    test_instance.init_tables()
+
+                    # if table origin is cached, we need to pre-load the tables in the backends before submitting the queries
+                    # otherwise, we measure the time of both loading the table and running the query
+                    if table_origin == "cached":
+                        test_instance.preload_tables(backend)
+
+
                     for i in range(args.warmup + args.runs):
                         count = i - args.warmup if i >= args.warmup else -1
                         run_once(test_case, test_instance, count, backend)
@@ -118,6 +119,7 @@ def print_and_log(backend, test_case, table_origin, benchmark, exception):
     """
     print(
         f"failed once - backend: {backend}\ttable origin: {table_origin}\tquery: {test_case}\texception: {exception.__class__.__name__}\n{exception}")
+    benchmark.exception = exception
     benchmark.log()
 
 
