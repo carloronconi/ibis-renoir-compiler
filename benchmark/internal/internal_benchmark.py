@@ -1,3 +1,4 @@
+import multiprocessing.connection
 import benchmark.discover.load_tests as bench
 import test
 import argparse
@@ -12,7 +13,7 @@ import multiprocessing
 import traceback
 
 
-RUN_ONCE_TIMEOUT_S = 60 * 5  # 5 minutes
+TIMEOUT_S = 60 * 5  # 5 minutes
 
 
 def main():
@@ -48,53 +49,92 @@ def main():
     for test_class, test_case in tests_split:
         for backend in args.backends:
             for table_origin in args.table_origin:
-                try:
-                    test_instance: test.TestCompiler = eval(
-                        f"{test_class}(\"{test_case}\")")
-                    test_instance.benchmark = bm.Benchmark(test_case, args.dir)
-                    test_instance.benchmark.table_origin = table_origin
-
-                    # in case the backend is renoir, we leave the default duckdb backend to read the tables to create the AST
-                    # otherwise, we load the tables with the desired one
-                    test_instance.set_backend(
-                        backend, cached=(table_origin == "cached"))
-
-                    test_instance.init_benchmark_settings(
-                        perform_compilation=(backend == "renoir"))
-
-                    test_instance.init_files(file_suffix=args.path_suffix)
-                    test_instance.init_tables()
-
-                    # if table origin is cached, we need to pre-load the tables in the backends before submitting the queries
-                    # otherwise, we measure the time of both loading the table and running the query
-                    if table_origin == "cached":
-                        test_instance.preload_tables(backend)
-
-                    for i in range(args.warmup + args.runs):
-                        count = i - args.warmup if i >= args.warmup else -1
-                        run_once(test_case, test_instance, count, backend)
-                except Exception as e:
-                    print_and_log(backend, test_case, table_origin,
-                                  test_instance.benchmark, e)
+                main, worker = multiprocessing.Pipe(duplex=True)
+                p = multiprocessing.Process(target=child_workload, args=(
+                    worker, test_class, test_case, backend, table_origin, args.path_suffix, args.runs, args.warmup, args.dir))
+                p.start()
+                count = args.warmup + args.runs
+                allow_runs(count, p, main, test_case, backend, table_origin, args.dir)
 
 
-def run_once(test_case: str, test_instance: test.TestCompiler, run_count: int, backend: str):
+def allow_runs(count: int, p: multiprocessing.Process, conn: multiprocessing.connection.Connection, test_case: str, backend: str, table_origin: str, dir: str):
+    """
+    send messages to worker allowing it to perform run_once, and kill it if it takes too long
+    """
+    for i in range(count):
+        conn.send("go")
+        if not conn.poll(TIMEOUT_S):
+            p.kill()
+            p.join()
+            # if the process was killed, we assume it didn't log and log from this main thread instead
+            logger = bm.Benchmark(test_case, dir)
+            logger.backend_name = backend
+            logger.table_origin = table_origin
+            logger.run_count = i
+            logger.exception = "timeout"
+            logger.log()
+            print(f"timeout: killed process with backend {backend} and origin {table_origin} at run {i}")
+            return
+        success, message = conn.recv()
+        if not success:
+            print("exception: " + message)
+            return
+        print("success: " + message)
+
+
+def child_workload(pipe: multiprocessing.connection.Connection, test_class: str, test_case: str, backend: str, table_origin: str, path_suffix: str, runs: int, warmup: int, dir: str):
+    try:
+        test_instance: test.TestCompiler = eval(
+            f"{test_class}(\"{test_case}\")")
+        test_instance.benchmark = bm.Benchmark(
+            test_case, dir)
+        test_instance.benchmark.table_origin = table_origin
+
+        # in case the backend is renoir, we leave the default duckdb backend to read the tables to create the AST
+        # otherwise, we load the tables with the desired one
+        test_instance.set_backend(
+            backend, cached=(table_origin == "cached"))
+
+        test_instance.init_benchmark_settings(
+            perform_compilation=(backend == "renoir"))
+
+        test_instance.init_files(file_suffix=path_suffix)
+        test_instance.init_tables()
+
+        # if table origin is cached, we need to pre-load the tables in the backends before submitting the queries
+        # otherwise, we measure the time of both loading the table and running the query
+        if table_origin == "cached":
+            test_instance.preload_tables(backend)
+
+        for i in range(warmup + runs):
+            count = i - warmup if i >= warmup else -1
+            # wait for permission from main thread
+            # which starts counting down before sending the message so it can kill this process in case it hangs
+            pipe.recv()
+            message = run_once(test_case, test_instance, count, backend)
+            # telling the main thread not to kill this process
+            pipe.send((True, message))
+    except Exception:
+        trace = " ".join(traceback.format_exception())
+        test_instance.benchmark.exception = trace
+        test_instance.benchmark.log()
+        pipe.send((False, trace))
+
+
+def run_once(test_case: str, test_instance: test.TestCompiler, run_count: int, backend: str) -> str:
     test_instance.benchmark.run_count = run_count
     test_instance.benchmark.backend_name = backend
 
     start_memo = process_memory()
     start_time = time.perf_counter()
 
-    test_instance_func = eval(f"test_instance.{test_case}", {"test_instance": test_instance})
-    run_timed(test_instance_func,
-              RUN_ONCE_TIMEOUT_S)
-    # If the backend is renoir, we have already performed the compilation to renoir code and ran it
-    # after this line
-
+    test_method = getattr(test_instance, test_case)
+    test_method()
+    # If the backend is renoir, we have already performed the compilation to renoir code and ran it after this line
     end_memo = process_memory()
 
     if backend != "renoir":
-        run_timed(test_instance.query.execute, RUN_ONCE_TIMEOUT_S)
+        test_instance.query.execute()
         end_memo = process_memory()
 
     end_time = time.perf_counter()
@@ -103,51 +143,7 @@ def run_once(test_case: str, test_instance: test.TestCompiler, run_count: int, b
     total_memo = end_memo - start_memo
     test_instance.benchmark.max_memory_B = total_memo
     test_instance.benchmark.log()
-    print(
-        f"ran once - backend: {backend}\trun: {run_count:03}\ttime: {total_time:.10f}\tquery: {test_case}")
-
-
-def print_and_log(backend, test_case, table_origin, benchmark, exception):
-    """
-    Looks like a code smell, but actually we want to capture exceptions and log them instead of crashing the whole
-    benchmarking process, so we can collect data from other tests even if one fails.
-    """
-    print(
-        f"failed once - backend: {backend}\ttable origin: {table_origin}\tquery: {test_case}\texception: {exception.__class__.__name__}\n{exception}")
-    benchmark.exception = (" ".join(traceback.format_exception(exception)))
-    benchmark.log()
-
-
-def run_timed(func, timeout):
-    """
-    Runs the given function with a timeout in seconds, killing it if it takes too long.
-    It also captures exceptions and re-raises them in the main thread.
-    Useful for running tests that might hang: I'm looking at you, Flink.
-    """
-    exception_queue = multiprocessing.Queue()
-    wrapped_func = capture_exceptions_wrapper(func, exception_queue)
-    p = multiprocessing.Process(target=wrapped_func)
-    p.start()
-    # main thread waits for the timeout or the process to finish
-    p.join(timeout)
-    if not exception_queue.empty():
-        # re-raise in main thread
-        trace = traceback.format_exc(exception_queue.get())
-        message = f"Exception raised in thread called by run_timed with traceback: {trace}"
-        raise Exception(message)
-    if p.is_alive():
-        # if process still running after timeout, kill it
-        p.kill()
-        p.join()
-        raise TimeoutError(
-            f"run_timed killed function `{func.__name__}` after timeout of {timeout}s - skipping other runs with same combination of test_case + backend + table_origin")
-
-
-def capture_exceptions_wrapper(func, queue: multiprocessing.Queue):
-    try:
-        func()
-    except Exception as e:
-        queue.put(e)
+    return f"ran once - backend: {backend}\trun: {run_count:03}\ttime: {total_time:.10f}\tquery: {test_case}"
 
 
 def process_memory():
