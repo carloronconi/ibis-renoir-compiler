@@ -137,8 +137,8 @@ def run_timed(func, timeout):
     p.join(timeout)
     if not exception_queue.empty():
         # re-raise in main thread
-        traceback = traceback.format_exc(exception_queue.get())
-        message = f"Exception raised in thread called by run_timed with traceback: {traceback}"
+        trace = traceback.format_exc(exception_queue.get())
+        message = f"Exception raised in thread called by run_timed with traceback: {trace}"
         raise Exception(message)
     if p.is_alive():
         # if process still running after timeout, kill it
