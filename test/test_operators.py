@@ -32,8 +32,9 @@ class TestNullableOperators(TestCompiler):
                        "many_ints":     ibis.schema({"int1": ibis.dtype("int64"),
                                                      "int2": ibis.dtype("int64"),
                                                      "int3": ibis.dtype("int64")})}
+            no_header_files = self.create_files_no_headers()
             self.tables = {n: ibis.read_csv(
-                f, schema=schemas[n]) for n, f in self.files.items()}
+                f, schema=schemas[n]) for n, f in no_header_files.items()}
         else:
             self.tables = {n: ibis.read_csv(f) for n, f in self.files.items()}
 

@@ -67,8 +67,9 @@ class TestCompiler(unittest.TestCase):
         elif backend == "polars":
             ibis.set_backend("polars")
         else:
-            raise ValueError(f"Backend {backend} not supported - check if it requires special ibis setup before adding")
-        
+            raise ValueError(
+                f"Backend {backend} not supported - check if it requires special ibis setup before adding")
+
     def preload_tables(self, backend: str):
         if backend == "renoir" or backend == "flink":
             # streaming backends don't allow preloading tables
@@ -76,42 +77,30 @@ class TestCompiler(unittest.TestCase):
         # duckdb and polars allow preloading tables
         con = ibis.get_backend()
         for name, table in self.tables.items():
-            self.tables[name] = con.create_table(name, table.to_pandas(), overwrite=True)
+            self.tables[name] = con.create_table(
+                name, table.to_pandas(), overwrite=True)
 
-    def chop_file_headers(self):
-        self.headers = {}
+    def create_files_no_headers(self) -> dict[str, str]:
+        suffix = "_no_headers"
+        no_header_files = {}
         for name, file_path in self.files.items():
-            temp_path = None
+            no_header_path = file_path.replace(".csv", suffix + ".csv")
+            if os.path.isfile(no_header_path):
+                no_header_files[name] = no_header_path
+                continue
             with open(file_path, 'r') as f_in:
-                with NamedTemporaryFile(mode='w', delete=False) as f_out:
-                    temp_path = f_out.name
-                    self.headers[name] = next(f_in)  # skip first line
+                with open(no_header_path, 'w') as f_out:
+                    next(f_in)  # skip first line
                     for line in f_in:
                         f_out.write(line)
-
-            os.remove(file_path)
-            move(temp_path, file_path)
-
-    def restore_file_headers(self):
-        if not hasattr(self, "headers"):
-            return
-        for name, file_path in self.files.items():
-            temp_path = None
-            with open(file_path, 'r') as f_in:
-                with NamedTemporaryFile(mode='w', delete=False) as f_out:
-                    temp_path = f_out.name
-                    f_out.write(self.headers[name])
-                    for line in f_in:
-                        f_out.write(line)
-
-            os.remove(file_path)
-            move(temp_path, file_path)
+            no_header_files[name] = no_header_path
+        return no_header_files
 
     def init_files(self, file_suffix=""):
-        raise NotImplementedError      
-    
+        raise NotImplementedError
+
     def init_tables(self):
-        raise NotImplementedError 
+        raise NotImplementedError
 
     def tearDown(self) -> None:
         if not self.benchmark:
@@ -131,7 +120,7 @@ class TestCompiler(unittest.TestCase):
         if hasattr(self, "query_func"):
             df_left = pd.read_csv(self.files["fruit_left"])
             df_right = pd.read_csv(self.files["fruit_right"])
-            tables = {"fruit_left": ibis.memtable(df_left, schema=self.schema), 
+            tables = {"fruit_left": ibis.memtable(df_left, schema=self.schema),
                       "fruit_right": ibis.memtable(df_right, schema=self.schema)}
             self.query = self.query_func(tables)
 

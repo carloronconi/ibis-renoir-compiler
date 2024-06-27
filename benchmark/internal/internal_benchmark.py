@@ -63,9 +63,6 @@ def main():
                         perform_compilation=(backend == "renoir"))
 
                     test_instance.init_files(file_suffix=args.path_suffix)
-                    if backend == "flink":
-                        # flink doesn't support csv files with headers
-                        test_instance.chop_file_headers()
                     test_instance.init_tables()
 
                     # if table origin is cached, we need to pre-load the tables in the backends before submitting the queries
@@ -79,9 +76,6 @@ def main():
                 except Exception as e:
                     print_and_log(backend, test_case, table_origin,
                                   test_instance.benchmark, e)
-                finally:
-                    if backend == "flink":
-                        test_instance.restore_file_headers()
 
 
 def run_once(test_case: str, test_instance: test.TestCompiler, run_count: int, backend: str):
@@ -91,7 +85,8 @@ def run_once(test_case: str, test_instance: test.TestCompiler, run_count: int, b
     start_memo = process_memory()
     start_time = time.perf_counter()
 
-    run_timed(eval(f"test_instance.{test_case}()", {"test_instance": test_instance}),
+    test_instance_func = eval(f"test_instance.{test_case}", {"test_instance": test_instance})
+    run_timed(test_instance_func,
               RUN_ONCE_TIMEOUT_S)
     # If the backend is renoir, we have already performed the compilation to renoir code and ran it
     # after this line
@@ -119,7 +114,7 @@ def print_and_log(backend, test_case, table_origin, benchmark, exception):
     """
     print(
         f"failed once - backend: {backend}\ttable origin: {table_origin}\tquery: {test_case}\texception: {exception.__class__.__name__}\n{exception}")
-    benchmark.exception = (traceback.format_exception(exception))
+    benchmark.exception = (" ".join(traceback.format_exception(exception)))
     benchmark.log()
 
 

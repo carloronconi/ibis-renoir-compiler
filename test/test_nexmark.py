@@ -19,7 +19,7 @@ class TestNexmark(TestCompiler):
         file_suffix = file_suffix + ".csv"
         self.files = {n: f"{file_prefix}{n}{file_suffix}" for n in names}
 
-    def init_tables(self, file_suffix=""):
+    def init_tables(self):
         if ibis.get_backend().name == "flink":
             schemas = {"auction":   ibis.schema({"id": ibis.dtype("int64"),
                                                  "item_name": ibis.dtype("string"),
@@ -46,8 +46,9 @@ class TestNexmark(TestCompiler):
                                                  "state": ibis.dtype("string"),
                                                  "date_time": ibis.dtype("int64"),
                                                  "extra": ibis.dtype("string")})}
+            no_header_files = self.create_files_no_headers()
             self.tables = {n: ibis.read_csv(
-                f, schema=schemas[n]) for n, f in self.files.items()}
+                f, schema=schemas[n]) for n, f in no_header_files.items()}
         else:
             self.tables = {n: ibis.read_csv(f) for n, f in self.files.items()}
 
