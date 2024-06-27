@@ -9,6 +9,7 @@ from datetime import datetime
 import os
 import psutil
 import multiprocessing
+import traceback
 
 
 RUN_ONCE_TIMEOUT_S = 60 * 5  # 5 minutes
@@ -72,7 +73,6 @@ def main():
                     if table_origin == "cached":
                         test_instance.preload_tables(backend)
 
-
                     for i in range(args.warmup + args.runs):
                         count = i - args.warmup if i >= args.warmup else -1
                         run_once(test_case, test_instance, count, backend)
@@ -119,27 +119,38 @@ def print_and_log(backend, test_case, table_origin, benchmark, exception):
     """
     print(
         f"failed once - backend: {backend}\ttable origin: {table_origin}\tquery: {test_case}\texception: {exception.__class__.__name__}\n{exception}")
-    benchmark.exception = (f"{exception.__class__.__name__}: {exception}"
-                           .replace(",", " ")
-                           .replace("\n", " "))
+    benchmark.exception = (traceback.format_exception(exception))
     benchmark.log()
 
 
 def run_timed(func, timeout):
     """
     Runs the given function with a timeout in seconds, killing it if it takes too long.
+    It also captures exceptions and re-raises them in the main thread.
     Useful for running tests that might hang: I'm looking at you, Flink.
     """
-    p = multiprocessing.Process(target=func)
+    exception_queue = multiprocessing.Queue()
+    wrapped_func = capture_exceptions_wrapper(func, exception_queue)
+    p = multiprocessing.Process(target=wrapped_func)
     p.start()
     # main thread waits for the timeout or the process to finish
     p.join(timeout)
+    if not exception_queue.empty():
+        # re-raise in main thread
+        raise exception_queue.get()
     if p.is_alive():
         # if process still running after timeout, kill it
         p.kill()
         p.join()
         raise TimeoutError(
             f"run_timed killed function `{func.__name__}` after timeout of {timeout}s - skipping other runs with same combination of test_case + backend + table_origin")
+
+
+def capture_exceptions_wrapper(func, queue: multiprocessing.Queue):
+    try:
+        func()
+    except Exception as e:
+        queue.put(e)
 
 
 def process_memory():
