@@ -12,7 +12,7 @@ import multiprocessing
 import traceback
 
 
-RUN_ONCE_TIMEOUT_S = 60 * 5  # 5 minutes
+RUN_ONCE_TIMEOUT_S = 1  # 5 minutes
 
 
 def main():
@@ -85,16 +85,14 @@ def run_once(test_case: str, test_instance: test.TestCompiler, run_count: int, b
     start_memo = process_memory()
     start_time = time.perf_counter()
 
-    test_instance_func = eval(f"test_instance.{test_case}", {"test_instance": test_instance})
-    run_timed(test_instance_func,
-              RUN_ONCE_TIMEOUT_S)
+    test_instance = run_timed(RUN_ONCE_TIMEOUT_S, instance_method=(test_instance, test_case))
     # If the backend is renoir, we have already performed the compilation to renoir code and ran it
     # after this line
 
     end_memo = process_memory()
 
     if backend != "renoir":
-        run_timed(test_instance.query.execute, RUN_ONCE_TIMEOUT_S)
+        run_timed(RUN_ONCE_TIMEOUT_S, func=test_instance.query.execute)
         end_memo = process_memory()
 
     end_time = time.perf_counter()
@@ -118,23 +116,29 @@ def print_and_log(backend, test_case, table_origin, benchmark, exception):
     benchmark.log()
 
 
-def run_timed(func, timeout):
+def run_timed(timeout, func = None, instance_method: tuple[object, str] = None):
     """
     Runs the given function with a timeout in seconds, killing it if it takes too long.
-    It also captures exceptions and re-raises them in the main thread.
+    Instead of a function, a tuple with an object instance and a method name can be passed.
+    Exceptions happening in the thread are captured and re-raised them in the main thread.
     Useful for running tests that might hang: I'm looking at you, Flink.
     """
-    exception_queue = multiprocessing.Queue()
-    wrapped_func = capture_exceptions_wrapper(func, exception_queue)
-    p = multiprocessing.Process(target=wrapped_func)
+    queue = multiprocessing.Queue()
+    if instance_method:
+        queue.put(instance_method)
+    p = multiprocessing.Process(target=capture_exceptions_wrapper, args=(func, queue))
     p.start()
     # main thread waits for the timeout or the process to finish
     p.join(timeout)
-    if not exception_queue.empty():
-        # re-raise in main thread
-        trace = traceback.format_exc(exception_queue.get())
-        message = f"Exception raised in thread called by run_timed with traceback: {trace}"
-        raise Exception(message)
+    if not queue.empty():
+        result = queue.get()
+        if isinstance(result, Exception):
+            # re-raise in main thread
+            trace = traceback.format_exc(result)
+            message = f"Exception raised in thread called by run_timed with traceback: {trace}"
+            raise Exception(message)
+        else:
+            return result
     if p.is_alive():
         # if process still running after timeout, kill it
         p.kill()
@@ -145,7 +149,15 @@ def run_timed(func, timeout):
 
 def capture_exceptions_wrapper(func, queue: multiprocessing.Queue):
     try:
-        func()
+        if func:
+            func()
+        else:
+            # the object instance was passed to the child thread trough the queue:
+            # we need to call the function (method) on that instance
+            instance, method_name = queue.get()
+            method = getattr(instance, method_name)
+            method()
+            queue.put(instance)
     except Exception as e:
         queue.put(e)
 
