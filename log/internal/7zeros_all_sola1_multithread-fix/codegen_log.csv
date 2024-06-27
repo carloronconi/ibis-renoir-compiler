@@ -1,0 +1,1601 @@
+level,timestamp,test_name,backend_name,run_count,total_time_s,renoir_compile_time_s,renoir_execute_time_s,ibis_time_s,max_memory_B,table_origin,exception
+INFO,2024-06-27 12:11:25.927,test_nullable_filter_filter_select_select,duckdb,-1,0.9567096469691023,-1,-1,-1,4427776,csv,None
+INFO,2024-06-27 12:11:26.902,test_nullable_filter_filter_select_select,duckdb,0,0.9726795019814745,-1,-1,-1,2424832,csv,None
+INFO,2024-06-27 12:11:27.858,test_nullable_filter_filter_select_select,duckdb,1,0.9541043790522963,-1,-1,-1,167936,csv,None
+INFO,2024-06-27 12:11:28.826,test_nullable_filter_filter_select_select,duckdb,2,0.9652218020055443,-1,-1,-1,135168,csv,None
+INFO,2024-06-27 12:11:29.805,test_nullable_filter_filter_select_select,duckdb,3,0.9761928700609133,-1,-1,-1,2625536,csv,None
+INFO,2024-06-27 12:11:30.774,test_nullable_filter_filter_select_select,duckdb,4,0.9668644350022078,-1,-1,-1,45056,csv,None
+INFO,2024-06-27 12:11:44.016,test_nullable_filter_filter_select_select,duckdb,-1,0.05578872899059206,-1,-1,-1,0,cached,None
+INFO,2024-06-27 12:11:44.073,test_nullable_filter_filter_select_select,duckdb,0,0.05454954702872783,-1,-1,-1,0,cached,None
+INFO,2024-06-27 12:11:44.131,test_nullable_filter_filter_select_select,duckdb,1,0.05462996696587652,-1,-1,-1,0,cached,None
+INFO,2024-06-27 12:11:44.187,test_nullable_filter_filter_select_select,duckdb,2,0.05426301003899425,-1,-1,-1,0,cached,None
+INFO,2024-06-27 12:11:44.245,test_nullable_filter_filter_select_select,duckdb,3,0.05517238494940102,-1,-1,-1,0,cached,None
+INFO,2024-06-27 12:11:44.302,test_nullable_filter_filter_select_select,duckdb,4,0.054727818933315575,-1,-1,-1,0,cached,None
+INFO,2024-06-27 12:11:44.522,test_nullable_filter_filter_select_select,polars,-1,0.17203846503980458,-1,-1,-1,150503424,csv,None
+INFO,2024-06-27 12:11:44.707,test_nullable_filter_filter_select_select,polars,0,0.18270310596562922,-1,-1,-1,8265728,csv,None
+INFO,2024-06-27 12:11:44.892,test_nullable_filter_filter_select_select,polars,1,0.1821912620216608,-1,-1,-1,4268032,csv,None
+INFO,2024-06-27 12:11:45.076,test_nullable_filter_filter_select_select,polars,2,0.1822886330774054,-1,-1,-1,4001792,csv,None
+INFO,2024-06-27 12:11:45.261,test_nullable_filter_filter_select_select,polars,3,0.18219661898911,-1,-1,-1,4317184,csv,None
+INFO,2024-06-27 12:11:45.447,test_nullable_filter_filter_select_select,polars,4,0.1836440060287714,-1,-1,-1,3985408,csv,None
+INFO,2024-06-27 12:11:48.225,test_nullable_filter_filter_select_select,polars,-1,0.0694481038954109,-1,-1,-1,4501504,cached,None
+INFO,2024-06-27 12:11:48.297,test_nullable_filter_filter_select_select,polars,0,0.06954980303999037,-1,-1,-1,-778240,cached,None
+INFO,2024-06-27 12:11:48.371,test_nullable_filter_filter_select_select,polars,1,0.07157956599257886,-1,-1,-1,4198400,cached,None
+INFO,2024-06-27 12:11:48.448,test_nullable_filter_filter_select_select,polars,2,0.07390716706868261,-1,-1,-1,2105344,cached,None
+INFO,2024-06-27 12:11:48.521,test_nullable_filter_filter_select_select,polars,3,0.0713375509949401,-1,-1,-1,0,cached,None
+INFO,2024-06-27 12:11:48.595,test_nullable_filter_filter_select_select,polars,4,0.07096397108398378,-1,-1,-1,0,cached,None
+INFO,2024-06-27 12:11:58.180,test_nullable_filter_filter_select_select,flink,-1,7.756077422061935,-1,-1,-1,2401009664,csv,None
+INFO,2024-06-27 12:12:01.964,test_nullable_filter_filter_select_select,flink,0,3.781704633962363,-1,-1,-1,106696704,csv,None
+INFO,2024-06-27 12:12:05.620,test_nullable_filter_filter_select_select,flink,1,3.653198897955008,-1,-1,-1,98201600,csv,None
+INFO,2024-06-27 12:12:10.585,test_nullable_filter_filter_select_select,flink,2,4.9610607519280165,-1,-1,-1,-8122368,csv,None
+INFO,2024-06-27 12:12:14.190,test_nullable_filter_filter_select_select,flink,3,3.603151172050275,-1,-1,-1,55066624,csv,None
+INFO,2024-06-27 12:12:18.441,test_nullable_filter_filter_select_select,flink,4,4.2476973260054365,-1,-1,-1,-679616512,csv,None
+INFO,2024-06-27 12:12:22.270,test_nullable_filter_filter_select_select,flink,-1,3.6748173190280795,-1,-1,-1,350920704,cached,None
+INFO,2024-06-27 12:12:27.124,test_nullable_filter_filter_select_select,flink,0,4.8514453519601375,-1,-1,-1,445366272,cached,None
+INFO,2024-06-27 12:12:30.697,test_nullable_filter_filter_select_select,flink,1,3.570911033079028,-1,-1,-1,31154176,cached,None
+INFO,2024-06-27 12:12:34.290,test_nullable_filter_filter_select_select,flink,2,3.5893568119499832,-1,-1,-1,40357888,cached,None
+INFO,2024-06-27 12:12:37.929,test_nullable_filter_filter_select_select,flink,3,3.6364012790145352,-1,-1,-1,37117952,cached,None
+INFO,2024-06-27 12:12:41.552,test_nullable_filter_filter_select_select,flink,4,3.6199298079591244,-1,-1,-1,-10530816,cached,None
+INFO,2024-06-27 12:12:42.910,test_nullable_filter_filter_select_select,renoir,-1,1.264854223933071,0.8467022919794545,0.39989857096225023,-1,-303104,csv,None
+INFO,2024-06-27 12:12:44.135,test_nullable_filter_filter_select_select,renoir,0,1.2222128950525075,0.8082094719866291,0.3957740800688043,-1,131072,csv,None
+INFO,2024-06-27 12:12:45.355,test_nullable_filter_filter_select_select,renoir,1,1.2183177320985124,0.7980807550484315,0.40202719101216644,-1,-131072,csv,None
+INFO,2024-06-27 12:12:46.572,test_nullable_filter_filter_select_select,renoir,2,1.213989706011489,0.7969291580375284,0.39890684001147747,-1,0,csv,None
+INFO,2024-06-27 12:12:47.768,test_nullable_filter_filter_select_select,renoir,3,1.1934377300785854,0.7841546949930489,0.39081136300228536,-1,0,csv,None
+INFO,2024-06-27 12:12:48.967,test_nullable_filter_filter_select_select,renoir,4,1.196287381928414,0.7750415159389377,0.4028470820048824,-1,0,csv,None
+INFO,2024-06-27 12:12:50.262,test_nullable_filter_filter_select_select,renoir,-1,1.2057665629545227,0.7848364310339093,0.4030102170072496,-1,0,cached,None
+INFO,2024-06-27 12:12:51.456,test_nullable_filter_filter_select_select,renoir,0,1.1912423149915412,0.7717939710710198,0.40103885205462575,-1,0,cached,None
+INFO,2024-06-27 12:12:52.668,test_nullable_filter_filter_select_select,renoir,1,1.2099644320551306,0.7973964869743213,0.39239195501431823,-1,-131072,cached,None
+INFO,2024-06-27 12:12:54.295,test_nullable_filter_filter_select_select,renoir,2,1.6244398549897596,0.7832920969231054,0.40501235995907336,-1,0,cached,None
+INFO,2024-06-27 12:12:55.518,test_nullable_filter_filter_select_select,renoir,3,1.2199041800340638,0.7926660020602867,0.4083727760007605,-1,0,cached,None
+INFO,2024-06-27 12:12:56.736,test_nullable_filter_filter_select_select,renoir,4,1.215349589008838,0.79197917599231,0.4047557640587911,-1,0,cached,None
+INFO,2024-06-27 12:12:57.089,test_nullable_filter_group_mutate,duckdb,-1,0.2627735190326348,-1,-1,-1,3612672,csv,None
+INFO,2024-06-27 12:12:57.455,test_nullable_filter_group_mutate,duckdb,0,0.36371202394366264,-1,-1,-1,581632,csv,None
+INFO,2024-06-27 12:12:57.767,test_nullable_filter_group_mutate,duckdb,1,0.30538276594597846,-1,-1,-1,753664,csv,None
+INFO,2024-06-27 12:12:58.037,test_nullable_filter_group_mutate,duckdb,2,0.26731216395273805,-1,-1,-1,331776,csv,None
+INFO,2024-06-27 12:12:58.443,test_nullable_filter_group_mutate,duckdb,3,0.40315094601828605,-1,-1,-1,360448,csv,None
+INFO,2024-06-27 12:12:58.729,test_nullable_filter_group_mutate,duckdb,4,0.2764649400487542,-1,-1,-1,6389760,csv,None
+INFO,2024-06-27 12:13:12.076,test_nullable_filter_group_mutate,duckdb,-1,0.09956554800737649,-1,-1,-1,-3665920,cached,None
+INFO,2024-06-27 12:13:12.204,test_nullable_filter_group_mutate,duckdb,0,0.12527990201488137,-1,-1,-1,0,cached,None
+INFO,2024-06-27 12:13:12.304,test_nullable_filter_group_mutate,duckdb,1,0.09670595999341458,-1,-1,-1,0,cached,None
+INFO,2024-06-27 12:13:12.512,test_nullable_filter_group_mutate,duckdb,2,0.20606757898349315,-1,-1,-1,131072,cached,None
+INFO,2024-06-27 12:13:12.649,test_nullable_filter_group_mutate,duckdb,3,0.13407636596821249,-1,-1,-1,131072,cached,None
+INFO,2024-06-27 12:13:12.810,test_nullable_filter_group_mutate,duckdb,4,0.1584957370068878,-1,-1,-1,0,cached,None
+INFO,2024-06-27 12:13:13.049,test_nullable_filter_group_mutate,polars,-1,0.23423134407494217,-1,-1,-1,1585152,csv,None
+INFO,2024-06-27 12:13:13.383,test_nullable_filter_group_mutate,polars,0,0.3313791820546612,-1,-1,-1,-14458880,csv,None
+INFO,2024-06-27 12:13:13.622,test_nullable_filter_group_mutate,polars,1,0.23353703797329217,-1,-1,-1,-7516160,csv,None
+INFO,2024-06-27 12:13:13.820,test_nullable_filter_group_mutate,polars,2,0.19586637802422047,-1,-1,-1,4317184,csv,None
+INFO,2024-06-27 12:13:14.015,test_nullable_filter_group_mutate,polars,3,0.19272378296591341,-1,-1,-1,-29413376,csv,None
+INFO,2024-06-27 12:13:14.211,test_nullable_filter_group_mutate,polars,4,0.19351192598696798,-1,-1,-1,-172032,csv,None
+INFO,2024-06-27 12:13:17.005,test_nullable_filter_group_mutate,polars,-1,0.08145226805936545,-1,-1,-1,0,cached,None
+INFO,2024-06-27 12:13:17.090,test_nullable_filter_group_mutate,polars,0,0.08190652600023896,-1,-1,-1,0,cached,None
+INFO,2024-06-27 12:13:17.176,test_nullable_filter_group_mutate,polars,1,0.0839274280006066,-1,-1,-1,4202496,cached,None
+INFO,2024-06-27 12:13:17.291,test_nullable_filter_group_mutate,polars,2,0.11249146005138755,-1,-1,-1,0,cached,None
+INFO,2024-06-27 12:13:17.403,test_nullable_filter_group_mutate,polars,3,0.1095714169787243,-1,-1,-1,0,cached,None
+INFO,2024-06-27 12:13:17.571,test_nullable_filter_group_mutate,polars,4,0.1650025330018252,-1,-1,-1,-177324032,cached,None
+INFO,2024-06-27 12:13:22.753,test_nullable_filter_group_mutate,flink,-1,5.0488411070546135,-1,-1,-1,-193273856,csv,None
+INFO,2024-06-27 12:13:26.488,test_nullable_filter_group_mutate,flink,0,3.7326355879195035,-1,-1,-1,5730304,csv,None
+INFO,2024-06-27 12:13:30.418,test_nullable_filter_group_mutate,flink,1,3.9271490239771083,-1,-1,-1,-700870656,csv,None
+INFO,2024-06-27 12:13:34.137,test_nullable_filter_group_mutate,flink,2,3.7160349410260096,-1,-1,-1,340279296,csv,None
+INFO,2024-06-27 12:13:39.007,test_nullable_filter_group_mutate,flink,3,4.867668227991089,-1,-1,-1,39284736,csv,None
+INFO,2024-06-27 12:13:42.728,test_nullable_filter_group_mutate,flink,4,3.718149468069896,-1,-1,-1,21123072,csv,None
+INFO,2024-06-27 12:13:46.556,test_nullable_filter_group_mutate,flink,-1,3.665789504069835,-1,-1,-1,412131328,cached,None
+INFO,2024-06-27 12:13:50.232,test_nullable_filter_group_mutate,flink,0,3.6730989600764588,-1,-1,-1,29589504,cached,None
+INFO,2024-06-27 12:13:53.897,test_nullable_filter_group_mutate,flink,1,3.6626591118983924,-1,-1,-1,25878528,cached,None
+INFO,2024-06-27 12:13:57.590,test_nullable_filter_group_mutate,flink,2,3.6909359170822427,-1,-1,-1,23965696,cached,None
+INFO,2024-06-27 12:14:02.450,test_nullable_filter_group_mutate,flink,3,4.856670920969918,-1,-1,-1,26038272,cached,None
+INFO,2024-06-27 12:14:06.148,test_nullable_filter_group_mutate,flink,4,3.696043486939743,-1,-1,-1,22945792,cached,None
+INFO,2024-06-27 12:14:08.254,test_nullable_filter_group_mutate,renoir,-1,2.010525409015827,1.568004876957275,0.40972645301371813,-1,0,csv,None
+INFO,2024-06-27 12:14:10.282,test_nullable_filter_group_mutate,renoir,0,2.0256035999627784,1.5760721270926297,0.41542005306109786,-1,0,csv,None
+INFO,2024-06-27 12:14:12.315,test_nullable_filter_group_mutate,renoir,1,2.0298502510413527,1.582568423007615,0.41425481101032346,-1,0,csv,None
+INFO,2024-06-27 12:14:14.351,test_nullable_filter_group_mutate,renoir,2,2.0338387659285218,1.591734568006359,0.40941531502176076,-1,0,csv,None
+INFO,2024-06-27 12:14:16.367,test_nullable_filter_group_mutate,renoir,3,2.0128266139654443,1.569165967986919,0.4110778720350936,-1,0,csv,None
+INFO,2024-06-27 12:14:19.076,test_nullable_filter_group_mutate,renoir,4,2.7067026619333774,1.574347426998429,0.4017784559400752,-1,-131072,csv,None
+INFO,2024-06-27 12:14:21.189,test_nullable_filter_group_mutate,renoir,-1,2.023626870010048,1.5858486170182005,0.4054740209830925,-1,0,cached,None
+INFO,2024-06-27 12:14:23.202,test_nullable_filter_group_mutate,renoir,0,2.0100448470329866,1.5670285740634426,0.410095171071589,-1,0,cached,None
+INFO,2024-06-27 12:14:25.222,test_nullable_filter_group_mutate,renoir,1,2.018039155052975,1.5741013590013608,0.41082456603180617,-1,0,cached,None
+INFO,2024-06-27 12:14:27.249,test_nullable_filter_group_mutate,renoir,2,2.0238727260148153,1.5836321000242606,0.4069728850154206,-1,0,cached,None
+INFO,2024-06-27 12:14:29.980,test_nullable_filter_group_mutate,renoir,3,2.728302761912346,1.5835930369794369,0.41087861999403685,-1,0,cached,None
+INFO,2024-06-27 12:14:32.012,test_nullable_filter_group_mutate,renoir,4,2.029979903018102,1.5966457069152966,0.40034620091319084,-1,0,cached,None
+INFO,2024-06-27 12:14:41.446,test_nullable_filter_group_mutate_reduce,duckdb,-1,9.343685400905088,-1,-1,-1,559218688,csv,None
+INFO,2024-06-27 12:14:48.250,test_nullable_filter_group_mutate_reduce,duckdb,0,6.801305292057805,-1,-1,-1,20946944,csv,None
+INFO,2024-06-27 12:14:55.082,test_nullable_filter_group_mutate_reduce,duckdb,1,6.829500204999931,-1,-1,-1,-65163264,csv,None
+INFO,2024-06-27 12:15:01.906,test_nullable_filter_group_mutate_reduce,duckdb,2,6.821360838948749,-1,-1,-1,-93093888,csv,None
+INFO,2024-06-27 12:15:08.743,test_nullable_filter_group_mutate_reduce,duckdb,3,6.8339160670293495,-1,-1,-1,156434432,csv,None
+INFO,2024-06-27 12:15:15.595,test_nullable_filter_group_mutate_reduce,duckdb,4,6.850203611073084,-1,-1,-1,-9830400,csv,None
+INFO,2024-06-27 12:15:35.654,test_nullable_filter_group_mutate_reduce,duckdb,-1,6.6076076430035755,-1,-1,-1,168525824,cached,None
+INFO,2024-06-27 12:15:42.264,test_nullable_filter_group_mutate_reduce,duckdb,0,6.607752804062329,-1,-1,-1,-14761984,cached,None
+INFO,2024-06-27 12:15:48.849,test_nullable_filter_group_mutate_reduce,duckdb,1,6.581638064933941,-1,-1,-1,67346432,cached,None
+INFO,2024-06-27 12:15:55.465,test_nullable_filter_group_mutate_reduce,duckdb,2,6.614093532087281,-1,-1,-1,22274048,cached,None
+INFO,2024-06-27 12:16:02.048,test_nullable_filter_group_mutate_reduce,duckdb,3,6.580381081090309,-1,-1,-1,-109424640,cached,None
+INFO,2024-06-27 12:16:08.637,test_nullable_filter_group_mutate_reduce,duckdb,4,6.585978813003749,-1,-1,-1,31375360,cached,None
+INFO,2024-06-27 12:16:11.511,test_nullable_filter_group_mutate_reduce,polars,-1,2.8706388900754973,-1,-1,-1,1105674240,csv,None
+INFO,2024-06-27 12:16:14.427,test_nullable_filter_group_mutate_reduce,polars,0,2.91331006702967,-1,-1,-1,7823360,csv,None
+INFO,2024-06-27 12:16:17.264,test_nullable_filter_group_mutate_reduce,polars,1,2.8339443099685013,-1,-1,-1,31457280,csv,None
+INFO,2024-06-27 12:16:20.151,test_nullable_filter_group_mutate_reduce,polars,2,2.884045915910974,-1,-1,-1,-1030647808,csv,None
+INFO,2024-06-27 12:16:23.019,test_nullable_filter_group_mutate_reduce,polars,3,2.8657408650033176,-1,-1,-1,1123241984,csv,None
+INFO,2024-06-27 12:16:25.893,test_nullable_filter_group_mutate_reduce,polars,4,2.872029575984925,-1,-1,-1,56324096,csv,None
+INFO,2024-06-27 12:16:31.311,test_nullable_filter_group_mutate_reduce,polars,-1,2.6906659129308537,-1,-1,-1,875900928,cached,None
+INFO,2024-06-27 12:16:33.992,test_nullable_filter_group_mutate_reduce,polars,0,2.6785895650973544,-1,-1,-1,-63987712,cached,None
+INFO,2024-06-27 12:16:36.752,test_nullable_filter_group_mutate_reduce,polars,1,2.757185670081526,-1,-1,-1,22851584,cached,None
+INFO,2024-06-27 12:16:40.403,test_nullable_filter_group_mutate_reduce,polars,2,3.6490788529627025,-1,-1,-1,-1162989568,cached,None
+INFO,2024-06-27 12:16:44.045,test_nullable_filter_group_mutate_reduce,polars,3,3.6386321369791403,-1,-1,-1,-83374080,cached,None
+INFO,2024-06-27 12:16:46.722,test_nullable_filter_group_mutate_reduce,polars,4,2.674647014006041,-1,-1,-1,1215250432,cached,None
+INFO,2024-06-27 12:27:18.749,test_nullable_filter_group_mutate_reduce,flink,-1,631.8772288829787,-1,-1,-1,5582671872,csv,None
+INFO,2024-06-27 12:37:55.068,test_nullable_filter_group_mutate_reduce,flink,0,636.3162855809787,-1,-1,-1,8665145344,csv,None
+INFO,2024-06-27 12:48:23.010,test_nullable_filter_group_mutate_reduce,flink,1,627.9396036560647,-1,-1,-1,-812576768,csv,None
+INFO,2024-06-27 12:58:59.779,test_nullable_filter_group_mutate_reduce,flink,2,636.766505053034,-1,-1,-1,2087751680,csv,None
+INFO,2024-06-27 13:09:34.843,test_nullable_filter_group_mutate_reduce,flink,3,635.0618042919086,-1,-1,-1,37183488,csv,None
+INFO,2024-06-27 13:20:09.677,test_nullable_filter_group_mutate_reduce,flink,4,634.8314663179917,-1,-1,-1,37703680,csv,None
+INFO,2024-06-27 13:30:32.287,test_nullable_filter_group_mutate_reduce,flink,-1,622.468401724007,-1,-1,-1,37269504,cached,None
+INFO,2024-06-27 13:41:09.179,test_nullable_filter_group_mutate_reduce,flink,0,636.8893105409807,-1,-1,-1,-3586670592,cached,None
+INFO,2024-06-27 13:51:42.728,test_nullable_filter_group_mutate_reduce,flink,1,633.546656443039,-1,-1,-1,2596651008,cached,None
+INFO,2024-06-27 14:02:15.231,test_nullable_filter_group_mutate_reduce,flink,2,632.5002998739947,-1,-1,-1,-544657408,cached,None
+INFO,2024-06-27 14:12:49.442,test_nullable_filter_group_mutate_reduce,flink,3,634.2084977919003,-1,-1,-1,1098911744,cached,None
+INFO,2024-06-27 14:23:19.105,test_nullable_filter_group_mutate_reduce,flink,4,629.6605798479868,-1,-1,-1,14438400,cached,None
+INFO,2024-06-27 14:23:22.303,test_nullable_filter_group_mutate_reduce,renoir,-1,3.106843313900754,1.614421061007306,1.440870492020622,-1,-1155489792,csv,None
+INFO,2024-06-27 14:23:25.429,test_nullable_filter_group_mutate_reduce,renoir,0,3.123504864051938,1.5963223199360073,1.4740137819899246,-1,0,csv,None
+INFO,2024-06-27 14:23:28.515,test_nullable_filter_group_mutate_reduce,renoir,1,3.0825756249250844,1.6108204869087785,1.4204616299830377,-1,0,csv,None
+INFO,2024-06-27 14:23:31.638,test_nullable_filter_group_mutate_reduce,renoir,2,3.120627647964284,1.6433915679808706,1.426200183108449,-1,0,csv,None
+INFO,2024-06-27 14:23:34.800,test_nullable_filter_group_mutate_reduce,renoir,3,3.160075247986242,1.6104103139368817,1.4949689250206575,-1,0,csv,None
+INFO,2024-06-27 14:23:37.897,test_nullable_filter_group_mutate_reduce,renoir,4,3.0940687890397385,1.6217358000576496,1.4208391680149361,-1,0,csv,None
+INFO,2024-06-27 14:23:41.091,test_nullable_filter_group_mutate_reduce,renoir,-1,3.100118817994371,1.5905370860127732,1.4588400369975716,-1,0,cached,None
+INFO,2024-06-27 14:23:44.153,test_nullable_filter_group_mutate_reduce,renoir,0,3.059910748968832,1.5623074040049687,1.4463217169977725,-1,0,cached,None
+INFO,2024-06-27 14:23:47.272,test_nullable_filter_group_mutate_reduce,renoir,1,3.116101113962941,1.597123706014827,1.4675856069661677,-1,0,cached,None
+INFO,2024-06-27 14:23:50.347,test_nullable_filter_group_mutate_reduce,renoir,2,3.0724490579450503,1.5817923760041595,1.439708512974903,-1,0,cached,None
+INFO,2024-06-27 14:23:53.454,test_nullable_filter_group_mutate_reduce,renoir,3,3.1047267459798604,1.621836905949749,1.431942577008158,-1,131072,cached,None
+INFO,2024-06-27 14:23:56.565,test_nullable_filter_group_mutate_reduce,renoir,4,3.108007526025176,1.6056861720280722,1.4516935819992796,-1,0,cached,None
+INFO,2024-06-27 14:23:56.977,test_nullable_filter_group_select,duckdb,-1,0.32236992998514324,-1,-1,-1,6930432,csv,None
+INFO,2024-06-27 14:23:57.345,test_nullable_filter_group_select,duckdb,0,0.36604303296189755,-1,-1,-1,94208,csv,None
+INFO,2024-06-27 14:23:57.671,test_nullable_filter_group_select,duckdb,1,0.3227888209512457,-1,-1,-1,77824,csv,None
+INFO,2024-06-27 14:23:57.998,test_nullable_filter_group_select,duckdb,2,0.32464543101377785,-1,-1,-1,102400,csv,None
+INFO,2024-06-27 14:23:58.349,test_nullable_filter_group_select,duckdb,3,0.3486385348951444,-1,-1,-1,-518529024,csv,None
+INFO,2024-06-27 14:23:58.655,test_nullable_filter_group_select,duckdb,4,0.3036673570750281,-1,-1,-1,-4096,csv,None
+INFO,2024-06-27 14:24:12.475,test_nullable_filter_group_select,duckdb,-1,0.14484487904701382,-1,-1,-1,-2682880,cached,None
+INFO,2024-06-27 14:24:12.635,test_nullable_filter_group_select,duckdb,0,0.1576538139488548,-1,-1,-1,0,cached,None
+INFO,2024-06-27 14:24:12.828,test_nullable_filter_group_select,duckdb,1,0.19037618301808834,-1,-1,-1,131072,cached,None
+INFO,2024-06-27 14:24:12.967,test_nullable_filter_group_select,duckdb,2,0.13499108399264514,-1,-1,-1,0,cached,None
+INFO,2024-06-27 14:24:13.125,test_nullable_filter_group_select,duckdb,3,0.15625088196247816,-1,-1,-1,131072,cached,None
+INFO,2024-06-27 14:24:13.253,test_nullable_filter_group_select,duckdb,4,0.12494849902577698,-1,-1,-1,0,cached,None
+INFO,2024-06-27 14:24:13.475,test_nullable_filter_group_select,polars,-1,0.2182078929618001,-1,-1,-1,38772736,csv,None
+INFO,2024-06-27 14:24:13.696,test_nullable_filter_group_select,polars,0,0.2182956140022725,-1,-1,-1,143360,csv,None
+INFO,2024-06-27 14:24:13.917,test_nullable_filter_group_select,polars,1,0.21902683400548995,-1,-1,-1,-2846720,csv,None
+INFO,2024-06-27 14:24:14.140,test_nullable_filter_group_select,polars,2,0.21994204504881054,-1,-1,-1,-10006528,csv,None
+INFO,2024-06-27 14:24:14.392,test_nullable_filter_group_select,polars,3,0.24966219696216285,-1,-1,-1,-22597632,csv,None
+INFO,2024-06-27 14:24:14.711,test_nullable_filter_group_select,polars,4,0.31601362908259034,-1,-1,-1,12607488,csv,None
+INFO,2024-06-27 14:24:17.636,test_nullable_filter_group_select,polars,-1,0.11231931205838919,-1,-1,-1,1179648,cached,None
+INFO,2024-06-27 14:24:17.752,test_nullable_filter_group_select,polars,0,0.11296954599674791,-1,-1,-1,0,cached,None
+INFO,2024-06-27 14:24:17.867,test_nullable_filter_group_select,polars,1,0.11246495007071644,-1,-1,-1,0,cached,None
+INFO,2024-06-27 14:24:18.044,test_nullable_filter_group_select,polars,2,0.174462164985016,-1,-1,-1,0,cached,None
+INFO,2024-06-27 14:24:18.159,test_nullable_filter_group_select,polars,3,0.11278924404177815,-1,-1,-1,-161468416,cached,None
+INFO,2024-06-27 14:24:18.273,test_nullable_filter_group_select,polars,4,0.11168763297609985,-1,-1,-1,0,cached,None
+INFO,2024-06-27 14:24:22.177,test_nullable_filter_group_select,flink,-1,3.753765474073589,-1,-1,-1,-225443840,csv,None
+INFO,2024-06-27 14:24:25.953,test_nullable_filter_group_select,flink,0,3.773568172007799,-1,-1,-1,-11416293376,csv,None
+INFO,2024-06-27 14:24:29.998,test_nullable_filter_group_select,flink,1,4.042318150983192,-1,-1,-1,-4736016384,csv,None
+INFO,2024-06-27 14:24:34.536,test_nullable_filter_group_select,flink,2,4.535005301004276,-1,-1,-1,1072545792,csv,None
+INFO,2024-06-27 14:24:40.399,test_nullable_filter_group_select,flink,3,5.859959605964832,-1,-1,-1,-1067061248,csv,None
+INFO,2024-06-27 14:24:45.331,test_nullable_filter_group_select,flink,4,4.928776619955897,-1,-1,-1,1193103360,csv,None
+INFO,2024-06-27 14:24:49.192,test_nullable_filter_group_select,flink,-1,3.703008195036091,-1,-1,-1,25702400,cached,None
+INFO,2024-06-27 14:24:54.090,test_nullable_filter_group_select,flink,0,4.895682979025878,-1,-1,-1,26484736,cached,None
+INFO,2024-06-27 14:24:58.993,test_nullable_filter_group_select,flink,1,4.900246292934753,-1,-1,-1,20652032,cached,None
+INFO,2024-06-27 14:25:02.729,test_nullable_filter_group_select,flink,2,3.734113664017059,-1,-1,-1,23846912,cached,None
+INFO,2024-06-27 14:25:06.475,test_nullable_filter_group_select,flink,3,3.7432477979455143,-1,-1,-1,16535552,cached,None
+INFO,2024-06-27 14:25:10.211,test_nullable_filter_group_select,flink,4,3.733805567957461,-1,-1,-1,23146496,cached,None
+INFO,2024-06-27 14:25:12.395,test_nullable_filter_group_select,renoir,-1,2.090909458929673,1.6248124750563875,0.41676930198445916,-1,0,csv,None
+INFO,2024-06-27 14:25:14.461,test_nullable_filter_group_select,renoir,0,2.06305232597515,1.6017965300707147,0.41306077304761857,-1,0,csv,None
+INFO,2024-06-27 14:25:16.519,test_nullable_filter_group_select,renoir,1,2.0553211530204862,1.5940773870097473,0.4129471309715882,-1,-131072,csv,None
+INFO,2024-06-27 14:25:19.290,test_nullable_filter_group_select,renoir,2,2.768767240922898,1.60027323407121,0.40752702893223614,-1,131072,csv,None
+INFO,2024-06-27 14:25:21.326,test_nullable_filter_group_select,renoir,3,2.0337271040771157,1.577742003952153,0.4082408230751753,-1,0,csv,None
+INFO,2024-06-27 14:25:23.389,test_nullable_filter_group_select,renoir,4,2.059845820069313,1.5908838449977338,0.4208343978971243,-1,0,csv,None
+INFO,2024-06-27 14:25:26.234,test_nullable_filter_group_select,renoir,-1,2.755314773065038,1.5950009940424934,0.4122261699521914,-1,0,cached,None
+INFO,2024-06-27 14:25:28.278,test_nullable_filter_group_select,renoir,0,2.0413029820192605,1.582550102029927,0.41011078690644354,-1,0,cached,None
+INFO,2024-06-27 14:25:30.345,test_nullable_filter_group_select,renoir,1,2.0648948890157044,1.590055900043808,0.4265220130328089,-1,0,cached,None
+INFO,2024-06-27 14:25:32.428,test_nullable_filter_group_select,renoir,2,2.0805368489818648,1.6177205350250006,0.4142364360159263,-1,131072,cached,None
+INFO,2024-06-27 14:25:34.511,test_nullable_filter_group_select,renoir,3,2.0798092029290274,1.60941041004844,0.42231360101141036,-1,0,cached,None
+INFO,2024-06-27 14:25:36.568,test_nullable_filter_group_select,renoir,4,2.05456363002304,1.598855350050144,0.40737797296606004,-1,131072,cached,None
+INFO,2024-06-27 14:25:36.980,test_nullable_filter_reduce,duckdb,-1,0.3236357959685847,-1,-1,-1,204800,csv,None
+INFO,2024-06-27 14:25:37.298,test_nullable_filter_reduce,duckdb,0,0.31509587296750396,-1,-1,-1,147456,csv,None
+INFO,2024-06-27 14:25:37.625,test_nullable_filter_reduce,duckdb,1,0.324806371005252,-1,-1,-1,1916928,csv,None
+INFO,2024-06-27 14:25:37.954,test_nullable_filter_reduce,duckdb,2,0.32654818007722497,-1,-1,-1,204800,csv,None
+INFO,2024-06-27 14:25:38.447,test_nullable_filter_reduce,duckdb,3,0.4898588160285726,-1,-1,-1,94208,csv,None
+INFO,2024-06-27 14:25:38.780,test_nullable_filter_reduce,duckdb,4,0.3292139129480347,-1,-1,-1,-24576,csv,None
+INFO,2024-06-27 14:25:52.686,test_nullable_filter_reduce,duckdb,-1,0.1293509399984032,-1,-1,-1,131072,cached,None
+INFO,2024-06-27 14:25:52.816,test_nullable_filter_reduce,duckdb,0,0.12740345299243927,-1,-1,-1,0,cached,None
+INFO,2024-06-27 14:25:52.946,test_nullable_filter_reduce,duckdb,1,0.12749555392656475,-1,-1,-1,262144,cached,None
+INFO,2024-06-27 14:25:53.076,test_nullable_filter_reduce,duckdb,2,0.1273684900952503,-1,-1,-1,0,cached,None
+INFO,2024-06-27 14:25:53.206,test_nullable_filter_reduce,duckdb,3,0.12702978204470128,-1,-1,-1,0,cached,None
+INFO,2024-06-27 14:25:53.336,test_nullable_filter_reduce,duckdb,4,0.1273385500535369,-1,-1,-1,0,cached,None
+INFO,2024-06-27 14:25:53.563,test_nullable_filter_reduce,polars,-1,0.22309675300493836,-1,-1,-1,-13000704,csv,None
+INFO,2024-06-27 14:25:53.791,test_nullable_filter_reduce,polars,0,0.22592759609688073,-1,-1,-1,-114688,csv,None
+INFO,2024-06-27 14:25:54.019,test_nullable_filter_reduce,polars,1,0.2254081810824573,-1,-1,-1,-15372288,csv,None
+INFO,2024-06-27 14:25:54.247,test_nullable_filter_reduce,polars,2,0.2255546849919483,-1,-1,-1,-28135424,csv,None
+INFO,2024-06-27 14:25:54.476,test_nullable_filter_reduce,polars,3,0.22579529392533004,-1,-1,-1,-155648,csv,None
+INFO,2024-06-27 14:25:54.704,test_nullable_filter_reduce,polars,4,0.22551392496097833,-1,-1,-1,-13250560,csv,None
+INFO,2024-06-27 14:25:57.661,test_nullable_filter_reduce,polars,-1,0.11478390300180763,-1,-1,-1,1310720,cached,None
+INFO,2024-06-27 14:25:57.778,test_nullable_filter_reduce,polars,0,0.11423975194338709,-1,-1,-1,0,cached,None
+INFO,2024-06-27 14:25:57.935,test_nullable_filter_reduce,polars,1,0.15467780898325145,-1,-1,-1,0,cached,None
+INFO,2024-06-27 14:25:58.093,test_nullable_filter_reduce,polars,2,0.1544634229503572,-1,-1,-1,-403599360,cached,None
+INFO,2024-06-27 14:25:58.275,test_nullable_filter_reduce,polars,3,0.17943220993038267,-1,-1,-1,0,cached,None
+INFO,2024-06-27 14:25:58.430,test_nullable_filter_reduce,polars,4,0.15254516596905887,-1,-1,-1,0,cached,None
+INFO,2024-06-27 14:26:02.303,test_nullable_filter_reduce,flink,-1,3.706849585985765,-1,-1,-1,26734592,csv,None
+INFO,2024-06-27 14:26:06.023,test_nullable_filter_reduce,flink,0,3.717696881038137,-1,-1,-1,10473472,csv,None
+INFO,2024-06-27 14:26:10.924,test_nullable_filter_reduce,flink,1,4.897724741953425,-1,-1,-1,16961536,csv,None
+INFO,2024-06-27 14:26:14.627,test_nullable_filter_reduce,flink,2,3.7012385869165882,-1,-1,-1,25776128,csv,None
+INFO,2024-06-27 14:26:18.265,test_nullable_filter_reduce,flink,3,3.6342478920705616,-1,-1,-1,16400384,csv,None
+INFO,2024-06-27 14:26:21.982,test_nullable_filter_reduce,flink,4,3.714269927935675,-1,-1,-1,20619264,csv,None
+INFO,2024-06-27 14:26:25.894,test_nullable_filter_reduce,flink,-1,3.736061805044301,-1,-1,-1,21123072,cached,None
+INFO,2024-06-27 14:26:29.658,test_nullable_filter_reduce,flink,0,3.759357647038996,-1,-1,-1,20615168,cached,None
+INFO,2024-06-27 14:26:33.416,test_nullable_filter_reduce,flink,1,3.754744131001644,-1,-1,-1,22097920,cached,None
+INFO,2024-06-27 14:26:37.150,test_nullable_filter_reduce,flink,2,3.730583615018986,-1,-1,-1,23023616,cached,None
+INFO,2024-06-27 14:26:40.896,test_nullable_filter_reduce,flink,3,3.7435038920957595,-1,-1,-1,16723968,cached,None
+INFO,2024-06-27 14:26:44.599,test_nullable_filter_reduce,flink,4,3.7005878860363737,-1,-1,-1,15953920,cached,None
+INFO,2024-06-27 14:26:46.708,test_nullable_filter_reduce,renoir,-1,2.0186595889972523,1.5458759639877826,0.42288164095953107,-1,0,csv,None
+INFO,2024-06-27 14:26:48.679,test_nullable_filter_reduce,renoir,0,1.9680741329211742,1.5018154350109398,0.4167452580295503,-1,0,csv,None
+INFO,2024-06-27 14:26:50.695,test_nullable_filter_reduce,renoir,1,2.013616086100228,1.5386640260694548,0.42556691099889576,-1,0,csv,None
+INFO,2024-06-27 14:26:52.707,test_nullable_filter_reduce,renoir,2,2.0097180710872635,1.5391517460811883,0.4212863380089402,-1,0,csv,None
+INFO,2024-06-27 14:26:54.726,test_nullable_filter_reduce,renoir,3,2.0158453290350735,1.5456860939739272,0.42104468506295234,-1,0,csv,None
+INFO,2024-06-27 14:26:56.732,test_nullable_filter_reduce,renoir,4,2.003503644024022,1.5260544199263677,0.42774933495093137,-1,-131072,csv,None
+INFO,2024-06-27 14:26:58.843,test_nullable_filter_reduce,renoir,-1,2.021265415009111,1.5497905149823055,0.4219927180092782,-1,0,cached,None
+INFO,2024-06-27 14:27:01.551,test_nullable_filter_reduce,renoir,0,2.706175950006582,1.5330200910102576,0.4198965569958091,-1,-561676288,cached,None
+INFO,2024-06-27 14:27:03.595,test_nullable_filter_reduce,renoir,1,2.041323136072606,1.5659815220860764,0.4264368920121342,-1,0,cached,None
+INFO,2024-06-27 14:27:05.633,test_nullable_filter_reduce,renoir,2,2.035236592986621,1.562105430988595,0.4240408210316673,-1,0,cached,None
+INFO,2024-06-27 14:27:07.628,test_nullable_filter_reduce,renoir,3,1.9931586630409583,1.5172458230517805,0.4270227599190548,-1,0,cached,None
+INFO,2024-06-27 14:27:09.684,test_nullable_filter_reduce,renoir,4,2.0525213959626853,1.5717720839893445,0.4317537050228566,-1,131072,cached,None
+INFO,2024-06-27 14:27:10.824,test_nullable_filter_select,duckdb,-1,1.0508344349218532,-1,-1,-1,36864,csv,None
+INFO,2024-06-27 14:27:11.912,test_nullable_filter_select,duckdb,0,1.085641319048591,-1,-1,-1,-102400,csv,None
+INFO,2024-06-27 14:27:13.303,test_nullable_filter_select,duckdb,1,1.3883520290255547,-1,-1,-1,73728,csv,None
+INFO,2024-06-27 14:27:14.355,test_nullable_filter_select,duckdb,2,1.0499629459809512,-1,-1,-1,-9650176,csv,None
+INFO,2024-06-27 14:27:15.393,test_nullable_filter_select,duckdb,3,1.0348434839397669,-1,-1,-1,53248,csv,None
+INFO,2024-06-27 14:27:16.427,test_nullable_filter_select,duckdb,4,1.0313882830087095,-1,-1,-1,-57344,csv,None
+INFO,2024-06-27 14:27:30.236,test_nullable_filter_select,duckdb,-1,0.27629151300061494,-1,-1,-1,131072,cached,None
+INFO,2024-06-27 14:27:30.511,test_nullable_filter_select,duckdb,0,0.2721180870430544,-1,-1,-1,0,cached,None
+INFO,2024-06-27 14:27:30.787,test_nullable_filter_select,duckdb,1,0.2738608500221744,-1,-1,-1,0,cached,None
+INFO,2024-06-27 14:27:31.064,test_nullable_filter_select,duckdb,2,0.27449799107853323,-1,-1,-1,0,cached,None
+INFO,2024-06-27 14:27:31.363,test_nullable_filter_select,duckdb,3,0.2964371839771047,-1,-1,-1,0,cached,None
+INFO,2024-06-27 14:27:31.639,test_nullable_filter_select,duckdb,4,0.272944008000195,-1,-1,-1,131072,cached,None
+INFO,2024-06-27 14:27:31.870,test_nullable_filter_select,polars,-1,0.22721646598074585,-1,-1,-1,163840,csv,None
+INFO,2024-06-27 14:27:32.100,test_nullable_filter_select,polars,0,0.2279338469961658,-1,-1,-1,-57802752,csv,None
+INFO,2024-06-27 14:27:32.327,test_nullable_filter_select,polars,1,0.2238785510417074,-1,-1,-1,6434816,csv,None
+INFO,2024-06-27 14:27:32.553,test_nullable_filter_select,polars,2,0.2238341469783336,-1,-1,-1,139264,csv,None
+INFO,2024-06-27 14:27:32.780,test_nullable_filter_select,polars,3,0.2247815829468891,-1,-1,-1,-35954688,csv,None
+INFO,2024-06-27 14:27:33.007,test_nullable_filter_select,polars,4,0.22448680398520082,-1,-1,-1,3776512,csv,None
+INFO,2024-06-27 14:27:36.777,test_nullable_filter_select,polars,-1,1.023259959067218,-1,-1,-1,-160280576,cached,None
+INFO,2024-06-27 14:27:36.894,test_nullable_filter_select,polars,0,0.1148893900681287,-1,-1,-1,0,cached,None
+INFO,2024-06-27 14:27:37.012,test_nullable_filter_select,polars,1,0.11519404104910791,-1,-1,-1,-240934912,cached,None
+INFO,2024-06-27 14:27:37.131,test_nullable_filter_select,polars,2,0.1164705129340291,-1,-1,-1,0,cached,None
+INFO,2024-06-27 14:27:37.250,test_nullable_filter_select,polars,3,0.11621783301234245,-1,-1,-1,0,cached,None
+INFO,2024-06-27 14:27:37.369,test_nullable_filter_select,polars,4,0.11623791593592614,-1,-1,-1,0,cached,None
+INFO,2024-06-27 14:27:42.472,test_nullable_filter_select,flink,-1,4.892421309952624,-1,-1,-1,-120844288,csv,None
+INFO,2024-06-27 14:27:46.171,test_nullable_filter_select,flink,0,3.695676213945262,-1,-1,-1,15421440,csv,None
+INFO,2024-06-27 14:27:49.811,test_nullable_filter_select,flink,1,3.637935652048327,-1,-1,-1,15237120,csv,None
+INFO,2024-06-27 14:27:53.549,test_nullable_filter_select,flink,2,3.734781321953051,-1,-1,-1,15282176,csv,None
+INFO,2024-06-27 14:27:57.246,test_nullable_filter_select,flink,3,3.6946690150070935,-1,-1,-1,20770816,csv,None
+INFO,2024-06-27 14:28:01.076,test_nullable_filter_select,flink,4,3.827369991922751,-1,-1,-1,15634432,csv,None
+INFO,2024-06-27 14:28:04.988,test_nullable_filter_select,flink,-1,3.7160782309947535,-1,-1,-1,24231936,cached,None
+INFO,2024-06-27 14:28:08.660,test_nullable_filter_select,flink,0,3.6686412600101903,-1,-1,-1,12959744,cached,None
+INFO,2024-06-27 14:28:12.428,test_nullable_filter_select,flink,1,3.7661101890262216,-1,-1,-1,20049920,cached,None
+INFO,2024-06-27 14:28:16.125,test_nullable_filter_select,flink,2,3.69361872097943,-1,-1,-1,19054592,cached,None
+INFO,2024-06-27 14:28:19.862,test_nullable_filter_select,flink,3,3.734584792982787,-1,-1,-1,16527360,cached,None
+INFO,2024-06-27 14:28:24.664,test_nullable_filter_select,flink,4,4.8001362949144095,-1,-1,-1,20566016,cached,None
+INFO,2024-06-27 14:28:26.006,test_nullable_filter_select,renoir,-1,1.2510431489208713,0.7977641960605979,0.40978825895581394,-1,0,csv,None
+INFO,2024-06-27 14:28:27.242,test_nullable_filter_select,renoir,0,1.2327389450510964,0.783753165975213,0.4049382880330086,-1,0,csv,None
+INFO,2024-06-27 14:28:28.479,test_nullable_filter_select,renoir,1,1.2354753239778802,0.7809426790336147,0.4100145739503205,-1,0,csv,None
+INFO,2024-06-27 14:28:29.727,test_nullable_filter_select,renoir,2,1.2445927620865405,0.7840247990097851,0.416087553021498,-1,0,csv,None
+INFO,2024-06-27 14:28:30.968,test_nullable_filter_select,renoir,3,1.2390136420726776,0.7810358330607414,0.41440151899587363,-1,0,csv,None
+INFO,2024-06-27 14:28:32.216,test_nullable_filter_select,renoir,4,1.245180697995238,0.7837427030317485,0.4178497949615121,-1,0,csv,None
+INFO,2024-06-27 14:28:33.536,test_nullable_filter_select,renoir,-1,1.2292964790249243,0.7760019900742918,0.4095726889790967,-1,0,cached,None
+INFO,2024-06-27 14:28:34.759,test_nullable_filter_select,renoir,0,1.2197789539350197,0.7702659770147875,0.4057668460300192,-1,0,cached,None
+INFO,2024-06-27 14:28:35.987,test_nullable_filter_select,renoir,1,1.2261412959778681,0.7773548259865493,0.4039067409466952,-1,0,cached,None
+INFO,2024-06-27 14:28:37.215,test_nullable_filter_select,renoir,2,1.2255086810328066,0.7756615440594032,0.40591402794234455,-1,0,cached,None
+INFO,2024-06-27 14:28:38.429,test_nullable_filter_select,renoir,3,1.2110711010172963,0.766897847992368,0.4005135459592566,-1,0,cached,None
+INFO,2024-06-27 14:28:39.641,test_nullable_filter_select,renoir,4,1.2095396670047194,0.7623752909712493,0.4034518770640716,-1,-131072,cached,None
+INFO,2024-06-27 14:28:41.843,test_nullable_group_reduce_group_reduce_join,duckdb,-1,2.1118349928874522,-1,-1,-1,991858688,csv,None
+INFO,2024-06-27 14:28:44.002,test_nullable_group_reduce_group_reduce_join,duckdb,0,2.15619930496905,-1,-1,-1,-120999936,csv,None
+INFO,2024-06-27 14:28:46.220,test_nullable_group_reduce_group_reduce_join,duckdb,1,2.2157356810057536,-1,-1,-1,97427456,csv,None
+INFO,2024-06-27 14:28:48.465,test_nullable_group_reduce_group_reduce_join,duckdb,2,2.2416451850440353,-1,-1,-1,-90857472,csv,None
+INFO,2024-06-27 14:28:50.643,test_nullable_group_reduce_group_reduce_join,duckdb,3,2.1757144239963964,-1,-1,-1,126963712,csv,None
+INFO,2024-06-27 14:28:52.927,test_nullable_group_reduce_group_reduce_join,duckdb,4,2.281900229980238,-1,-1,-1,62836736,csv,None
+INFO,2024-06-27 14:29:08.236,test_nullable_group_reduce_group_reduce_join,duckdb,-1,1.7000325600383803,-1,-1,-1,305934336,cached,None
+INFO,2024-06-27 14:29:10.464,test_nullable_group_reduce_group_reduce_join,duckdb,0,2.2248414990026504,-1,-1,-1,-48455680,cached,None
+INFO,2024-06-27 14:29:12.158,test_nullable_group_reduce_group_reduce_join,duckdb,1,1.6917372640455142,-1,-1,-1,87883776,cached,None
+INFO,2024-06-27 14:29:13.877,test_nullable_group_reduce_group_reduce_join,duckdb,2,1.7162507600151002,-1,-1,-1,-60772352,cached,None
+INFO,2024-06-27 14:29:15.592,test_nullable_group_reduce_group_reduce_join,duckdb,3,1.7119865330168977,-1,-1,-1,-107528192,cached,None
+INFO,2024-06-27 14:29:17.308,test_nullable_group_reduce_group_reduce_join,duckdb,4,1.7137423109961674,-1,-1,-1,80162816,cached,None
+INFO,2024-06-27 14:29:18.894,test_nullable_group_reduce_group_reduce_join,polars,-1,1.58194080600515,-1,-1,-1,-133148672,csv,None
+INFO,2024-06-27 14:29:20.453,test_nullable_group_reduce_group_reduce_join,polars,0,1.5565224760212004,-1,-1,-1,92565504,csv,None
+INFO,2024-06-27 14:29:22.020,test_nullable_group_reduce_group_reduce_join,polars,1,1.5648240640293807,-1,-1,-1,38289408,csv,None
+INFO,2024-06-27 14:29:23.591,test_nullable_group_reduce_group_reduce_join,polars,2,1.5681441419292241,-1,-1,-1,-23842816,csv,None
+INFO,2024-06-27 14:29:25.152,test_nullable_group_reduce_group_reduce_join,polars,3,1.5584619930014014,-1,-1,-1,8237056,csv,None
+INFO,2024-06-27 14:29:26.714,test_nullable_group_reduce_group_reduce_join,polars,4,1.5595791660016403,-1,-1,-1,-20795392,csv,None
+INFO,2024-06-27 14:29:30.800,test_nullable_group_reduce_group_reduce_join,polars,-1,1.3344605779275298,-1,-1,-1,-550998016,cached,None
+INFO,2024-06-27 14:29:32.121,test_nullable_group_reduce_group_reduce_join,polars,0,1.3187573340255767,-1,-1,-1,44580864,cached,None
+INFO,2024-06-27 14:29:33.441,test_nullable_group_reduce_group_reduce_join,polars,1,1.3173339019995183,-1,-1,-1,10465280,cached,None
+INFO,2024-06-27 14:29:34.751,test_nullable_group_reduce_group_reduce_join,polars,2,1.3078523739241064,-1,-1,-1,-20684800,cached,None
+INFO,2024-06-27 14:29:36.077,test_nullable_group_reduce_group_reduce_join,polars,3,1.3234244140330702,-1,-1,-1,24965120,cached,None
+INFO,2024-06-27 14:29:37.391,test_nullable_group_reduce_group_reduce_join,polars,4,1.3108381410129368,-1,-1,-1,13791232,cached,None
+INFO,2024-06-27 14:30:53.317,test_nullable_group_reduce_group_reduce_join,flink,-1,75.72721315699164,-1,-1,-1,14420676608,csv,None
+INFO,2024-06-27 14:32:04.424,test_nullable_group_reduce_group_reduce_join,flink,0,71.10431492491625,-1,-1,-1,61566976,csv,None
+INFO,2024-06-27 14:33:25.230,test_nullable_group_reduce_group_reduce_join,flink,1,80.80304755398538,-1,-1,-1,213737472,csv,None
+INFO,2024-06-27 14:34:50.114,test_nullable_group_reduce_group_reduce_join,flink,2,84.8813229680527,-1,-1,-1,26009600,csv,None
+INFO,2024-06-27 14:36:03.308,test_nullable_group_reduce_group_reduce_join,flink,3,73.19126732007135,-1,-1,-1,-18743296,csv,None
+INFO,2024-06-27 14:37:22.659,test_nullable_group_reduce_group_reduce_join,flink,4,79.34852635196876,-1,-1,-1,66117632,csv,None
+INFO,2024-06-27 14:38:40.094,test_nullable_group_reduce_group_reduce_join,flink,-1,77.22116199904121,-1,-1,-1,63234048,cached,None
+INFO,2024-06-27 14:39:58.261,test_nullable_group_reduce_group_reduce_join,flink,0,78.16433314303868,-1,-1,-1,16486400,cached,None
+INFO,2024-06-27 14:41:17.469,test_nullable_group_reduce_group_reduce_join,flink,1,79.20550912397448,-1,-1,-1,21770240,cached,None
+INFO,2024-06-27 14:42:39.981,test_nullable_group_reduce_group_reduce_join,flink,2,82.51031380495988,-1,-1,-1,23875584,cached,None
+INFO,2024-06-27 14:43:49.495,test_nullable_group_reduce_group_reduce_join,flink,3,69.51102306507528,-1,-1,-1,-81379328,cached,None
+INFO,2024-06-27 14:45:12.560,test_nullable_group_reduce_group_reduce_join,flink,4,83.06219552201219,-1,-1,-1,145158144,cached,None
+INFO,2024-06-27 14:45:19.029,test_nullable_group_reduce_group_reduce_join,renoir,-1,6.377952801994979,3.5238961230497807,2.787416363018565,-1,-20971520,csv,None
+INFO,2024-06-27 14:45:25.391,test_nullable_group_reduce_group_reduce_join,renoir,0,6.359601523960009,3.4622333450242877,2.827608901076019,-1,-749568,csv,None
+INFO,2024-06-27 14:45:31.771,test_nullable_group_reduce_group_reduce_join,renoir,1,6.377209839061834,3.486774727003649,2.821888018050231,-1,0,csv,None
+INFO,2024-06-27 14:45:38.120,test_nullable_group_reduce_group_reduce_join,renoir,2,6.346039562020451,3.5060603850288317,2.770370546961203,-1,0,csv,None
+INFO,2024-06-27 14:45:44.543,test_nullable_group_reduce_group_reduce_join,renoir,3,6.4193394150352105,3.527614926919341,2.8246920979581773,-1,0,csv,None
+INFO,2024-06-27 14:45:50.884,test_nullable_group_reduce_group_reduce_join,renoir,4,6.338577762944624,3.4539610480424017,2.818246033973992,-1,131072,csv,None
+INFO,2024-06-27 14:45:57.650,test_nullable_group_reduce_group_reduce_join,renoir,-1,6.676817333092913,3.7991015180014074,2.811834422056563,-1,0,cached,None
+INFO,2024-06-27 14:46:04.349,test_nullable_group_reduce_group_reduce_join,renoir,0,6.696006200974807,3.802777834003791,2.8266022549942136,-1,0,cached,None
+INFO,2024-06-27 14:46:11.004,test_nullable_group_reduce_group_reduce_join,renoir,1,6.652554524014704,3.7531188509892672,2.8320321979699656,-1,0,cached,None
+INFO,2024-06-27 14:46:17.703,test_nullable_group_reduce_group_reduce_join,renoir,2,6.696048766956665,3.8173423770349473,2.8122580050257966,-1,0,cached,None
+INFO,2024-06-27 14:46:24.246,test_nullable_group_reduce_group_reduce_join,renoir,3,6.540920478058979,3.6944478190271184,2.7790676939766854,-1,0,cached,None
+INFO,2024-06-27 14:46:30.811,test_nullable_group_reduce_group_reduce_join,renoir,4,6.562350016087294,3.6742694650311023,2.8210877650417387,-1,131072,cached,None
+INFO,2024-06-27 14:46:32.774,test_nullable_group_reduce_join_mutate,duckdb,-1,1.8734118479769677,-1,-1,-1,6270976,csv,None
+INFO,2024-06-27 14:46:34.618,test_nullable_group_reduce_join_mutate,duckdb,0,1.8414985409472138,-1,-1,-1,-151363584,csv,None
+INFO,2024-06-27 14:46:36.502,test_nullable_group_reduce_join_mutate,duckdb,1,1.8809254339430481,-1,-1,-1,53039104,csv,None
+INFO,2024-06-27 14:46:38.290,test_nullable_group_reduce_join_mutate,duckdb,2,1.7858723980607465,-1,-1,-1,-102100992,csv,None
+INFO,2024-06-27 14:46:40.165,test_nullable_group_reduce_join_mutate,duckdb,3,1.8721676969435066,-1,-1,-1,13692928,csv,None
+INFO,2024-06-27 14:46:42.037,test_nullable_group_reduce_join_mutate,duckdb,4,1.8694820320233703,-1,-1,-1,68280320,csv,None
+INFO,2024-06-27 14:46:56.967,test_nullable_group_reduce_join_mutate,duckdb,-1,1.2792364520719275,-1,-1,-1,187891712,cached,None
+INFO,2024-06-27 14:46:58.242,test_nullable_group_reduce_join_mutate,duckdb,0,1.2724665750283748,-1,-1,-1,-14671872,cached,None
+INFO,2024-06-27 14:46:59.511,test_nullable_group_reduce_join_mutate,duckdb,1,1.265514046070166,-1,-1,-1,-9596928,cached,None
+INFO,2024-06-27 14:47:00.799,test_nullable_group_reduce_join_mutate,duckdb,2,1.2861300560180098,-1,-1,-1,33853440,cached,None
+INFO,2024-06-27 14:47:02.076,test_nullable_group_reduce_join_mutate,duckdb,3,1.274229862028733,-1,-1,-1,-3497984,cached,None
+INFO,2024-06-27 14:47:03.360,test_nullable_group_reduce_join_mutate,duckdb,4,1.2810521139763296,-1,-1,-1,11063296,cached,None
+INFO,2024-06-27 14:47:04.698,test_nullable_group_reduce_join_mutate,polars,-1,1.334169341949746,-1,-1,-1,-25182208,csv,None
+INFO,2024-06-27 14:47:06.055,test_nullable_group_reduce_join_mutate,polars,0,1.354550793999806,-1,-1,-1,54386688,csv,None
+INFO,2024-06-27 14:47:07.429,test_nullable_group_reduce_join_mutate,polars,1,1.3707129360409454,-1,-1,-1,45510656,csv,None
+INFO,2024-06-27 14:47:08.794,test_nullable_group_reduce_join_mutate,polars,2,1.3627276809420437,-1,-1,-1,14200832,csv,None
+INFO,2024-06-27 14:47:10.155,test_nullable_group_reduce_join_mutate,polars,3,1.3582852049730718,-1,-1,-1,8818688,csv,None
+INFO,2024-06-27 14:47:11.513,test_nullable_group_reduce_join_mutate,polars,4,1.3550744949607179,-1,-1,-1,-31055872,csv,None
+INFO,2024-06-27 14:47:16.237,test_nullable_group_reduce_join_mutate,polars,-1,1.9172106590121984,-1,-1,-1,-481148928,cached,None
+INFO,2024-06-27 14:47:17.238,test_nullable_group_reduce_join_mutate,polars,0,0.9984863669378683,-1,-1,-1,85737472,cached,None
+INFO,2024-06-27 14:47:18.241,test_nullable_group_reduce_join_mutate,polars,1,1.000683097052388,-1,-1,-1,45371392,cached,None
+INFO,2024-06-27 14:47:19.246,test_nullable_group_reduce_join_mutate,polars,2,1.0017701530596241,-1,-1,-1,3547136,cached,None
+INFO,2024-06-27 14:47:20.310,test_nullable_group_reduce_join_mutate,polars,3,1.061895458959043,-1,-1,-1,-77340672,cached,None
+INFO,2024-06-27 14:47:21.319,test_nullable_group_reduce_join_mutate,polars,4,1.0063535430235788,-1,-1,-1,138137600,cached,None
+INFO,2024-06-27 14:48:48.184,test_nullable_group_reduce_join_mutate,flink,-1,86.64321405999362,-1,-1,-1,-5615616,csv,None
+INFO,2024-06-27 14:50:07.623,test_nullable_group_reduce_join_mutate,flink,0,79.4355209559435,-1,-1,-1,22491136,csv,None
+INFO,2024-06-27 14:51:25.940,test_nullable_group_reduce_join_mutate,flink,1,78.31464098894503,-1,-1,-1,2617344,csv,None
+INFO,2024-06-27 14:52:44.751,test_nullable_group_reduce_join_mutate,flink,2,78.80892796698026,-1,-1,-1,-29192192,csv,None
+INFO,2024-06-27 14:54:09.216,test_nullable_group_reduce_join_mutate,flink,3,84.46198648295831,-1,-1,-1,84852736,csv,None
+INFO,2024-06-27 14:55:33.897,test_nullable_group_reduce_join_mutate,flink,4,84.67921877291519,-1,-1,-1,26271744,csv,None
+INFO,2024-06-27 14:57:01.785,test_nullable_group_reduce_join_mutate,flink,-1,87.64564803603571,-1,-1,-1,11018240,cached,None
+INFO,2024-06-27 14:58:20.617,test_nullable_group_reduce_join_mutate,flink,0,78.82958492904436,-1,-1,-1,-23699456,cached,None
+INFO,2024-06-27 14:59:47.363,test_nullable_group_reduce_join_mutate,flink,1,86.74265494104475,-1,-1,-1,67002368,cached,None
+INFO,2024-06-27 15:01:13.009,test_nullable_group_reduce_join_mutate,flink,2,85.64344660693314,-1,-1,-1,48857088,cached,None
+INFO,2024-06-27 15:02:34.948,test_nullable_group_reduce_join_mutate,flink,3,81.93664344702847,-1,-1,-1,-5877760,cached,None
+INFO,2024-06-27 15:04:06.896,test_nullable_group_reduce_join_mutate,flink,4,91.9452238229569,-1,-1,-1,-97550336,cached,None
+INFO,2024-06-27 15:04:13.292,test_nullable_group_reduce_join_mutate,renoir,-1,6.302476424025372,3.7100378919858485,2.527928875060752,-1,0,csv,None
+INFO,2024-06-27 15:04:19.428,test_nullable_group_reduce_join_mutate,renoir,0,6.133976828074083,3.537838811054826,2.5313984560780227,-1,0,csv,None
+INFO,2024-06-27 15:04:25.513,test_nullable_group_reduce_join_mutate,renoir,1,6.0816516489721835,3.4895301319193095,2.527105484972708,-1,0,csv,None
+INFO,2024-06-27 15:04:31.609,test_nullable_group_reduce_join_mutate,renoir,2,6.093473935965449,3.5025493080029264,2.526794999022968,-1,131072,csv,None
+INFO,2024-06-27 15:04:37.736,test_nullable_group_reduce_join_mutate,renoir,3,6.124534678994678,3.5505045709433034,2.5090499769430608,-1,0,csv,None
+INFO,2024-06-27 15:04:43.871,test_nullable_group_reduce_join_mutate,renoir,4,6.133137947064824,3.5148608670569956,2.5537908769911155,-1,0,csv,None
+INFO,2024-06-27 15:04:50.039,test_nullable_group_reduce_join_mutate,renoir,-1,6.077101292903535,3.478234041016549,2.534034152980894,-1,0,cached,None
+INFO,2024-06-27 15:04:56.443,test_nullable_group_reduce_join_mutate,renoir,0,6.402270204969682,3.780917425057851,2.5564324089791626,-1,0,cached,None
+INFO,2024-06-27 15:05:02.787,test_nullable_group_reduce_join_mutate,renoir,1,6.3412580819567665,3.751829511951655,2.524242992978543,-1,-192512,cached,None
+INFO,2024-06-27 15:05:09.145,test_nullable_group_reduce_join_mutate,renoir,2,6.355052832979709,3.7300157870631665,2.55918471806217,-1,0,cached,None
+INFO,2024-06-27 15:05:15.426,test_nullable_group_reduce_join_mutate,renoir,3,6.278295952943154,3.673027189914137,2.539481961983256,-1,0,cached,None
+INFO,2024-06-27 15:05:21.766,test_nullable_group_reduce_join_mutate,renoir,4,6.338218662072904,3.7175632340367883,2.5542513569816947,-1,131072,cached,None
+INFO,2024-06-27 15:05:22.447,test_nullable_inner_join_select,duckdb,-1,0.5884845330147073,-1,-1,-1,712704,csv,None
+INFO,2024-06-27 15:05:23.371,test_nullable_inner_join_select,duckdb,0,0.9217316439608112,-1,-1,-1,-443838464,csv,None
+INFO,2024-06-27 15:05:23.949,test_nullable_inner_join_select,duckdb,1,0.5740882189711556,-1,-1,-1,-86016,csv,None
+INFO,2024-06-27 15:05:24.520,test_nullable_inner_join_select,duckdb,2,0.568934291950427,-1,-1,-1,-606208,csv,None
+INFO,2024-06-27 15:05:25.095,test_nullable_inner_join_select,duckdb,3,0.5724212499335408,-1,-1,-1,741376,csv,None
+INFO,2024-06-27 15:05:25.690,test_nullable_inner_join_select,duckdb,4,0.5922163430368528,-1,-1,-1,421888,csv,None
+INFO,2024-06-27 15:05:39.366,test_nullable_inner_join_select,duckdb,-1,0.1397747779265046,-1,-1,-1,262144,cached,None
+INFO,2024-06-27 15:05:39.505,test_nullable_inner_join_select,duckdb,0,0.1364732920192182,-1,-1,-1,0,cached,None
+INFO,2024-06-27 15:05:39.643,test_nullable_inner_join_select,duckdb,1,0.13618416897952557,-1,-1,-1,131072,cached,None
+INFO,2024-06-27 15:05:39.783,test_nullable_inner_join_select,duckdb,2,0.13684276898857206,-1,-1,-1,0,cached,None
+INFO,2024-06-27 15:05:39.921,test_nullable_inner_join_select,duckdb,3,0.13543268095236272,-1,-1,-1,131072,cached,None
+INFO,2024-06-27 15:05:40.059,test_nullable_inner_join_select,duckdb,4,0.1356898699887097,-1,-1,-1,0,cached,None
+INFO,2024-06-27 15:05:40.415,test_nullable_inner_join_select,polars,-1,0.3511781790293753,-1,-1,-1,85950464,csv,None
+INFO,2024-06-27 15:05:40.768,test_nullable_inner_join_select,polars,0,0.3509196639060974,-1,-1,-1,-10973184,csv,None
+INFO,2024-06-27 15:05:41.119,test_nullable_inner_join_select,polars,1,0.3480259939096868,-1,-1,-1,-7987200,csv,None
+INFO,2024-06-27 15:05:41.466,test_nullable_inner_join_select,polars,2,0.34425930492579937,-1,-1,-1,7802880,csv,None
+INFO,2024-06-27 15:05:41.816,test_nullable_inner_join_select,polars,3,0.34780283202417195,-1,-1,-1,-14045184,csv,None
+INFO,2024-06-27 15:05:42.176,test_nullable_inner_join_select,polars,4,0.3574272390687838,-1,-1,-1,-29601792,csv,None
+INFO,2024-06-27 15:05:45.138,test_nullable_inner_join_select,polars,-1,0.13482847204431891,-1,-1,-1,0,cached,None
+INFO,2024-06-27 15:05:45.274,test_nullable_inner_join_select,polars,0,0.13368900504428893,-1,-1,-1,0,cached,None
+INFO,2024-06-27 15:05:45.457,test_nullable_inner_join_select,polars,1,0.1801199809415266,-1,-1,-1,131072,cached,None
+INFO,2024-06-27 15:05:45.594,test_nullable_inner_join_select,polars,2,0.13465524301864207,-1,-1,-1,-182140928,cached,None
+INFO,2024-06-27 15:05:45.730,test_nullable_inner_join_select,polars,3,0.13354285899549723,-1,-1,-1,0,cached,None
+INFO,2024-06-27 15:05:45.867,test_nullable_inner_join_select,polars,4,0.13379654998425394,-1,-1,-1,0,cached,None
+INFO,2024-06-27 15:05:57.923,test_nullable_inner_join_select,flink,-1,11.81449038698338,-1,-1,-1,-2349707264,csv,None
+INFO,2024-06-27 15:06:08.597,test_nullable_inner_join_select,flink,0,10.671485670958646,-1,-1,-1,1998381056,csv,None
+INFO,2024-06-27 15:06:19.384,test_nullable_inner_join_select,flink,1,10.78376830695197,-1,-1,-1,125181952,csv,None
+INFO,2024-06-27 15:06:33.414,test_nullable_inner_join_select,flink,2,14.027471111970954,-1,-1,-1,31080448,csv,None
+INFO,2024-06-27 15:06:46.923,test_nullable_inner_join_select,flink,3,13.505948250065558,-1,-1,-1,21184512,csv,None
+INFO,2024-06-27 15:06:57.792,test_nullable_inner_join_select,flink,4,10.866449861088768,-1,-1,-1,24186880,csv,None
+INFO,2024-06-27 15:07:08.918,test_nullable_inner_join_select,flink,-1,10.837434901040979,-1,-1,-1,7790592,cached,None
+INFO,2024-06-27 15:07:22.629,test_nullable_inner_join_select,flink,0,13.708521938999183,-1,-1,-1,-545263616,cached,None
+INFO,2024-06-27 15:07:32.944,test_nullable_inner_join_select,flink,1,10.311805965960957,-1,-1,-1,16080896,cached,None
+INFO,2024-06-27 15:07:46.327,test_nullable_inner_join_select,flink,2,13.380235441960394,-1,-1,-1,15949824,cached,None
+INFO,2024-06-27 15:07:57.069,test_nullable_inner_join_select,flink,3,10.739237154950388,-1,-1,-1,13783040,cached,None
+INFO,2024-06-27 15:08:08.241,test_nullable_inner_join_select,flink,4,11.168805019930005,-1,-1,-1,13709312,cached,None
+INFO,2024-06-27 15:08:11.950,test_nullable_inner_join_select,renoir,-1,3.6116332770325243,2.485470629995689,1.0622941988985986,-1,0,csv,None
+INFO,2024-06-27 15:08:15.524,test_nullable_inner_join_select,renoir,0,3.5709601630223915,2.4636119269998744,1.0455684759654105,-1,0,csv,None
+INFO,2024-06-27 15:08:19.049,test_nullable_inner_join_select,renoir,1,3.522038172930479,2.413034625002183,1.0456060760188848,-1,131072,csv,None
+INFO,2024-06-27 15:08:22.644,test_nullable_inner_join_select,renoir,2,3.5929255400551483,2.434219731017947,1.096730911056511,-1,0,csv,None
+INFO,2024-06-27 15:08:26.202,test_nullable_inner_join_select,renoir,3,3.5546349150827155,2.4268159209750593,1.0631707779830322,-1,0,csv,None
+INFO,2024-06-27 15:08:29.798,test_nullable_inner_join_select,renoir,4,3.593390126945451,2.465149077004753,1.065974603057839,-1,0,csv,None
+INFO,2024-06-27 15:08:33.436,test_nullable_inner_join_select,renoir,-1,3.5495131810894236,2.4171297809807584,1.069575275061652,-1,0,cached,None
+INFO,2024-06-27 15:08:36.977,test_nullable_inner_join_select,renoir,0,3.5378645489690825,2.3965831180103123,1.076648709946312,-1,0,cached,None
+INFO,2024-06-27 15:08:41.727,test_nullable_inner_join_select,renoir,1,4.747687649913132,2.4464996920432895,1.0594173839781433,-1,0,cached,None
+INFO,2024-06-27 15:08:45.073,test_nullable_inner_join_select,renoir,2,3.34289701806847,2.2720163060585037,1.0096545440610498,-1,0,cached,None
+INFO,2024-06-27 15:08:48.636,test_nullable_inner_join_select,renoir,3,3.5611038269707933,2.430820226087235,1.0680033030221239,-1,0,cached,None
+INFO,2024-06-27 15:08:52.208,test_nullable_inner_join_select,renoir,4,3.5691797240870073,2.415712515008636,1.0917314440011978,-1,0,cached,None
+INFO,2024-06-27 15:08:53.959,test_nullable_join_group_reduce,duckdb,-1,1.6618699559476227,-1,-1,-1,294547456,csv,None
+INFO,2024-06-27 15:08:55.610,test_nullable_join_group_reduce,duckdb,0,1.6487706439802423,-1,-1,-1,-20025344,csv,None
+INFO,2024-06-27 15:08:57.296,test_nullable_join_group_reduce,duckdb,1,1.6833380109164864,-1,-1,-1,30019584,csv,None
+INFO,2024-06-27 15:08:58.942,test_nullable_join_group_reduce,duckdb,2,1.6430740059586242,-1,-1,-1,4132864,csv,None
+INFO,2024-06-27 15:09:01.181,test_nullable_join_group_reduce,duckdb,3,2.237302817986347,-1,-1,-1,-120762368,csv,None
+INFO,2024-06-27 15:09:02.803,test_nullable_join_group_reduce,duckdb,4,1.618732132948935,-1,-1,-1,115945472,csv,None
+INFO,2024-06-27 15:09:17.428,test_nullable_join_group_reduce,duckdb,-1,1.1026737069478258,-1,-1,-1,187326464,cached,None
+INFO,2024-06-27 15:09:18.532,test_nullable_join_group_reduce,duckdb,0,1.10179242992308,-1,-1,-1,-1482752,cached,None
+INFO,2024-06-27 15:09:19.623,test_nullable_join_group_reduce,duckdb,1,1.0883144369581714,-1,-1,-1,25251840,cached,None
+INFO,2024-06-27 15:09:20.721,test_nullable_join_group_reduce,duckdb,2,1.095069058937952,-1,-1,-1,-6955008,cached,None
+INFO,2024-06-27 15:09:21.808,test_nullable_join_group_reduce,duckdb,3,1.084345255047083,-1,-1,-1,36216832,cached,None
+INFO,2024-06-27 15:09:22.921,test_nullable_join_group_reduce,duckdb,4,1.1103911489481106,-1,-1,-1,-76480512,cached,None
+INFO,2024-06-27 15:09:24.075,test_nullable_join_group_reduce,polars,-1,1.1504538781009614,-1,-1,-1,-141266944,csv,None
+INFO,2024-06-27 15:09:25.236,test_nullable_join_group_reduce,polars,0,1.1578965069493279,-1,-1,-1,135409664,csv,None
+INFO,2024-06-27 15:09:26.396,test_nullable_join_group_reduce,polars,1,1.1578623820096254,-1,-1,-1,14540800,csv,None
+INFO,2024-06-27 15:09:27.538,test_nullable_join_group_reduce,polars,2,1.1389952619792894,-1,-1,-1,14618624,csv,None
+INFO,2024-06-27 15:09:28.697,test_nullable_join_group_reduce,polars,3,1.1566858949372545,-1,-1,-1,-2949120,csv,None
+INFO,2024-06-27 15:09:29.853,test_nullable_join_group_reduce,polars,4,1.1531219669850543,-1,-1,-1,-18231296,csv,None
+INFO,2024-06-27 15:09:33.519,test_nullable_join_group_reduce,polars,-1,0.8646496599540114,-1,-1,-1,-360853504,cached,None
+INFO,2024-06-27 15:09:34.389,test_nullable_join_group_reduce,polars,0,0.8667457259725779,-1,-1,-1,-206368768,cached,None
+INFO,2024-06-27 15:09:35.259,test_nullable_join_group_reduce,polars,1,0.8675910030724481,-1,-1,-1,-9465856,cached,None
+INFO,2024-06-27 15:09:36.127,test_nullable_join_group_reduce,polars,2,0.8652092639822513,-1,-1,-1,18829312,cached,None
+INFO,2024-06-27 15:09:36.994,test_nullable_join_group_reduce,polars,3,0.8648760380456224,-1,-1,-1,21684224,cached,None
+INFO,2024-06-27 15:09:37.860,test_nullable_join_group_reduce,polars,4,0.8633926819311455,-1,-1,-1,3776512,cached,None
+INFO,2024-06-27 15:10:56.946,test_nullable_join_group_reduce,flink,-1,78.70766041590832,-1,-1,-1,-6919770112,csv,None
+INFO,2024-06-27 15:12:12.720,test_nullable_join_group_reduce,flink,0,75.77219417504966,-1,-1,-1,6155685888,csv,None
+INFO,2024-06-27 15:13:35.228,test_nullable_join_group_reduce,flink,1,82.50471615593415,-1,-1,-1,230801408,csv,None
+INFO,2024-06-27 15:15:00.060,test_nullable_join_group_reduce,flink,2,84.83011355309281,-1,-1,-1,-26705920,csv,None
+INFO,2024-06-27 15:16:24.026,test_nullable_join_group_reduce,flink,3,83.9630674039945,-1,-1,-1,37519360,csv,None
+INFO,2024-06-27 15:17:46.364,test_nullable_join_group_reduce,flink,4,82.3356672169175,-1,-1,-1,39309312,csv,None
+INFO,2024-06-27 15:19:07.252,test_nullable_join_group_reduce,flink,-1,80.60593574796803,-1,-1,-1,19779584,cached,None
+INFO,2024-06-27 15:20:21.963,test_nullable_join_group_reduce,flink,0,74.7081310970243,-1,-1,-1,-56074240,cached,None
+INFO,2024-06-27 15:21:46.720,test_nullable_join_group_reduce,flink,1,84.75472699699458,-1,-1,-1,83525632,cached,None
+INFO,2024-06-27 15:23:00.133,test_nullable_join_group_reduce,flink,2,73.41028445004486,-1,-1,-1,-126586880,cached,None
+INFO,2024-06-27 15:24:19.354,test_nullable_join_group_reduce,flink,3,79.21852717094589,-1,-1,-1,173117440,cached,None
+INFO,2024-06-27 15:25:37.992,test_nullable_join_group_reduce,flink,4,78.63592856004834,-1,-1,-1,27951104,cached,None
+INFO,2024-06-27 15:25:44.031,test_nullable_join_group_reduce,renoir,-1,5.941296042990871,3.452694564941339,2.420802630018443,-1,-29552640,csv,None
+INFO,2024-06-27 15:25:49.934,test_nullable_join_group_reduce,renoir,0,5.899675187072717,3.402874327963218,2.4269766189390793,-1,0,csv,None
+INFO,2024-06-27 15:25:55.920,test_nullable_join_group_reduce,renoir,1,5.9840881819836795,3.4839569410542026,2.4295889590866864,-1,0,csv,None
+INFO,2024-06-27 15:26:01.815,test_nullable_join_group_reduce,renoir,2,5.891525854007341,3.4030690690269694,2.4216887740185484,-1,0,csv,None
+INFO,2024-06-27 15:26:07.724,test_nullable_join_group_reduce,renoir,3,5.90708958893083,3.395563024911098,2.444329226971604,-1,0,csv,None
+INFO,2024-06-27 15:26:13.700,test_nullable_join_group_reduce,renoir,4,5.973184050992131,3.456973827094771,2.4489858919987455,-1,131072,csv,None
+INFO,2024-06-27 15:26:19.970,test_nullable_join_group_reduce,renoir,-1,6.1801341639366,3.6573517760261893,2.4560903990641236,-1,0,cached,None
+INFO,2024-06-27 15:26:26.104,test_nullable_join_group_reduce,renoir,0,6.131592832971364,3.613298791926354,2.4483136900234967,-1,0,cached,None
+INFO,2024-06-27 15:26:32.351,test_nullable_join_group_reduce,renoir,1,6.243301409995183,3.7102348430780694,2.46562819799874,-1,0,cached,None
+INFO,2024-06-27 15:26:38.552,test_nullable_join_group_reduce,renoir,2,6.198924037045799,3.673096140031703,2.458860283019021,-1,0,cached,None
+INFO,2024-06-27 15:26:44.823,test_nullable_join_group_reduce,renoir,3,6.267827074043453,3.7556779460282996,2.445591604919173,-1,-135168,cached,None
+INFO,2024-06-27 15:26:51.013,test_nullable_join_group_reduce,renoir,4,6.187760630971752,3.620256067952141,2.5015863300068304,-1,131072,cached,None
+INFO,2024-06-27 15:27:04.702,test_nullable_left_join,duckdb,-1,13.59909876191523,-1,-1,-1,-50499584,csv,None
+INFO,2024-06-27 15:27:18.430,test_nullable_left_join,duckdb,0,13.724804283934645,-1,-1,-1,-10809344,csv,None
+INFO,2024-06-27 15:27:32.014,test_nullable_left_join,duckdb,1,13.581604263046756,-1,-1,-1,684032,csv,None
+INFO,2024-06-27 15:27:45.709,test_nullable_left_join,duckdb,2,13.69288245192729,-1,-1,-1,6168576,csv,None
+INFO,2024-06-27 15:27:59.302,test_nullable_left_join,duckdb,3,13.589870045077987,-1,-1,-1,-4702208,csv,None
+INFO,2024-06-27 15:28:12.940,test_nullable_left_join,duckdb,4,13.636151535087265,-1,-1,-1,5128192,csv,None
+INFO,2024-06-27 15:28:39.563,test_nullable_left_join,duckdb,-1,13.23068664688617,-1,-1,-1,126681088,cached,None
+INFO,2024-06-27 15:28:52.799,test_nullable_left_join,duckdb,0,13.233644425985403,-1,-1,-1,10719232,cached,None
+INFO,2024-06-27 15:29:06.147,test_nullable_left_join,duckdb,1,13.345311740995385,-1,-1,-1,6938624,cached,None
+INFO,2024-06-27 15:29:19.470,test_nullable_left_join,duckdb,2,13.320300285005942,-1,-1,-1,1257472,cached,None
+INFO,2024-06-27 15:29:32.744,test_nullable_left_join,duckdb,3,13.271176879992709,-1,-1,-1,3821568,cached,None
+INFO,2024-06-27 15:29:45.854,test_nullable_left_join,duckdb,4,13.10801309091039,-1,-1,-1,3915776,cached,None
+INFO,2024-06-27 15:29:49.503,test_nullable_left_join,polars,-1,3.644470361992717,-1,-1,-1,392753152,csv,None
+INFO,2024-06-27 15:29:52.201,test_nullable_left_join,polars,0,2.695882889907807,-1,-1,-1,1089257472,csv,None
+INFO,2024-06-27 15:29:54.969,test_nullable_left_join,polars,1,2.7657431541010737,-1,-1,-1,9134080,csv,None
+INFO,2024-06-27 15:29:57.713,test_nullable_left_join,polars,2,2.7416154029779136,-1,-1,-1,-4866048,csv,None
+INFO,2024-06-27 15:30:00.431,test_nullable_left_join,polars,3,2.715164956985973,-1,-1,-1,-1066049536,csv,None
+INFO,2024-06-27 15:30:03.188,test_nullable_left_join,polars,4,2.754515953012742,-1,-1,-1,1052426240,csv,None
+INFO,2024-06-27 15:30:08.416,test_nullable_left_join,polars,-1,2.4459846690297127,-1,-1,-1,-72650752,cached,None
+INFO,2024-06-27 15:30:10.873,test_nullable_left_join,polars,0,2.4540885979076847,-1,-1,-1,1062236160,cached,None
+INFO,2024-06-27 15:30:13.342,test_nullable_left_join,polars,1,2.4665351799922064,-1,-1,-1,-1072594944,cached,None
+INFO,2024-06-27 15:30:15.809,test_nullable_left_join,polars,2,2.464264525915496,-1,-1,-1,409600,cached,None
+INFO,2024-06-27 15:30:18.275,test_nullable_left_join,polars,3,2.4635674620512873,-1,-1,-1,1074913280,cached,None
+INFO,2024-06-27 15:30:20.751,test_nullable_left_join,polars,4,2.4736242030048743,-1,-1,-1,1085440,cached,None
+INFO,2024-06-27 15:44:11.103,test_nullable_left_join,flink,-1,830.0562599869445,-1,-1,-1,-183836672,csv,None
+INFO,2024-06-27 15:48:28.766,test_nullable_left_join,flink,0,257.66027747595217,-1,-1,-1,573870080,csv,None
+INFO,2024-06-27 15:55:00.211,test_nullable_left_join,flink,1,391.44196294108406,-1,-1,-1,2170880,csv,None
+INFO,2024-06-27 15:55:05.951,test_nullable_left_join,flink,2,5.736047115991823,-1,-1,-1,6623232,csv,None
+INFO,2024-06-27 15:55:06.130,test_nullable_left_join,flink,3,0.17494117794558406,-1,-1,-1,0,csv,None
+INFO,2024-06-27 15:55:06.298,test_nullable_left_join,flink,4,0.16559948306530714,-1,-1,-1,0,csv,None
+INFO,2024-06-27 16:08:36.203,test_nullable_left_join,flink,-1,809.797061478952,-1,-1,-1,601231360,cached,None
+INFO,2024-06-27 16:11:58.799,test_nullable_left_join,flink,0,202.59330345294438,-1,-1,-1,-480755712,cached,None
+INFO,2024-06-27 16:15:54.311,test_nullable_left_join,flink,1,235.50914316996932,-1,-1,-1,119676928,cached,None
+INFO,2024-06-27 16:28:09.065,test_nullable_left_join,flink,2,235.50914316996932,-1,-1,-1,119676928,cached,Traceback (most recent call last):
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 75, in main
+    run_once(test_case, test_instance, count, backend)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 97, in run_once
+    run_timed(test_instance.query.execute, RUN_ONCE_TIMEOUT_S)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 142, in run_timed
+    raise TimeoutError(
+ TimeoutError: run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+
+INFO,2024-06-27 16:28:14.064,test_nullable_left_join,renoir,-1,4.907055960036814,2.281463818042539,2.5465904099401087,-1,0,csv,None
+INFO,2024-06-27 16:28:19.046,test_nullable_left_join,renoir,0,4.978766613989137,2.2240307700121775,2.677780299913138,-1,0,csv,None
+INFO,2024-06-27 16:28:23.958,test_nullable_left_join,renoir,1,4.908782606944442,2.2603141049621627,2.5717738879611716,-1,131072,csv,None
+INFO,2024-06-27 16:28:28.944,test_nullable_left_join,renoir,2,4.983848850009963,2.3022047569975257,2.598837575991638,-1,0,csv,None
+INFO,2024-06-27 16:28:33.952,test_nullable_left_join,renoir,3,5.0047966410638765,2.348452585050836,2.580206012004055,-1,0,csv,None
+INFO,2024-06-27 16:28:38.925,test_nullable_left_join,renoir,4,4.970708208042197,2.284072252106853,2.6065131669165567,-1,0,csv,None
+INFO,2024-06-27 16:28:43.993,test_nullable_left_join,renoir,-1,4.978147317073308,2.318460611975752,2.582335527986288,-1,0,cached,None
+INFO,2024-06-27 16:28:48.962,test_nullable_left_join,renoir,0,4.96660078689456,2.3546212429646403,2.5335921309888363,-1,0,cached,None
+INFO,2024-06-27 16:28:53.988,test_nullable_left_join,renoir,1,5.0232426780276,2.310072588035837,2.6368074809433892,-1,0,cached,None
+INFO,2024-06-27 16:28:58.923,test_nullable_left_join,renoir,2,4.932291180011816,2.2951162740355358,2.559407497989014,-1,0,cached,None
+INFO,2024-06-27 16:29:03.940,test_nullable_left_join,renoir,3,5.01460476196371,2.319197684060782,2.613513535936363,-1,0,cached,None
+INFO,2024-06-27 16:29:09.053,test_nullable_left_join,renoir,4,5.109488653019071,2.4408086159965023,2.591202254057862,-1,0,cached,None
+INFO,2024-06-27 16:29:55.267,test_nullable_outer_join,duckdb,-1,46.12346364103723,-1,-1,-1,536461312,csv,None
+INFO,2024-06-27 16:30:41.043,test_nullable_outer_join,duckdb,0,45.773975749034435,-1,-1,-1,31625216,csv,None
+INFO,2024-06-27 16:31:26.709,test_nullable_outer_join,duckdb,1,45.66336331202183,-1,-1,-1,-159744,csv,None
+INFO,2024-06-27 16:32:12.828,test_nullable_outer_join,duckdb,2,46.11603886203375,-1,-1,-1,-13062144,csv,None
+INFO,2024-06-27 16:32:58.868,test_nullable_outer_join,duckdb,3,46.03822818992194,-1,-1,-1,-8021471232,csv,None
+INFO,2024-06-27 16:33:45.284,test_nullable_outer_join,duckdb,4,46.4126934800297,-1,-1,-1,23015424,csv,None
+INFO,2024-06-27 16:34:45.303,test_nullable_outer_join,duckdb,-1,46.48115331097506,-1,-1,-1,245305344,cached,None
+INFO,2024-06-27 16:35:31.830,test_nullable_outer_join,duckdb,0,46.524806237081066,-1,-1,-1,6209536,cached,None
+INFO,2024-06-27 16:36:18.189,test_nullable_outer_join,duckdb,1,46.35567675100174,-1,-1,-1,13942784,cached,None
+INFO,2024-06-27 16:37:03.770,test_nullable_outer_join,duckdb,2,45.5785541679943,-1,-1,-1,8278016,cached,None
+INFO,2024-06-27 16:37:52.677,test_nullable_outer_join,duckdb,3,48.904501165030524,-1,-1,-1,-7553024,cached,None
+INFO,2024-06-27 16:38:38.786,test_nullable_outer_join,duckdb,4,46.106739415903576,-1,-1,-1,6926336,cached,None
+INFO,2024-06-27 16:38:44.523,test_nullable_outer_join,polars,-1,5.732786061009392,-1,-1,-1,21213184,csv,None
+INFO,2024-06-27 16:38:48.725,test_nullable_outer_join,polars,0,4.199976486037485,-1,-1,-1,1801756672,csv,None
+INFO,2024-06-27 16:38:52.923,test_nullable_outer_join,polars,1,4.195088269072585,-1,-1,-1,-1177059328,csv,None
+INFO,2024-06-27 16:38:57.093,test_nullable_outer_join,polars,2,4.167889327043667,-1,-1,-1,43220992,csv,None
+INFO,2024-06-27 16:39:01.319,test_nullable_outer_join,polars,3,4.223358765942976,-1,-1,-1,1062948864,csv,None
+INFO,2024-06-27 16:39:05.520,test_nullable_outer_join,polars,4,4.198139764950611,-1,-1,-1,-1069293568,csv,None
+INFO,2024-06-27 16:39:12.293,test_nullable_outer_join,polars,-1,3.8526916360715404,-1,-1,-1,1212440576,cached,None
+INFO,2024-06-27 16:39:16.132,test_nullable_outer_join,polars,0,3.8363745550159365,-1,-1,-1,-1061457920,cached,None
+INFO,2024-06-27 16:39:20.006,test_nullable_outer_join,polars,1,3.871334905968979,-1,-1,-1,12062720,cached,None
+INFO,2024-06-27 16:39:23.809,test_nullable_outer_join,polars,2,3.8002015840029344,-1,-1,-1,1066815488,cached,None
+INFO,2024-06-27 16:39:27.643,test_nullable_outer_join,polars,3,3.8320485479198396,-1,-1,-1,-10993664,cached,None
+INFO,2024-06-27 16:39:31.567,test_nullable_outer_join,polars,4,3.921420903992839,-1,-1,-1,6201344,cached,None
+INFO,2024-06-27 17:04:55.652,test_nullable_outer_join,flink,-1,1523.9717345689423,-1,-1,-1,890396672,csv,None
+INFO,2024-06-27 17:20:27.020,test_nullable_outer_join,flink,0,931.3648672630079,-1,-1,-1,-698265600,csv,None
+INFO,2024-06-27 17:32:33.453,test_nullable_outer_join,flink,1,726.4309031639714,-1,-1,-1,18120704,csv,None
+INFO,2024-06-27 17:41:11.984,test_nullable_outer_join,flink,2,726.4309031639714,-1,-1,-1,18120704,csv,Traceback (most recent call last):
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 75, in main
+    run_once(test_case, test_instance, count, backend)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 97, in run_once
+    run_timed(test_instance.query.execute, RUN_ONCE_TIMEOUT_S)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 142, in run_timed
+    raise TimeoutError(
+ TimeoutError: run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+
+INFO,2024-06-27 17:54:11.587,test_nullable_outer_join,flink,-1,779.4859462339664,-1,-1,-1,17166336,cached,None
+INFO,2024-06-27 18:08:02.958,test_nullable_outer_join,flink,0,779.4859462339664,-1,-1,-1,17166336,cached,Traceback (most recent call last):
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 75, in main
+    run_once(test_case, test_instance, count, backend)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 97, in run_once
+    run_timed(test_instance.query.execute, RUN_ONCE_TIMEOUT_S)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 142, in run_timed
+    raise TimeoutError(
+ TimeoutError: run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+
+INFO,2024-06-27 18:08:08.501,test_nullable_outer_join,renoir,-1,5.4498280780389905,2.358041063998826,3.0321341999806464,-1,-1048576,csv,None
+INFO,2024-06-27 18:08:13.920,test_nullable_outer_join,renoir,0,5.415273135062307,2.276690815924667,3.0807108599692583,-1,0,csv,None
+INFO,2024-06-27 18:08:19.286,test_nullable_outer_join,renoir,1,5.36413422098849,2.271254400955513,3.036925057065673,-1,0,csv,None
+INFO,2024-06-27 18:08:24.891,test_nullable_outer_join,renoir,2,5.602508035954088,2.402655047015287,3.1434126609237865,-1,0,csv,None
+INFO,2024-06-27 18:08:30.277,test_nullable_outer_join,renoir,3,5.3829402410192415,2.247818837990053,3.0776529799913988,-1,0,csv,None
+INFO,2024-06-27 18:08:35.612,test_nullable_outer_join,renoir,4,5.332311384030618,2.250128714949824,3.0238883800338954,-1,0,csv,None
+INFO,2024-06-27 18:08:41.121,test_nullable_outer_join,renoir,-1,5.418101675924845,2.3309525640215725,3.0300692348973826,-1,0,cached,None
+INFO,2024-06-27 18:08:46.529,test_nullable_outer_join,renoir,0,5.405101015930995,2.2926815720275044,3.0555687609594315,-1,-1019904,cached,None
+INFO,2024-06-27 18:08:51.868,test_nullable_outer_join,renoir,1,5.336012599989772,2.2428847710834816,3.0339619970181957,-1,0,cached,None
+INFO,2024-06-27 18:08:57.344,test_nullable_outer_join,renoir,2,5.473049627034925,2.3474991969997063,3.068845830974169,-1,0,cached,None
+INFO,2024-06-27 18:09:02.878,test_nullable_outer_join,renoir,3,5.531241547083482,2.4041471020318568,3.0709432068979368,-1,0,cached,None
+INFO,2024-06-27 18:09:08.437,test_nullable_outer_join,renoir,4,5.556595203932375,2.429024260956794,3.070260373991914,-1,131072,cached,None
+INFO,2024-06-27 18:09:13.147,test_nullable_windowing_explicit,duckdb,-1,4.616527369013056,-1,-1,-1,354037760,csv,None
+INFO,2024-06-27 18:09:17.693,test_nullable_windowing_explicit,duckdb,0,4.54407111601904,-1,-1,-1,72511488,csv,None
+INFO,2024-06-27 18:09:22.318,test_nullable_windowing_explicit,duckdb,1,4.622134063043632,-1,-1,-1,19668992,csv,None
+INFO,2024-06-27 18:09:26.923,test_nullable_windowing_explicit,duckdb,2,4.602177495020442,-1,-1,-1,-141172736,csv,None
+INFO,2024-06-27 18:09:31.503,test_nullable_windowing_explicit,duckdb,3,4.577595771988854,-1,-1,-1,169447424,csv,None
+INFO,2024-06-27 18:09:36.233,test_nullable_windowing_explicit,duckdb,4,4.728138939943165,-1,-1,-1,-221962240,csv,None
+INFO,2024-06-27 18:09:53.473,test_nullable_windowing_explicit,duckdb,-1,3.7260365409310907,-1,-1,-1,26857472,cached,None
+INFO,2024-06-27 18:09:57.119,test_nullable_windowing_explicit,duckdb,0,3.6428146819816902,-1,-1,-1,72679424,cached,None
+INFO,2024-06-27 18:10:00.766,test_nullable_windowing_explicit,duckdb,1,3.644787773024291,-1,-1,-1,67481600,cached,None
+INFO,2024-06-27 18:10:04.342,test_nullable_windowing_explicit,duckdb,2,3.57375746301841,-1,-1,-1,30040064,cached,None
+INFO,2024-06-27 18:10:07.968,test_nullable_windowing_explicit,duckdb,3,3.6234222550410777,-1,-1,-1,-21475328,cached,None
+INFO,2024-06-27 18:10:11.671,test_nullable_windowing_explicit,duckdb,4,3.700013404013589,-1,-1,-1,-8462336,cached,None
+INFO,2024-06-27 18:10:11.825,test_nullable_windowing_explicit,polars,-1,-1,-1,-1,-1,-1,csv,Traceback (most recent call last):
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 75, in main
+    run_once(test_case, test_instance, count, backend)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 97, in run_once
+    run_timed(test_instance.query.execute, RUN_ONCE_TIMEOUT_S)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 135, in run_timed
+    trace = traceback.format_exc(exception_queue.get())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 187, in format_exc
+    return "".join(format_exception(*sys.exc_info(), limit=limit, chain=chain))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 139, in format_exception
+    te = TracebackException(type(value), value, tb, limit=limit, compact=True)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 690, in __init__
+    self.stack = StackSummary._extract_from_extended_frame_gen(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 409, in _extract_from_extended_frame_gen
+    if limit >= 0:
+       ^^^^^^^^^^
+ TypeError: '>=' not supported between instances of 'OperationNotDefinedError' and 'int'
+
+INFO,2024-06-27 18:10:14.766,test_nullable_windowing_explicit,polars,-1,-1,-1,-1,-1,-1,cached,Traceback (most recent call last):
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 75, in main
+    run_once(test_case, test_instance, count, backend)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 97, in run_once
+    run_timed(test_instance.query.execute, RUN_ONCE_TIMEOUT_S)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 135, in run_timed
+    trace = traceback.format_exc(exception_queue.get())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 187, in format_exc
+    return "".join(format_exception(*sys.exc_info(), limit=limit, chain=chain))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 139, in format_exception
+    te = TracebackException(type(value), value, tb, limit=limit, compact=True)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 690, in __init__
+    self.stack = StackSummary._extract_from_extended_frame_gen(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 409, in _extract_from_extended_frame_gen
+    if limit >= 0:
+       ^^^^^^^^^^
+ TypeError: '>=' not supported between instances of 'OperationNotDefinedError' and 'int'
+
+INFO,2024-06-27 18:10:15.188,test_nullable_windowing_explicit,flink,-1,-1,-1,-1,-1,-1,csv,Traceback (most recent call last):
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 75, in main
+    run_once(test_case, test_instance, count, backend)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 97, in run_once
+    run_timed(test_instance.query.execute, RUN_ONCE_TIMEOUT_S)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 135, in run_timed
+    trace = traceback.format_exc(exception_queue.get())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 187, in format_exc
+    return "".join(format_exception(*sys.exc_info(), limit=limit, chain=chain))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 139, in format_exception
+    te = TracebackException(type(value), value, tb, limit=limit, compact=True)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 690, in __init__
+    self.stack = StackSummary._extract_from_extended_frame_gen(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 409, in _extract_from_extended_frame_gen
+    if limit >= 0:
+       ^^^^^^^^^^
+ TypeError: '>=' not supported between instances of 'UnsupportedOperationError' and 'int'
+
+INFO,2024-06-27 18:10:15.447,test_nullable_windowing_explicit,flink,-1,-1,-1,-1,-1,-1,cached,Traceback (most recent call last):
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 75, in main
+    run_once(test_case, test_instance, count, backend)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 97, in run_once
+    run_timed(test_instance.query.execute, RUN_ONCE_TIMEOUT_S)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 135, in run_timed
+    trace = traceback.format_exc(exception_queue.get())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 187, in format_exc
+    return "".join(format_exception(*sys.exc_info(), limit=limit, chain=chain))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 139, in format_exception
+    te = TracebackException(type(value), value, tb, limit=limit, compact=True)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 690, in __init__
+    self.stack = StackSummary._extract_from_extended_frame_gen(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 409, in _extract_from_extended_frame_gen
+    if limit >= 0:
+       ^^^^^^^^^^
+ TypeError: '>=' not supported between instances of 'UnsupportedOperationError' and 'int'
+
+INFO,2024-06-27 18:10:18.592,test_nullable_windowing_explicit,renoir,-1,3.052466838969849,1.642718571005389,1.3466246209573,-1,-155648,csv,None
+INFO,2024-06-27 18:10:21.629,test_nullable_windowing_explicit,renoir,0,3.034743380965665,1.6662833630107343,1.30366908502765,-1,0,csv,None
+INFO,2024-06-27 18:10:24.582,test_nullable_windowing_explicit,renoir,1,2.949728321051225,1.6103653019526973,1.2758184219710529,-1,0,csv,None
+INFO,2024-06-27 18:10:27.592,test_nullable_windowing_explicit,renoir,2,3.008139171055518,1.6265599250327796,1.3178433970315382,-1,0,csv,None
+INFO,2024-06-27 18:10:30.642,test_nullable_windowing_explicit,renoir,3,3.0469228560104966,1.6378705170936882,1.3455285240197554,-1,0,csv,None
+INFO,2024-06-27 18:10:33.753,test_nullable_windowing_explicit,renoir,4,3.1089879779610783,1.6745635670376942,1.3705181399127468,-1,0,csv,None
+INFO,2024-06-27 18:10:38.179,test_nullable_windowing_explicit,renoir,-1,4.3353003630181774,1.6449775750515983,1.4463705929229036,-1,0,cached,None
+INFO,2024-06-27 18:10:42.408,test_nullable_windowing_explicit,renoir,0,4.226905332994647,1.644033564021811,1.3385629140539095,-1,0,cached,None
+INFO,2024-06-27 18:10:45.432,test_nullable_windowing_explicit,renoir,1,3.0211036480031908,1.6335311150178313,1.3231589320348576,-1,131072,cached,None
+INFO,2024-06-27 18:10:48.468,test_nullable_windowing_explicit,renoir,2,3.0340663240058348,1.632333283079788,1.3377778430003673,-1,0,cached,None
+INFO,2024-06-27 18:10:51.534,test_nullable_windowing_explicit,renoir,3,3.0635118519421667,1.6504086169879884,1.349533197004348,-1,0,cached,None
+INFO,2024-06-27 18:10:54.639,test_nullable_windowing_explicit,renoir,4,3.1026055508991703,1.693947421037592,1.3442209139466286,-1,-131072,cached,None
+INFO,2024-06-27 18:11:02.683,test_nullable_windowing_explicit_group,duckdb,-1,7.9532029969850555,-1,-1,-1,1313812480,csv,None
+INFO,2024-06-27 18:11:10.703,test_nullable_windowing_explicit_group,duckdb,0,8.018469752045348,-1,-1,-1,-410583040,csv,None
+INFO,2024-06-27 18:11:18.673,test_nullable_windowing_explicit_group,duckdb,1,7.96671896497719,-1,-1,-1,-36257792,csv,None
+INFO,2024-06-27 18:11:26.700,test_nullable_windowing_explicit_group,duckdb,2,8.02440088102594,-1,-1,-1,-39358464,csv,None
+INFO,2024-06-27 18:11:34.707,test_nullable_windowing_explicit_group,duckdb,3,8.005058130947873,-1,-1,-1,36327424,csv,None
+INFO,2024-06-27 18:11:42.662,test_nullable_windowing_explicit_group,duckdb,4,7.952101890929043,-1,-1,-1,187232256,csv,None
+INFO,2024-06-27 18:12:03.992,test_nullable_windowing_explicit_group,duckdb,-1,7.693787771044299,-1,-1,-1,797687808,cached,None
+INFO,2024-06-27 18:12:11.647,test_nullable_windowing_explicit_group,duckdb,0,7.652726556058042,-1,-1,-1,-304922624,cached,None
+INFO,2024-06-27 18:12:19.344,test_nullable_windowing_explicit_group,duckdb,1,7.693522684974596,-1,-1,-1,29761536,cached,None
+INFO,2024-06-27 18:12:27.044,test_nullable_windowing_explicit_group,duckdb,2,7.6972960031125695,-1,-1,-1,-4251648,cached,None
+INFO,2024-06-27 18:12:34.683,test_nullable_windowing_explicit_group,duckdb,3,7.636786948074587,-1,-1,-1,-176697344,cached,None
+INFO,2024-06-27 18:12:42.368,test_nullable_windowing_explicit_group,duckdb,4,7.682536358013749,-1,-1,-1,259248128,cached,None
+INFO,2024-06-27 18:12:42.535,test_nullable_windowing_explicit_group,polars,-1,-1,-1,-1,-1,-1,csv,Traceback (most recent call last):
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 75, in main
+    run_once(test_case, test_instance, count, backend)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 97, in run_once
+    run_timed(test_instance.query.execute, RUN_ONCE_TIMEOUT_S)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 135, in run_timed
+    trace = traceback.format_exc(exception_queue.get())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 187, in format_exc
+    return "".join(format_exception(*sys.exc_info(), limit=limit, chain=chain))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 139, in format_exception
+    te = TracebackException(type(value), value, tb, limit=limit, compact=True)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 690, in __init__
+    self.stack = StackSummary._extract_from_extended_frame_gen(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 409, in _extract_from_extended_frame_gen
+    if limit >= 0:
+       ^^^^^^^^^^
+ TypeError: '>=' not supported between instances of 'OperationNotDefinedError' and 'int'
+
+INFO,2024-06-27 18:12:45.532,test_nullable_windowing_explicit_group,polars,-1,-1,-1,-1,-1,-1,cached,Traceback (most recent call last):
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 75, in main
+    run_once(test_case, test_instance, count, backend)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 97, in run_once
+    run_timed(test_instance.query.execute, RUN_ONCE_TIMEOUT_S)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 135, in run_timed
+    trace = traceback.format_exc(exception_queue.get())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 187, in format_exc
+    return "".join(format_exception(*sys.exc_info(), limit=limit, chain=chain))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 139, in format_exception
+    te = TracebackException(type(value), value, tb, limit=limit, compact=True)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 690, in __init__
+    self.stack = StackSummary._extract_from_extended_frame_gen(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 409, in _extract_from_extended_frame_gen
+    if limit >= 0:
+       ^^^^^^^^^^
+ TypeError: '>=' not supported between instances of 'OperationNotDefinedError' and 'int'
+
+INFO,2024-06-27 18:12:45.840,test_nullable_windowing_explicit_group,flink,-1,-1,-1,-1,-1,-1,csv,Traceback (most recent call last):
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 75, in main
+    run_once(test_case, test_instance, count, backend)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 97, in run_once
+    run_timed(test_instance.query.execute, RUN_ONCE_TIMEOUT_S)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 135, in run_timed
+    trace = traceback.format_exc(exception_queue.get())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 187, in format_exc
+    return "".join(format_exception(*sys.exc_info(), limit=limit, chain=chain))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 139, in format_exception
+    te = TracebackException(type(value), value, tb, limit=limit, compact=True)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 690, in __init__
+    self.stack = StackSummary._extract_from_extended_frame_gen(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 409, in _extract_from_extended_frame_gen
+    if limit >= 0:
+       ^^^^^^^^^^
+ TypeError: '>=' not supported between instances of 'UnsupportedOperationError' and 'int'
+
+INFO,2024-06-27 18:12:46.156,test_nullable_windowing_explicit_group,flink,-1,-1,-1,-1,-1,-1,cached,Traceback (most recent call last):
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 75, in main
+    run_once(test_case, test_instance, count, backend)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 97, in run_once
+    run_timed(test_instance.query.execute, RUN_ONCE_TIMEOUT_S)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 135, in run_timed
+    trace = traceback.format_exc(exception_queue.get())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 187, in format_exc
+    return "".join(format_exception(*sys.exc_info(), limit=limit, chain=chain))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 139, in format_exception
+    te = TracebackException(type(value), value, tb, limit=limit, compact=True)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 690, in __init__
+    self.stack = StackSummary._extract_from_extended_frame_gen(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 409, in _extract_from_extended_frame_gen
+    if limit >= 0:
+       ^^^^^^^^^^
+ TypeError: '>=' not supported between instances of 'UnsupportedOperationError' and 'int'
+
+INFO,2024-06-27 18:12:50.070,test_nullable_windowing_explicit_group,renoir,-1,3.819850647007115,1.7135616710875183,2.022432181984186,-1,-242176000,csv,None
+INFO,2024-06-27 18:12:53.850,test_nullable_windowing_explicit_group,renoir,0,3.7767904800130054,1.6906877208966762,2.0042062159627676,-1,0,csv,None
+INFO,2024-06-27 18:12:57.621,test_nullable_windowing_explicit_group,renoir,1,3.7683065539458767,1.6849234330002218,1.9984858500538394,-1,0,csv,None
+INFO,2024-06-27 18:13:02.585,test_nullable_windowing_explicit_group,renoir,2,4.960367376101203,1.6672089750645682,2.031471139052883,-1,0,csv,None
+INFO,2024-06-27 18:13:06.486,test_nullable_windowing_explicit_group,renoir,3,3.8980807920452207,1.6597552609164268,2.157583541003987,-1,131072,csv,None
+INFO,2024-06-27 18:13:10.275,test_nullable_windowing_explicit_group,renoir,4,3.787061471026391,1.689083103905432,2.016501798061654,-1,0,csv,None
+INFO,2024-06-27 18:13:14.152,test_nullable_windowing_explicit_group,renoir,-1,3.785841415054165,1.7137261050520465,1.9902082349872217,-1,0,cached,None
+INFO,2024-06-27 18:13:17.948,test_nullable_windowing_explicit_group,renoir,0,3.793066245969385,1.6855758810415864,2.0258090540301055,-1,0,cached,None
+INFO,2024-06-27 18:13:21.725,test_nullable_windowing_explicit_group,renoir,1,3.7747937680687755,1.6969964619493112,1.9951689899899065,-1,0,cached,None
+INFO,2024-06-27 18:13:25.542,test_nullable_windowing_explicit_group,renoir,2,3.814380431897007,1.731169522041455,1.9987646230729297,-1,0,cached,None
+INFO,2024-06-27 18:13:29.344,test_nullable_windowing_explicit_group,renoir,3,3.798971390002407,1.71623683499638,1.9993958430131897,-1,131072,cached,None
+INFO,2024-06-27 18:13:33.159,test_nullable_windowing_explicit_group,renoir,4,3.8118699899641797,1.7302653639344499,1.9999262989731506,-1,0,cached,None
+INFO,2024-06-27 18:13:37.911,test_nullable_windowing_explicit_window_far,duckdb,-1,4.662080217036419,-1,-1,-1,25939968,csv,None
+INFO,2024-06-27 18:13:42.520,test_nullable_windowing_explicit_window_far,duckdb,0,4.60694735404104,-1,-1,-1,-91422720,csv,None
+INFO,2024-06-27 18:13:47.185,test_nullable_windowing_explicit_window_far,duckdb,1,4.6622615460073575,-1,-1,-1,-111337472,csv,None
+INFO,2024-06-27 18:13:51.796,test_nullable_windowing_explicit_window_far,duckdb,2,4.607935515930876,-1,-1,-1,-2920448,csv,None
+INFO,2024-06-27 18:13:56.439,test_nullable_windowing_explicit_window_far,duckdb,3,4.640916230040602,-1,-1,-1,174186496,csv,None
+INFO,2024-06-27 18:14:01.107,test_nullable_windowing_explicit_window_far,duckdb,4,4.665040714084171,-1,-1,-1,-196550656,csv,None
+INFO,2024-06-27 18:14:18.345,test_nullable_windowing_explicit_window_far,duckdb,-1,3.7734904090175405,-1,-1,-1,107761664,cached,None
+INFO,2024-06-27 18:14:22.089,test_nullable_windowing_explicit_window_far,duckdb,0,3.7418647980084643,-1,-1,-1,36225024,cached,None
+INFO,2024-06-27 18:14:25.799,test_nullable_windowing_explicit_window_far,duckdb,1,3.707565675023943,-1,-1,-1,-48541696,cached,None
+INFO,2024-06-27 18:14:29.559,test_nullable_windowing_explicit_window_far,duckdb,2,3.757293618051335,-1,-1,-1,770048,cached,None
+INFO,2024-06-27 18:14:33.243,test_nullable_windowing_explicit_window_far,duckdb,3,3.681025230092928,-1,-1,-1,-74489856,cached,None
+INFO,2024-06-27 18:14:36.991,test_nullable_windowing_explicit_window_far,duckdb,4,3.7460089119849727,-1,-1,-1,229027840,cached,None
+INFO,2024-06-27 18:14:37.171,test_nullable_windowing_explicit_window_far,polars,-1,-1,-1,-1,-1,-1,csv,Traceback (most recent call last):
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 75, in main
+    run_once(test_case, test_instance, count, backend)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 97, in run_once
+    run_timed(test_instance.query.execute, RUN_ONCE_TIMEOUT_S)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 135, in run_timed
+    trace = traceback.format_exc(exception_queue.get())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 187, in format_exc
+    return "".join(format_exception(*sys.exc_info(), limit=limit, chain=chain))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 139, in format_exception
+    te = TracebackException(type(value), value, tb, limit=limit, compact=True)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 690, in __init__
+    self.stack = StackSummary._extract_from_extended_frame_gen(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 409, in _extract_from_extended_frame_gen
+    if limit >= 0:
+       ^^^^^^^^^^
+ TypeError: '>=' not supported between instances of 'OperationNotDefinedError' and 'int'
+
+INFO,2024-06-27 18:14:40.136,test_nullable_windowing_explicit_window_far,polars,-1,-1,-1,-1,-1,-1,cached,Traceback (most recent call last):
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 75, in main
+    run_once(test_case, test_instance, count, backend)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 97, in run_once
+    run_timed(test_instance.query.execute, RUN_ONCE_TIMEOUT_S)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 135, in run_timed
+    trace = traceback.format_exc(exception_queue.get())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 187, in format_exc
+    return "".join(format_exception(*sys.exc_info(), limit=limit, chain=chain))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 139, in format_exception
+    te = TracebackException(type(value), value, tb, limit=limit, compact=True)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 690, in __init__
+    self.stack = StackSummary._extract_from_extended_frame_gen(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 409, in _extract_from_extended_frame_gen
+    if limit >= 0:
+       ^^^^^^^^^^
+ TypeError: '>=' not supported between instances of 'OperationNotDefinedError' and 'int'
+
+INFO,2024-06-27 18:14:40.475,test_nullable_windowing_explicit_window_far,flink,-1,-1,-1,-1,-1,-1,csv,Traceback (most recent call last):
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 75, in main
+    run_once(test_case, test_instance, count, backend)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 97, in run_once
+    run_timed(test_instance.query.execute, RUN_ONCE_TIMEOUT_S)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 135, in run_timed
+    trace = traceback.format_exc(exception_queue.get())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 187, in format_exc
+    return "".join(format_exception(*sys.exc_info(), limit=limit, chain=chain))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 139, in format_exception
+    te = TracebackException(type(value), value, tb, limit=limit, compact=True)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 690, in __init__
+    self.stack = StackSummary._extract_from_extended_frame_gen(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 409, in _extract_from_extended_frame_gen
+    if limit >= 0:
+       ^^^^^^^^^^
+ TypeError: '>=' not supported between instances of 'UnsupportedOperationError' and 'int'
+
+INFO,2024-06-27 18:14:40.820,test_nullable_windowing_explicit_window_far,flink,-1,-1,-1,-1,-1,-1,cached,Traceback (most recent call last):
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 75, in main
+    run_once(test_case, test_instance, count, backend)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 97, in run_once
+    run_timed(test_instance.query.execute, RUN_ONCE_TIMEOUT_S)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 135, in run_timed
+    trace = traceback.format_exc(exception_queue.get())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 187, in format_exc
+    return "".join(format_exception(*sys.exc_info(), limit=limit, chain=chain))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 139, in format_exception
+    te = TracebackException(type(value), value, tb, limit=limit, compact=True)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 690, in __init__
+    self.stack = StackSummary._extract_from_extended_frame_gen(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 409, in _extract_from_extended_frame_gen
+    if limit >= 0:
+       ^^^^^^^^^^
+ TypeError: '>=' not supported between instances of 'UnsupportedOperationError' and 'int'
+
+INFO,2024-06-27 18:14:43.971,test_nullable_windowing_explicit_window_far,renoir,-1,3.0530696029309183,1.6566166220000014,1.3060159510932863,-1,-241160192,csv,None
+INFO,2024-06-27 18:14:46.898,test_nullable_windowing_explicit_window_far,renoir,0,2.9249252839945257,1.6287115319864824,1.205707870889455,-1,0,csv,None
+INFO,2024-06-27 18:14:49.921,test_nullable_windowing_explicit_window_far,renoir,1,3.0209141860250384,1.6277712560258806,1.3031262380536646,-1,0,csv,None
+INFO,2024-06-27 18:14:52.970,test_nullable_windowing_explicit_window_far,renoir,2,3.0458796359598637,1.6833805280039087,1.2721345500322059,-1,0,csv,None
+INFO,2024-06-27 18:14:55.965,test_nullable_windowing_explicit_window_far,renoir,3,2.9930490030674264,1.6510894399834797,1.2518535540439188,-1,0,csv,None
+INFO,2024-06-27 18:14:58.883,test_nullable_windowing_explicit_window_far,renoir,4,2.9147796540055424,1.62289966607932,1.200687799951993,-1,131072,csv,None
+INFO,2024-06-27 18:15:03.216,test_nullable_windowing_explicit_window_far,renoir,-1,4.239209457999095,1.596694387961179,1.3732937900349498,-1,0,cached,None
+INFO,2024-06-27 18:15:07.461,test_nullable_windowing_explicit_window_far,renoir,0,4.242567457957193,1.6693437750218436,1.303724718047306,-1,0,cached,None
+INFO,2024-06-27 18:15:10.490,test_nullable_windowing_explicit_window_far,renoir,1,3.02707130194176,1.6234318680362776,1.3126940090442076,-1,0,cached,None
+INFO,2024-06-27 18:15:13.506,test_nullable_windowing_explicit_window_far,renoir,2,3.0134223659988493,1.6204754250356928,1.3018227650318295,-1,0,cached,None
+INFO,2024-06-27 18:15:16.512,test_nullable_windowing_explicit_window_far,renoir,3,3.0029701109742746,1.6327812899835408,1.2793673010310158,-1,0,cached,None
+INFO,2024-06-27 18:15:19.576,test_nullable_windowing_explicit_window_far,renoir,4,3.0619657899951562,1.6659947929438204,1.3058814910473302,-1,0,cached,None
+INFO,2024-06-27 18:15:23.378,test_nullable_windowing_implicit_group,duckdb,-1,3.711734715034254,-1,-1,-1,747495424,csv,None
+INFO,2024-06-27 18:15:27.107,test_nullable_windowing_implicit_group,duckdb,0,3.726673152996227,-1,-1,-1,-364212224,csv,None
+INFO,2024-06-27 18:15:30.909,test_nullable_windowing_implicit_group,duckdb,1,3.7991269159829244,-1,-1,-1,-13668352,csv,None
+INFO,2024-06-27 18:15:34.691,test_nullable_windowing_implicit_group,duckdb,2,3.779855112894438,-1,-1,-1,77393920,csv,None
+INFO,2024-06-27 18:15:38.423,test_nullable_windowing_implicit_group,duckdb,3,3.7291261779610068,-1,-1,-1,-64311296,csv,None
+INFO,2024-06-27 18:15:42.186,test_nullable_windowing_implicit_group,duckdb,4,3.7597893429920077,-1,-1,-1,180084736,csv,None
+INFO,2024-06-27 18:15:59.288,test_nullable_windowing_implicit_group,duckdb,-1,3.470607466995716,-1,-1,-1,772620288,cached,None
+INFO,2024-06-27 18:16:02.760,test_nullable_windowing_implicit_group,duckdb,0,3.4689534119097516,-1,-1,-1,-273928192,cached,None
+INFO,2024-06-27 18:16:06.221,test_nullable_windowing_implicit_group,duckdb,1,3.458090748055838,-1,-1,-1,-35381248,cached,None
+INFO,2024-06-27 18:16:09.652,test_nullable_windowing_implicit_group,duckdb,2,3.4284295960096642,-1,-1,-1,-67846144,cached,None
+INFO,2024-06-27 18:16:13.038,test_nullable_windowing_implicit_group,duckdb,3,3.3823624489596114,-1,-1,-1,127258624,cached,None
+INFO,2024-06-27 18:16:16.500,test_nullable_windowing_implicit_group,duckdb,4,3.4595508070196956,-1,-1,-1,-91803648,cached,None
+INFO,2024-06-27 18:16:16.672,test_nullable_windowing_implicit_group,polars,-1,-1,-1,-1,-1,-1,csv,Traceback (most recent call last):
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 75, in main
+    run_once(test_case, test_instance, count, backend)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 97, in run_once
+    run_timed(test_instance.query.execute, RUN_ONCE_TIMEOUT_S)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 135, in run_timed
+    trace = traceback.format_exc(exception_queue.get())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 187, in format_exc
+    return "".join(format_exception(*sys.exc_info(), limit=limit, chain=chain))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 139, in format_exception
+    te = TracebackException(type(value), value, tb, limit=limit, compact=True)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 690, in __init__
+    self.stack = StackSummary._extract_from_extended_frame_gen(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 409, in _extract_from_extended_frame_gen
+    if limit >= 0:
+       ^^^^^^^^^^
+ TypeError: '>=' not supported between instances of 'OperationNotDefinedError' and 'int'
+
+INFO,2024-06-27 18:16:19.650,test_nullable_windowing_implicit_group,polars,-1,-1,-1,-1,-1,-1,cached,Traceback (most recent call last):
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 75, in main
+    run_once(test_case, test_instance, count, backend)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 97, in run_once
+    run_timed(test_instance.query.execute, RUN_ONCE_TIMEOUT_S)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 135, in run_timed
+    trace = traceback.format_exc(exception_queue.get())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 187, in format_exc
+    return "".join(format_exception(*sys.exc_info(), limit=limit, chain=chain))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 139, in format_exception
+    te = TracebackException(type(value), value, tb, limit=limit, compact=True)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 690, in __init__
+    self.stack = StackSummary._extract_from_extended_frame_gen(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 409, in _extract_from_extended_frame_gen
+    if limit >= 0:
+       ^^^^^^^^^^
+ TypeError: '>=' not supported between instances of 'OperationNotDefinedError' and 'int'
+
+INFO,2024-06-27 18:16:19.999,test_nullable_windowing_implicit_group,flink,-1,-1,-1,-1,-1,-1,csv,Traceback (most recent call last):
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 75, in main
+    run_once(test_case, test_instance, count, backend)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 97, in run_once
+    run_timed(test_instance.query.execute, RUN_ONCE_TIMEOUT_S)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 135, in run_timed
+    trace = traceback.format_exc(exception_queue.get())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 187, in format_exc
+    return "".join(format_exception(*sys.exc_info(), limit=limit, chain=chain))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 139, in format_exception
+    te = TracebackException(type(value), value, tb, limit=limit, compact=True)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 690, in __init__
+    self.stack = StackSummary._extract_from_extended_frame_gen(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 409, in _extract_from_extended_frame_gen
+    if limit >= 0:
+       ^^^^^^^^^^
+ TypeError: '>=' not supported between instances of 'UnsupportedOperationError' and 'int'
+
+INFO,2024-06-27 18:16:20.474,test_nullable_windowing_implicit_group,flink,-1,-1,-1,-1,-1,-1,cached,Traceback (most recent call last):
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 75, in main
+    run_once(test_case, test_instance, count, backend)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 97, in run_once
+    run_timed(test_instance.query.execute, RUN_ONCE_TIMEOUT_S)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 135, in run_timed
+    trace = traceback.format_exc(exception_queue.get())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 187, in format_exc
+    return "".join(format_exception(*sys.exc_info(), limit=limit, chain=chain))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 139, in format_exception
+    te = TracebackException(type(value), value, tb, limit=limit, compact=True)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 690, in __init__
+    self.stack = StackSummary._extract_from_extended_frame_gen(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 409, in _extract_from_extended_frame_gen
+    if limit >= 0:
+       ^^^^^^^^^^
+ TypeError: '>=' not supported between instances of 'UnsupportedOperationError' and 'int'
+
+INFO,2024-06-27 18:16:35.609,test_nullable_windowing_implicit_group,renoir,-1,15.037792021990754,3.8455881309928373,11.102954892907292,-1,-241164288,csv,None
+INFO,2024-06-27 18:16:50.578,test_nullable_windowing_implicit_group,renoir,0,14.966492055915296,3.7877081119222566,11.092755521065556,-1,0,csv,None
+INFO,2024-06-27 18:17:05.299,test_nullable_windowing_implicit_group,renoir,1,14.718384445062838,3.743773555965163,10.887711617979221,-1,0,csv,None
+INFO,2024-06-27 18:17:20.113,test_nullable_windowing_implicit_group,renoir,2,14.81122402404435,3.778174104052596,10.947318781982176,-1,0,csv,None
+INFO,2024-06-27 18:17:35.068,test_nullable_windowing_implicit_group,renoir,3,14.952706812997349,3.740927241044119,11.125824346905574,-1,0,csv,None
+INFO,2024-06-27 18:17:49.858,test_nullable_windowing_implicit_group,renoir,4,14.787240418954752,3.7350292049814016,10.966206850018352,-1,0,csv,None
+INFO,2024-06-27 18:18:05.007,test_nullable_windowing_implicit_group,renoir,-1,15.05667341093067,3.9039101030211896,11.066483109956607,-1,0,cached,None
+INFO,2024-06-27 18:18:20.033,test_nullable_windowing_implicit_group,renoir,0,15.023569865967147,3.878414880950004,11.056529361987486,-1,-561917952,cached,None
+INFO,2024-06-27 18:18:37.842,test_nullable_windowing_implicit_group,renoir,1,17.806643021991476,3.7372556679183617,10.952278173994273,-1,131072,cached,None
+INFO,2024-06-27 18:18:52.841,test_nullable_windowing_implicit_group,renoir,2,14.996337646036409,3.9048917019972578,11.005895026028156,-1,0,cached,None
+INFO,2024-06-27 18:19:07.601,test_nullable_windowing_implicit_group,renoir,3,14.757725014002062,3.7944311620667577,10.87890538701322,-1,0,cached,None
+INFO,2024-06-27 18:19:22.467,test_nullable_windowing_implicit_group,renoir,4,14.862639814964496,3.782656350056641,10.994860365986824,-1,0,cached,None
+INFO,2024-06-27 18:19:27.028,test_nullable_windowing_implicit_mean,duckdb,-1,4.472340642940253,-1,-1,-1,-36720640,csv,None
+INFO,2024-06-27 18:19:31.578,test_nullable_windowing_implicit_mean,duckdb,0,4.547286840039305,-1,-1,-1,-61489152,csv,None
+INFO,2024-06-27 18:19:36.035,test_nullable_windowing_implicit_mean,duckdb,1,4.454013903974555,-1,-1,-1,-61587456,csv,None
+INFO,2024-06-27 18:19:42.220,test_nullable_windowing_implicit_mean,duckdb,2,6.183163707959466,-1,-1,-1,-72019968,csv,None
+INFO,2024-06-27 18:19:46.671,test_nullable_windowing_implicit_mean,duckdb,3,4.447841626941226,-1,-1,-1,88846336,csv,None
+INFO,2024-06-27 18:19:51.182,test_nullable_windowing_implicit_mean,duckdb,4,4.508806381025352,-1,-1,-1,4964352,csv,None
+INFO,2024-06-27 18:20:08.295,test_nullable_windowing_implicit_mean,duckdb,-1,3.5885750929592177,-1,-1,-1,240189440,cached,None
+INFO,2024-06-27 18:20:11.846,test_nullable_windowing_implicit_mean,duckdb,0,3.548473726026714,-1,-1,-1,-160124928,cached,None
+INFO,2024-06-27 18:20:16.591,test_nullable_windowing_implicit_mean,duckdb,1,4.742558312951587,-1,-1,-1,136200192,cached,None
+INFO,2024-06-27 18:20:20.246,test_nullable_windowing_implicit_mean,duckdb,2,3.652412065071985,-1,-1,-1,-53751808,cached,None
+INFO,2024-06-27 18:20:23.814,test_nullable_windowing_implicit_mean,duckdb,3,3.565687845926732,-1,-1,-1,31428608,cached,None
+INFO,2024-06-27 18:20:27.481,test_nullable_windowing_implicit_mean,duckdb,4,3.664425472030416,-1,-1,-1,-34975744,cached,None
+INFO,2024-06-27 18:20:27.691,test_nullable_windowing_implicit_mean,polars,-1,-1,-1,-1,-1,-1,csv,Traceback (most recent call last):
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 75, in main
+    run_once(test_case, test_instance, count, backend)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 97, in run_once
+    run_timed(test_instance.query.execute, RUN_ONCE_TIMEOUT_S)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 135, in run_timed
+    trace = traceback.format_exc(exception_queue.get())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 187, in format_exc
+    return "".join(format_exception(*sys.exc_info(), limit=limit, chain=chain))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 139, in format_exception
+    te = TracebackException(type(value), value, tb, limit=limit, compact=True)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 690, in __init__
+    self.stack = StackSummary._extract_from_extended_frame_gen(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 409, in _extract_from_extended_frame_gen
+    if limit >= 0:
+       ^^^^^^^^^^
+ TypeError: '>=' not supported between instances of 'OperationNotDefinedError' and 'int'
+
+INFO,2024-06-27 18:20:30.661,test_nullable_windowing_implicit_mean,polars,-1,-1,-1,-1,-1,-1,cached,Traceback (most recent call last):
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 75, in main
+    run_once(test_case, test_instance, count, backend)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 97, in run_once
+    run_timed(test_instance.query.execute, RUN_ONCE_TIMEOUT_S)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 135, in run_timed
+    trace = traceback.format_exc(exception_queue.get())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 187, in format_exc
+    return "".join(format_exception(*sys.exc_info(), limit=limit, chain=chain))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 139, in format_exception
+    te = TracebackException(type(value), value, tb, limit=limit, compact=True)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 690, in __init__
+    self.stack = StackSummary._extract_from_extended_frame_gen(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 409, in _extract_from_extended_frame_gen
+    if limit >= 0:
+       ^^^^^^^^^^
+ TypeError: '>=' not supported between instances of 'OperationNotDefinedError' and 'int'
+
+INFO,2024-06-27 18:20:31.037,test_nullable_windowing_implicit_mean,flink,-1,-1,-1,-1,-1,-1,csv,Traceback (most recent call last):
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 75, in main
+    run_once(test_case, test_instance, count, backend)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 97, in run_once
+    run_timed(test_instance.query.execute, RUN_ONCE_TIMEOUT_S)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 135, in run_timed
+    trace = traceback.format_exc(exception_queue.get())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 187, in format_exc
+    return "".join(format_exception(*sys.exc_info(), limit=limit, chain=chain))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 139, in format_exception
+    te = TracebackException(type(value), value, tb, limit=limit, compact=True)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 690, in __init__
+    self.stack = StackSummary._extract_from_extended_frame_gen(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 409, in _extract_from_extended_frame_gen
+    if limit >= 0:
+       ^^^^^^^^^^
+ TypeError: '>=' not supported between instances of 'UnsupportedOperationError' and 'int'
+
+INFO,2024-06-27 18:20:31.437,test_nullable_windowing_implicit_mean,flink,-1,-1,-1,-1,-1,-1,cached,Traceback (most recent call last):
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 75, in main
+    run_once(test_case, test_instance, count, backend)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 97, in run_once
+    run_timed(test_instance.query.execute, RUN_ONCE_TIMEOUT_S)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 135, in run_timed
+    trace = traceback.format_exc(exception_queue.get())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 187, in format_exc
+    return "".join(format_exception(*sys.exc_info(), limit=limit, chain=chain))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 139, in format_exception
+    te = TracebackException(type(value), value, tb, limit=limit, compact=True)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 690, in __init__
+    self.stack = StackSummary._extract_from_extended_frame_gen(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 409, in _extract_from_extended_frame_gen
+    if limit >= 0:
+       ^^^^^^^^^^
+ TypeError: '>=' not supported between instances of 'UnsupportedOperationError' and 'int'
+
+INFO,2024-06-27 18:20:37.100,test_nullable_windowing_implicit_mean,renoir,-1,5.568264842964709,3.4878285449231043,1.9999998100101948,-1,-385003520,csv,None
+INFO,2024-06-27 18:20:42.696,test_nullable_windowing_implicit_mean,renoir,0,5.59403915994335,3.517506706994027,1.9967073209118098,-1,0,csv,None
+INFO,2024-06-27 18:20:48.241,test_nullable_windowing_implicit_mean,renoir,1,5.541912724031135,3.4655015079770237,1.9942863549804315,-1,0,csv,None
+INFO,2024-06-27 18:20:53.792,test_nullable_windowing_implicit_mean,renoir,2,5.548594938009046,3.4657573170261458,2.0028223829576746,-1,0,csv,None
+INFO,2024-06-27 18:20:59.410,test_nullable_windowing_implicit_mean,renoir,3,5.6155303220730275,3.528101728996262,2.006390438065864,-1,-1028096,csv,None
+INFO,2024-06-27 18:21:07.168,test_nullable_windowing_implicit_mean,renoir,4,7.755356946028769,3.662552052992396,2.0230894590495154,-1,0,csv,None
+INFO,2024-06-27 18:21:12.822,test_nullable_windowing_implicit_mean,renoir,-1,5.562910903943703,3.4710476029431447,2.0116744079859927,-1,0,cached,None
+INFO,2024-06-27 18:21:20.597,test_nullable_windowing_implicit_mean,renoir,0,7.772080054972321,3.697633903939277,2.0043326730374247,-1,-876544,cached,None
+INFO,2024-06-27 18:21:26.155,test_nullable_windowing_implicit_mean,renoir,1,5.555231887032278,3.467393488972448,2.0079306630650535,-1,0,cached,None
+INFO,2024-06-27 18:21:31.946,test_nullable_windowing_implicit_mean,renoir,2,5.788021189975552,3.693162475945428,2.015084970043972,-1,0,cached,None
+INFO,2024-06-27 18:21:37.715,test_nullable_windowing_implicit_mean,renoir,3,5.766637749038637,3.675589771941304,2.0109402609523386,-1,131072,cached,None
+INFO,2024-06-27 18:21:43.501,test_nullable_windowing_implicit_mean,renoir,4,5.783114228048362,3.69035236898344,2.010381092899479,-1,0,cached,None
+INFO,2024-06-27 18:21:52.493,test_nullable_windowing_implicit_sum,duckdb,-1,8.902485548052937,-1,-1,-1,493191168,csv,None
+INFO,2024-06-27 18:22:01.343,test_nullable_windowing_implicit_sum,duckdb,0,8.846849087974988,-1,-1,-1,-74526720,csv,None
+INFO,2024-06-27 18:22:10.293,test_nullable_windowing_implicit_sum,duckdb,1,8.946427244925871,-1,-1,-1,28454912,csv,None
+INFO,2024-06-27 18:22:19.268,test_nullable_windowing_implicit_sum,duckdb,2,8.972170309978537,-1,-1,-1,-168710144,csv,None
+INFO,2024-06-27 18:22:28.228,test_nullable_windowing_implicit_sum,duckdb,3,8.958020795020275,-1,-1,-1,136327168,csv,None
+INFO,2024-06-27 18:22:37.253,test_nullable_windowing_implicit_sum,duckdb,4,9.022314154892229,-1,-1,-1,36155392,csv,None
+INFO,2024-06-27 18:22:59.103,test_nullable_windowing_implicit_sum,duckdb,-1,8.017760740011,-1,-1,-1,183738368,cached,None
+INFO,2024-06-27 18:23:07.105,test_nullable_windowing_implicit_sum,duckdb,0,7.998503968003206,-1,-1,-1,5730304,cached,None
+INFO,2024-06-27 18:23:15.087,test_nullable_windowing_implicit_sum,duckdb,1,7.979804191971198,-1,-1,-1,-326234112,cached,None
+INFO,2024-06-27 18:23:23.192,test_nullable_windowing_implicit_sum,duckdb,2,8.102200735011138,-1,-1,-1,317599744,cached,None
+INFO,2024-06-27 18:23:31.138,test_nullable_windowing_implicit_sum,duckdb,3,7.944034957909025,-1,-1,-1,-60534784,cached,None
+INFO,2024-06-27 18:23:39.270,test_nullable_windowing_implicit_sum,duckdb,4,8.129482771968469,-1,-1,-1,73822208,cached,None
+INFO,2024-06-27 18:23:39.453,test_nullable_windowing_implicit_sum,polars,-1,-1,-1,-1,-1,-1,csv,Traceback (most recent call last):
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 75, in main
+    run_once(test_case, test_instance, count, backend)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 97, in run_once
+    run_timed(test_instance.query.execute, RUN_ONCE_TIMEOUT_S)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 135, in run_timed
+    trace = traceback.format_exc(exception_queue.get())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 187, in format_exc
+    return "".join(format_exception(*sys.exc_info(), limit=limit, chain=chain))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 139, in format_exception
+    te = TracebackException(type(value), value, tb, limit=limit, compact=True)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 690, in __init__
+    self.stack = StackSummary._extract_from_extended_frame_gen(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 409, in _extract_from_extended_frame_gen
+    if limit >= 0:
+       ^^^^^^^^^^
+ TypeError: '>=' not supported between instances of 'OperationNotDefinedError' and 'int'
+
+INFO,2024-06-27 18:23:42.432,test_nullable_windowing_implicit_sum,polars,-1,-1,-1,-1,-1,-1,cached,Traceback (most recent call last):
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 75, in main
+    run_once(test_case, test_instance, count, backend)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 97, in run_once
+    run_timed(test_instance.query.execute, RUN_ONCE_TIMEOUT_S)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 135, in run_timed
+    trace = traceback.format_exc(exception_queue.get())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 187, in format_exc
+    return "".join(format_exception(*sys.exc_info(), limit=limit, chain=chain))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 139, in format_exception
+    te = TracebackException(type(value), value, tb, limit=limit, compact=True)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 690, in __init__
+    self.stack = StackSummary._extract_from_extended_frame_gen(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 409, in _extract_from_extended_frame_gen
+    if limit >= 0:
+       ^^^^^^^^^^
+ TypeError: '>=' not supported between instances of 'OperationNotDefinedError' and 'int'
+
+INFO,2024-06-27 18:23:42.828,test_nullable_windowing_implicit_sum,flink,-1,-1,-1,-1,-1,-1,csv,Traceback (most recent call last):
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 75, in main
+    run_once(test_case, test_instance, count, backend)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 97, in run_once
+    run_timed(test_instance.query.execute, RUN_ONCE_TIMEOUT_S)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 135, in run_timed
+    trace = traceback.format_exc(exception_queue.get())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 187, in format_exc
+    return "".join(format_exception(*sys.exc_info(), limit=limit, chain=chain))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 139, in format_exception
+    te = TracebackException(type(value), value, tb, limit=limit, compact=True)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 690, in __init__
+    self.stack = StackSummary._extract_from_extended_frame_gen(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 409, in _extract_from_extended_frame_gen
+    if limit >= 0:
+       ^^^^^^^^^^
+ TypeError: '>=' not supported between instances of 'UnsupportedOperationError' and 'int'
+
+INFO,2024-06-27 18:23:43.243,test_nullable_windowing_implicit_sum,flink,-1,-1,-1,-1,-1,-1,cached,Traceback (most recent call last):
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 75, in main
+    run_once(test_case, test_instance, count, backend)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 97, in run_once
+    run_timed(test_instance.query.execute, RUN_ONCE_TIMEOUT_S)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 135, in run_timed
+    trace = traceback.format_exc(exception_queue.get())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 187, in format_exc
+    return "".join(format_exception(*sys.exc_info(), limit=limit, chain=chain))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 139, in format_exception
+    te = TracebackException(type(value), value, tb, limit=limit, compact=True)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 690, in __init__
+    self.stack = StackSummary._extract_from_extended_frame_gen(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 409, in _extract_from_extended_frame_gen
+    if limit >= 0:
+       ^^^^^^^^^^
+ TypeError: '>=' not supported between instances of 'UnsupportedOperationError' and 'int'
+
+INFO,2024-06-27 18:23:50.895,test_nullable_windowing_implicit_sum,renoir,-1,7.557322878972627,3.6108813140308484,1.865949428989552,-1,0,csv,None
+INFO,2024-06-27 18:23:56.331,test_nullable_windowing_implicit_sum,renoir,0,5.432804372976534,3.467177226091735,1.8731204699724913,-1,0,csv,None
+INFO,2024-06-27 18:24:01.763,test_nullable_windowing_implicit_sum,renoir,1,5.429594226996414,3.4362857670057565,1.901385887991637,-1,-1019904,csv,None
+INFO,2024-06-27 18:24:07.243,test_nullable_windowing_implicit_sum,renoir,2,5.476976418984123,3.4932790579041466,1.8917779020266607,-1,131072,csv,None
+INFO,2024-06-27 18:24:12.730,test_nullable_windowing_implicit_sum,renoir,3,5.484769362024963,3.517915481934324,1.8759161110501736,-1,0,csv,None
+INFO,2024-06-27 18:24:18.191,test_nullable_windowing_implicit_sum,renoir,4,5.458243152010255,3.4742179779568687,1.8910237459931523,-1,0,csv,None
+INFO,2024-06-27 18:24:23.949,test_nullable_windowing_implicit_sum,renoir,-1,5.667409082991071,3.67427633900661,1.9006414168979973,-1,-1048576,cached,None
+INFO,2024-06-27 18:24:29.598,test_nullable_windowing_implicit_sum,renoir,0,5.646100668003783,3.6596099459566176,1.8938298650318757,-1,0,cached,None
+INFO,2024-06-27 18:24:37.313,test_nullable_windowing_implicit_sum,renoir,1,7.711944584036246,3.719922160031274,1.881711503956467,-1,0,cached,None
+INFO,2024-06-27 18:24:42.773,test_nullable_windowing_implicit_sum,renoir,2,5.458359916927293,3.4735133519861847,1.893680326989852,-1,0,cached,None
+INFO,2024-06-27 18:24:48.481,test_nullable_windowing_implicit_sum,renoir,3,5.705292619066313,3.692590233986266,1.9204359189607203,-1,0,cached,None
+INFO,2024-06-27 18:24:54.215,test_nullable_windowing_implicit_sum,renoir,4,5.7306402559624985,3.7186136500677094,1.9204613349866122,-1,0,cached,None
+INFO,2024-06-27 18:24:57.539,test_nexmark_query_1,duckdb,-1,3.0914574570488185,-1,-1,-1,-419024896,csv,None
+INFO,2024-06-27 18:25:00.602,test_nexmark_query_1,duckdb,0,3.0596873009344563,-1,-1,-1,-3342336,csv,None
+INFO,2024-06-27 18:25:04.584,test_nexmark_query_1,duckdb,1,3.980456752004102,-1,-1,-1,53248,csv,None
+INFO,2024-06-27 18:25:07.642,test_nexmark_query_1,duckdb,2,3.054769688984379,-1,-1,-1,-684032,csv,None
+INFO,2024-06-27 18:25:10.637,test_nexmark_query_1,duckdb,3,2.992628581938334,-1,-1,-1,3145728,csv,None
+INFO,2024-06-27 18:25:13.825,test_nexmark_query_1,duckdb,4,3.1853409910108894,-1,-1,-1,-588296192,csv,None
+INFO,2024-06-27 18:25:52.595,test_nexmark_query_1,duckdb,-1,0.7647847050102428,-1,-1,-1,-378843136,cached,None
+INFO,2024-06-27 18:25:53.326,test_nexmark_query_1,duckdb,0,0.7276196649763733,-1,-1,-1,-260784128,cached,None
+INFO,2024-06-27 18:25:54.052,test_nexmark_query_1,duckdb,1,0.7232991849305108,-1,-1,-1,-106684416,cached,None
+INFO,2024-06-27 18:25:54.788,test_nexmark_query_1,duckdb,2,0.733973691938445,-1,-1,-1,-28606464,cached,None
+INFO,2024-06-27 18:25:55.492,test_nexmark_query_1,duckdb,3,0.7011825990630314,-1,-1,-1,45056,cached,None
+INFO,2024-06-27 18:25:56.195,test_nexmark_query_1,duckdb,4,0.7001762129366398,-1,-1,-1,-2805760,cached,None
+INFO,2024-06-27 18:25:56.832,test_nexmark_query_1,polars,-1,0.6318391540553421,-1,-1,-1,332357632,csv,None
+INFO,2024-06-27 18:25:57.469,test_nexmark_query_1,polars,0,0.6348150480771437,-1,-1,-1,389795840,csv,None
+INFO,2024-06-27 18:25:58.104,test_nexmark_query_1,polars,1,0.6321656559593976,-1,-1,-1,-6873088,csv,None
+INFO,2024-06-27 18:25:58.735,test_nexmark_query_1,polars,2,0.6288992500631139,-1,-1,-1,-295407616,csv,None
+INFO,2024-06-27 18:25:59.367,test_nexmark_query_1,polars,3,0.6285806820960715,-1,-1,-1,-241664,csv,None
+INFO,2024-06-27 18:26:00.000,test_nexmark_query_1,polars,4,0.6311669130809605,-1,-1,-1,-75255808,csv,None
+INFO,2024-06-27 18:26:06.535,test_nexmark_query_1,polars,-1,0.36164187698159367,-1,-1,-1,335519744,cached,None
+INFO,2024-06-27 18:26:06.895,test_nexmark_query_1,polars,0,0.35795556101948023,-1,-1,-1,371253248,cached,None
+INFO,2024-06-27 18:26:07.376,test_nexmark_query_1,polars,1,0.4783223730046302,-1,-1,-1,273317888,cached,None
+INFO,2024-06-27 18:26:07.738,test_nexmark_query_1,polars,2,0.3592089780140668,-1,-1,-1,-693030912,cached,None
+INFO,2024-06-27 18:26:08.095,test_nexmark_query_1,polars,3,0.3543996890075505,-1,-1,-1,61440,cached,None
+INFO,2024-06-27 18:26:08.535,test_nexmark_query_1,polars,4,0.43706451798789203,-1,-1,-1,295669760,cached,None
+INFO,2024-06-27 18:37:18.975,test_nexmark_query_1,flink,-1,667.5311479180818,-1,-1,-1,-12665798656,csv,None
+INFO,2024-06-27 18:48:26.864,test_nexmark_query_1,flink,0,667.8864306929754,-1,-1,-1,-156565504,csv,None
+INFO,2024-06-27 18:59:35.382,test_nexmark_query_1,flink,1,668.5152259200113,-1,-1,-1,-12046336,csv,None
+INFO,2024-06-27 19:10:42.988,test_nexmark_query_1,flink,2,667.6027618200751,-1,-1,-1,15704064,csv,None
+INFO,2024-06-27 19:21:52.811,test_nexmark_query_1,flink,3,669.8208644490223,-1,-1,-1,14876672,csv,None
+INFO,2024-06-27 19:33:02.548,test_nexmark_query_1,flink,4,669.7346664299257,-1,-1,-1,14901248,csv,None
+INFO,2024-06-27 19:44:11.575,test_nexmark_query_1,flink,-1,668.2807731149951,-1,-1,-1,17178624,cached,None
+INFO,2024-06-27 19:55:17.038,test_nexmark_query_1,flink,0,665.4608654460171,-1,-1,-1,14643200,cached,None
+INFO,2024-06-27 20:06:30.491,test_nexmark_query_1,flink,1,673.4507145819953,-1,-1,-1,81231872,cached,None
+INFO,2024-06-27 20:17:39.449,test_nexmark_query_1,flink,2,668.9545053710463,-1,-1,-1,86708224,cached,None
+INFO,2024-06-27 20:29:00.156,test_nexmark_query_1,flink,3,680.7049756480847,-1,-1,-1,79306752,cached,None
+INFO,2024-06-27 20:40:22.573,test_nexmark_query_1,flink,4,682.414186327951,-1,-1,-1,81641472,cached,None
+INFO,2024-06-27 20:40:24.600,test_nexmark_query_1,renoir,-1,1.7861042000586167,0.8820120219606906,0.7815732309827581,-1,-371212288,csv,None
+INFO,2024-06-27 20:40:26.307,test_nexmark_query_1,renoir,0,1.70392910100054,0.8094010420609266,0.7716477439971641,-1,0,csv,None
+INFO,2024-06-27 20:40:28.030,test_nexmark_query_1,renoir,1,1.7204561789985746,0.8252526329597458,0.7714930060319602,-1,0,csv,None
+INFO,2024-06-27 20:40:29.748,test_nexmark_query_1,renoir,2,1.7152532170293853,0.8217077680164948,0.7703384909546003,-1,0,csv,None
+INFO,2024-06-27 20:40:31.462,test_nexmark_query_1,renoir,3,1.7120084709022194,0.8136602309532464,0.7757041339064017,-1,0,csv,None
+INFO,2024-06-27 20:40:33.177,test_nexmark_query_1,renoir,4,1.711676288046874,0.8220196239417419,0.7672556589823216,-1,0,csv,None
+INFO,2024-06-27 20:40:35.820,test_nexmark_query_1,renoir,-1,2.409970480017364,0.8179099869448692,0.7694669279735535,-1,0,cached,None
+INFO,2024-06-27 20:40:37.513,test_nexmark_query_1,renoir,0,1.690355143044144,0.803348898072727,0.7643190129892901,-1,0,cached,None
+INFO,2024-06-27 20:40:39.221,test_nexmark_query_1,renoir,1,1.705235400935635,0.8225151610095054,0.7598975530127063,-1,0,cached,None
+INFO,2024-06-27 20:40:40.916,test_nexmark_query_1,renoir,2,1.6923682710621506,0.800950734061189,0.767487145960331,-1,0,cached,None
+INFO,2024-06-27 20:40:42.635,test_nexmark_query_1,renoir,3,1.7158138389931992,0.8221438359469175,0.7708713149186224,-1,131072,cached,None
+INFO,2024-06-27 20:40:44.334,test_nexmark_query_1,renoir,4,1.697110750945285,0.8079547310480848,0.7657869330141693,-1,131072,cached,None
+INFO,2024-06-27 20:40:46.862,test_nexmark_query_2,duckdb,-1,2.291652602958493,-1,-1,-1,24576,csv,None
+INFO,2024-06-27 20:40:49.153,test_nexmark_query_2,duckdb,0,2.287858181982301,-1,-1,-1,-159744,csv,None
+INFO,2024-06-27 20:40:51.447,test_nexmark_query_2,duckdb,1,2.2917324090376496,-1,-1,-1,8192,csv,None
+INFO,2024-06-27 20:40:53.855,test_nexmark_query_2,duckdb,2,2.404791514039971,-1,-1,-1,-56672256,csv,None
+INFO,2024-06-27 20:40:56.231,test_nexmark_query_2,duckdb,3,2.373988603008911,-1,-1,-1,114688,csv,None
+INFO,2024-06-27 20:40:58.629,test_nexmark_query_2,duckdb,4,2.3955476379487664,-1,-1,-1,110592,csv,None
+INFO,2024-06-27 20:41:36.882,test_nexmark_query_2,duckdb,-1,0.3739944030530751,-1,-1,-1,131072,cached,None
+INFO,2024-06-27 20:41:37.236,test_nexmark_query_2,duckdb,0,0.3513641459867358,-1,-1,-1,0,cached,None
+INFO,2024-06-27 20:41:37.591,test_nexmark_query_2,duckdb,1,0.35278000601101667,-1,-1,-1,131072,cached,None
+INFO,2024-06-27 20:41:37.946,test_nexmark_query_2,duckdb,2,0.3518305510515347,-1,-1,-1,0,cached,None
+INFO,2024-06-27 20:41:38.300,test_nexmark_query_2,duckdb,3,0.35189595306292176,-1,-1,-1,-131072,cached,None
+INFO,2024-06-27 20:41:38.764,test_nexmark_query_2,duckdb,4,0.4615853700088337,-1,-1,-1,131072,cached,None
+INFO,2024-06-27 20:41:39.285,test_nexmark_query_2,polars,-1,0.5160892290296033,-1,-1,-1,-24469504,csv,None
+INFO,2024-06-27 20:41:39.808,test_nexmark_query_2,polars,0,0.520138943917118,-1,-1,-1,946176,csv,None
+INFO,2024-06-27 20:41:40.329,test_nexmark_query_2,polars,1,0.518400555010885,-1,-1,-1,-364544,csv,None
+INFO,2024-06-27 20:41:40.852,test_nexmark_query_2,polars,2,0.5210366459796205,-1,-1,-1,421888,csv,None
+INFO,2024-06-27 20:41:41.372,test_nexmark_query_2,polars,3,0.5165004659211263,-1,-1,-1,-39272448,csv,None
+INFO,2024-06-27 20:41:41.891,test_nexmark_query_2,polars,4,0.5166253680363297,-1,-1,-1,8679424,csv,None
+INFO,2024-06-27 20:41:48.242,test_nexmark_query_2,polars,-1,0.31025184399913996,-1,-1,-1,-32829440,cached,None
+INFO,2024-06-27 20:41:48.550,test_nexmark_query_2,polars,0,0.30497946799732745,-1,-1,-1,-131072,cached,None
+INFO,2024-06-27 20:41:48.860,test_nexmark_query_2,polars,1,0.3072978019481525,-1,-1,-1,131072,cached,None
+INFO,2024-06-27 20:41:49.170,test_nexmark_query_2,polars,2,0.3078514930093661,-1,-1,-1,0,cached,None
+INFO,2024-06-27 20:41:49.482,test_nexmark_query_2,polars,3,0.30903981800656766,-1,-1,-1,-27422720,cached,None
+INFO,2024-06-27 20:41:49.789,test_nexmark_query_2,polars,4,0.3047092850320041,-1,-1,-1,-20963328,cached,None
+INFO,2024-06-27 20:42:00.840,test_nexmark_query_2,flink,-1,10.2940347379772,-1,-1,-1,83746816,csv,None
+INFO,2024-06-27 20:42:08.530,test_nexmark_query_2,flink,0,7.687680323026143,-1,-1,-1,80642048,csv,None
+INFO,2024-06-27 20:42:16.180,test_nexmark_query_2,flink,1,7.648091185023077,-1,-1,-1,15089664,csv,None
+INFO,2024-06-27 20:42:23.844,test_nexmark_query_2,flink,2,7.660734958015382,-1,-1,-1,17080320,csv,None
+INFO,2024-06-27 20:42:31.531,test_nexmark_query_2,flink,3,7.684343282948248,-1,-1,-1,14856192,csv,None
+INFO,2024-06-27 20:42:39.301,test_nexmark_query_2,flink,4,7.768040118040517,-1,-1,-1,17477632,csv,None
+INFO,2024-06-27 20:42:50.493,test_nexmark_query_2,flink,-1,10.39689343504142,-1,-1,-1,18526208,cached,None
+INFO,2024-06-27 20:42:58.200,test_nexmark_query_2,flink,0,7.703683605999686,-1,-1,-1,16740352,cached,None
+INFO,2024-06-27 20:43:05.822,test_nexmark_query_2,flink,1,7.619797028019093,-1,-1,-1,17272832,cached,None
+INFO,2024-06-27 20:43:13.445,test_nexmark_query_2,flink,2,7.620560159091838,-1,-1,-1,14180352,cached,None
+INFO,2024-06-27 20:43:21.752,test_nexmark_query_2,flink,3,8.304592065978795,-1,-1,-1,15106048,cached,None
+INFO,2024-06-27 20:43:29.521,test_nexmark_query_2,flink,4,7.766091524041258,-1,-1,-1,19542016,cached,None
+INFO,2024-06-27 20:43:31.462,test_nexmark_query_2,renoir,-1,1.7031155199510977,0.7972391190705821,0.7595856969710439,-1,-172032,csv,None
+INFO,2024-06-27 20:43:33.149,test_nexmark_query_2,renoir,0,1.6844160800101236,0.7842022420372814,0.7546875840052962,-1,-131072,csv,None
+INFO,2024-06-27 20:43:34.840,test_nexmark_query_2,renoir,1,1.6885673409560695,0.7909166300669312,0.7533173150150105,-1,-131072,csv,None
+INFO,2024-06-27 20:43:36.517,test_nexmark_query_2,renoir,2,1.6748669820372015,0.7771404379745945,0.7524842019192874,-1,0,csv,None
+INFO,2024-06-27 20:43:38.224,test_nexmark_query_2,renoir,3,1.7046850139740855,0.800340736983344,0.7568490590201691,-1,0,csv,None
+INFO,2024-06-27 20:43:39.916,test_nexmark_query_2,renoir,4,1.6891694120131433,0.7870710699353367,0.7574440030148253,-1,0,csv,None
+INFO,2024-06-27 20:43:41.850,test_nexmark_query_2,renoir,-1,1.701755610993132,0.797468867036514,0.7588857270311564,-1,0,cached,None
+INFO,2024-06-27 20:43:43.553,test_nexmark_query_2,renoir,0,1.6997308490099385,0.7994732270017266,0.755464899004437,-1,131072,cached,None
+INFO,2024-06-27 20:43:45.233,test_nexmark_query_2,renoir,1,1.6779836519854143,0.7761424259515479,0.7567732860334218,-1,0,cached,None
+INFO,2024-06-27 20:43:46.941,test_nexmark_query_2,renoir,2,1.7050876750145108,0.7998577170073986,0.7596282310551032,-1,0,cached,None
+INFO,2024-06-27 20:43:48.651,test_nexmark_query_2,renoir,3,1.70768102502916,0.7980169160291553,0.7647306530270725,-1,131072,cached,None
+INFO,2024-06-27 20:43:50.353,test_nexmark_query_2,renoir,4,1.699168775929138,0.7935798570979387,0.7600590180372819,-1,0,cached,None
+INFO,2024-06-27 20:43:51.160,test_nexmark_query_3,duckdb,-1,0.5756316400365904,-1,-1,-1,-738840576,csv,None
+INFO,2024-06-27 20:43:51.702,test_nexmark_query_3,duckdb,0,0.538971223984845,-1,-1,-1,1818624,csv,None
+INFO,2024-06-27 20:43:52.245,test_nexmark_query_3,duckdb,1,0.5407007429748774,-1,-1,-1,1122304,csv,None
+INFO,2024-06-27 20:43:52.788,test_nexmark_query_3,duckdb,2,0.5401513230754063,-1,-1,-1,1142784,csv,None
+INFO,2024-06-27 20:43:53.336,test_nexmark_query_3,duckdb,3,0.5456250769784674,-1,-1,-1,937984,csv,None
+INFO,2024-06-27 20:43:53.879,test_nexmark_query_3,duckdb,4,0.5402994439937174,-1,-1,-1,409600,csv,None
+INFO,2024-06-27 20:44:34.684,test_nexmark_query_3,duckdb,-1,3.3389218129450455,-1,-1,-1,0,cached,None
+INFO,2024-06-27 20:44:35.008,test_nexmark_query_3,duckdb,0,0.32106795394793153,-1,-1,-1,0,cached,None
+INFO,2024-06-27 20:44:35.333,test_nexmark_query_3,duckdb,1,0.32292589801363647,-1,-1,-1,0,cached,None
+INFO,2024-06-27 20:44:35.658,test_nexmark_query_3,duckdb,2,0.322137845098041,-1,-1,-1,131072,cached,None
+INFO,2024-06-27 20:44:35.983,test_nexmark_query_3,duckdb,3,0.3217721770051867,-1,-1,-1,131072,cached,None
+INFO,2024-06-27 20:44:36.312,test_nexmark_query_3,duckdb,4,0.3273709249915555,-1,-1,-1,0,cached,None
+INFO,2024-06-27 20:44:36.682,test_nexmark_query_3,polars,-1,0.3654258659807965,-1,-1,-1,-3874816,csv,None
+INFO,2024-06-27 20:44:37.057,test_nexmark_query_3,polars,0,0.37238868593703955,-1,-1,-1,581632,csv,None
+INFO,2024-06-27 20:44:37.425,test_nexmark_query_3,polars,1,0.3653854338917881,-1,-1,-1,-17448960,csv,None
+INFO,2024-06-27 20:44:37.863,test_nexmark_query_3,polars,2,0.43572889000643045,-1,-1,-1,-18313216,csv,None
+INFO,2024-06-27 20:44:38.224,test_nexmark_query_3,polars,3,0.3584378759842366,-1,-1,-1,4632576,csv,None
+INFO,2024-06-27 20:44:38.663,test_nexmark_query_3,polars,4,0.43582710600458086,-1,-1,-1,-33648640,csv,None
+INFO,2024-06-27 20:44:44.996,test_nexmark_query_3,polars,-1,0.32740691397339106,-1,-1,-1,917504,cached,None
+INFO,2024-06-27 20:44:45.325,test_nexmark_query_3,polars,0,0.3264523729449138,-1,-1,-1,6340608,cached,None
+INFO,2024-06-27 20:44:45.654,test_nexmark_query_3,polars,1,0.32607570791151375,-1,-1,-1,-26177536,cached,None
+INFO,2024-06-27 20:44:45.982,test_nexmark_query_3,polars,2,0.32522229908499867,-1,-1,-1,1003520,cached,None
+INFO,2024-06-27 20:44:46.312,test_nexmark_query_3,polars,3,0.32808319199830294,-1,-1,-1,-51331072,cached,None
+INFO,2024-06-27 20:44:46.640,test_nexmark_query_3,polars,4,0.32497376401443034,-1,-1,-1,-49164288,cached,None
+INFO,2024-06-27 20:44:49.631,test_nexmark_query_3,flink,-1,2.1628736129496247,-1,-1,-1,27598848,csv,None
+INFO,2024-06-27 20:44:51.672,test_nexmark_query_3,flink,0,2.0377321469131857,-1,-1,-1,16465920,csv,None
+INFO,2024-06-27 20:44:54.415,test_nexmark_query_3,flink,1,2.7412823990453035,-1,-1,-1,14897152,csv,None
+INFO,2024-06-27 20:44:56.573,test_nexmark_query_3,flink,2,2.155173759092577,-1,-1,-1,19132416,csv,None
+INFO,2024-06-27 20:44:58.599,test_nexmark_query_3,flink,3,2.0229163620388135,-1,-1,-1,17416192,csv,None
+INFO,2024-06-27 20:45:00.652,test_nexmark_query_3,flink,4,2.0510351209668443,-1,-1,-1,30162944,csv,None
+INFO,2024-06-27 20:45:04.018,test_nexmark_query_3,flink,-1,2.4684857259271666,-1,-1,-1,15802368,cached,None
+INFO,2024-06-27 20:45:06.135,test_nexmark_query_3,flink,0,2.114736311021261,-1,-1,-1,18759680,cached,None
+INFO,2024-06-27 20:45:08.146,test_nexmark_query_3,flink,1,2.0084100329549983,-1,-1,-1,18837504,cached,None
+INFO,2024-06-27 20:45:10.171,test_nexmark_query_3,flink,2,2.022301382967271,-1,-1,-1,-4042752,cached,None
+INFO,2024-06-27 20:45:12.198,test_nexmark_query_3,flink,3,2.024737227940932,-1,-1,-1,17444864,cached,None
+INFO,2024-06-27 20:45:14.271,test_nexmark_query_3,flink,4,2.070463511045091,-1,-1,-1,16162816,cached,None
+INFO,2024-06-27 20:45:17.392,test_nexmark_query_3,renoir,-1,2.8834174459334463,2.4099580220645294,0.32172583893407136,-1,-159744,csv,None
+INFO,2024-06-27 20:45:20.179,test_nexmark_query_3,renoir,0,2.784013221040368,2.303995617083274,0.32672369002830237,-1,0,csv,None
+INFO,2024-06-27 20:45:23.110,test_nexmark_query_3,renoir,1,2.928497052984312,2.4498876279685646,0.32701944001019,-1,0,csv,None
+INFO,2024-06-27 20:45:26.144,test_nexmark_query_3,renoir,2,3.0316236088983715,2.5554019371047616,0.3239526549587026,-1,0,csv,None
+INFO,2024-06-27 20:45:29.009,test_nexmark_query_3,renoir,3,2.8617881289683282,2.3889347220538184,0.32180970592889935,-1,131072,csv,None
+INFO,2024-06-27 20:45:31.918,test_nexmark_query_3,renoir,4,2.9072418119758368,2.4351217709481716,0.3209291020175442,-1,262144,csv,None
+INFO,2024-06-27 20:45:34.997,test_nexmark_query_3,renoir,-1,2.843764303950593,2.3565350499702618,0.33472553291358054,-1,131072,cached,None
+INFO,2024-06-27 20:45:37.873,test_nexmark_query_3,renoir,0,2.8732626389246434,2.3941380789037794,0.327309848042205,-1,262144,cached,None
+INFO,2024-06-27 20:45:40.765,test_nexmark_query_3,renoir,1,2.8891911080572754,2.4010218218900263,0.3359587750164792,-1,131072,cached,None
+INFO,2024-06-27 20:45:44.597,test_nexmark_query_3,renoir,2,3.8294485040241852,2.418599096010439,0.31967012700624764,-1,0,cached,None
+INFO,2024-06-27 20:45:47.469,test_nexmark_query_3,renoir,3,2.8697632470866665,2.3918904529418796,0.3260310370242223,-1,0,cached,None
+INFO,2024-06-27 20:45:50.336,test_nexmark_query_3,renoir,4,2.864773668930866,2.385534849949181,0.3276867000386119,-1,0,cached,None
+INFO,2024-06-27 20:45:51.652,test_nexmark_query_4,duckdb,-1,1.076205292949453,-1,-1,-1,14139392,csv,None
+INFO,2024-06-27 20:45:52.737,test_nexmark_query_4,duckdb,0,1.0823883049888536,-1,-1,-1,-96464896,csv,None
+INFO,2024-06-27 20:45:53.812,test_nexmark_query_4,duckdb,1,1.072222319082357,-1,-1,-1,-212258816,csv,None
+INFO,2024-06-27 20:45:54.884,test_nexmark_query_4,duckdb,2,1.0697553580394015,-1,-1,-1,9555968,csv,None
+INFO,2024-06-27 20:45:55.966,test_nexmark_query_4,duckdb,3,1.0785975489998236,-1,-1,-1,-41664512,csv,None
+INFO,2024-06-27 20:45:57.102,test_nexmark_query_4,duckdb,4,1.1334396379534155,-1,-1,-1,-37081088,csv,None
+INFO,2024-06-27 20:46:35.237,test_nexmark_query_4,duckdb,-1,0.4262341589201242,-1,-1,-1,-50110464,cached,None
+INFO,2024-06-27 20:46:35.650,test_nexmark_query_4,duckdb,0,0.4105470960494131,-1,-1,-1,135168,cached,None
+INFO,2024-06-27 20:46:36.064,test_nexmark_query_4,duckdb,1,0.4109032100532204,-1,-1,-1,1249280,cached,None
+INFO,2024-06-27 20:46:36.477,test_nexmark_query_4,duckdb,2,0.4103955909376964,-1,-1,-1,-11468800,cached,None
+INFO,2024-06-27 20:46:36.893,test_nexmark_query_4,duckdb,3,0.4137118870858103,-1,-1,-1,57344,cached,None
+INFO,2024-06-27 20:46:37.306,test_nexmark_query_4,duckdb,4,0.41067593498155475,-1,-1,-1,2420736,cached,None
+INFO,2024-06-27 20:46:37.615,test_nexmark_query_4,polars,-1,-1,-1,-1,-1,-1,csv,Traceback (most recent call last):
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 75, in main
+    run_once(test_case, test_instance, count, backend)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 97, in run_once
+    run_timed(test_instance.query.execute, RUN_ONCE_TIMEOUT_S)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 135, in run_timed
+    trace = traceback.format_exc(exception_queue.get())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 187, in format_exc
+    return "".join(format_exception(*sys.exc_info(), limit=limit, chain=chain))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 139, in format_exception
+    te = TracebackException(type(value), value, tb, limit=limit, compact=True)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 690, in __init__
+    self.stack = StackSummary._extract_from_extended_frame_gen(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 409, in _extract_from_extended_frame_gen
+    if limit >= 0:
+       ^^^^^^^^^^
+ TypeError: '>=' not supported between instances of 'ColumnNotFoundError' and 'int'
+
+INFO,2024-06-27 20:46:43.994,test_nexmark_query_4,polars,-1,-1,-1,-1,-1,-1,cached,Traceback (most recent call last):
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 75, in main
+    run_once(test_case, test_instance, count, backend)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 97, in run_once
+    run_timed(test_instance.query.execute, RUN_ONCE_TIMEOUT_S)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 135, in run_timed
+    trace = traceback.format_exc(exception_queue.get())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 187, in format_exc
+    return "".join(format_exception(*sys.exc_info(), limit=limit, chain=chain))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 139, in format_exception
+    te = TracebackException(type(value), value, tb, limit=limit, compact=True)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 690, in __init__
+    self.stack = StackSummary._extract_from_extended_frame_gen(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 409, in _extract_from_extended_frame_gen
+    if limit >= 0:
+       ^^^^^^^^^^
+ TypeError: '>=' not supported between instances of 'ColumnNotFoundError' and 'int'
+
+INFO,2024-06-27 20:47:06.758,test_nexmark_query_4,flink,-1,21.864851354039274,-1,-1,-1,5571878912,csv,None
+INFO,2024-06-27 20:47:28.869,test_nexmark_query_4,flink,0,22.107557939947583,-1,-1,-1,4799266816,csv,None
+INFO,2024-06-27 20:47:50.667,test_nexmark_query_4,flink,1,21.795306560001336,-1,-1,-1,1209364480,csv,None
+INFO,2024-06-27 20:48:12.724,test_nexmark_query_4,flink,2,22.05498819996137,-1,-1,-1,827535360,csv,None
+INFO,2024-06-27 20:48:34.779,test_nexmark_query_4,flink,3,22.052359599038027,-1,-1,-1,388984832,csv,None
+INFO,2024-06-27 20:48:56.729,test_nexmark_query_4,flink,4,21.946551452041604,-1,-1,-1,173424640,csv,None
+INFO,2024-06-27 20:49:19.828,test_nexmark_query_4,flink,-1,22.075415816972964,-1,-1,-1,238268416,cached,None
+INFO,2024-06-27 20:49:41.927,test_nexmark_query_4,flink,0,22.09669739601668,-1,-1,-1,101654528,cached,None
+INFO,2024-06-27 20:50:03.941,test_nexmark_query_4,flink,1,22.010733919916674,-1,-1,-1,86118400,cached,None
+INFO,2024-06-27 20:50:25.634,test_nexmark_query_4,flink,2,21.69001891708467,-1,-1,-1,36282368,cached,None
+INFO,2024-06-27 20:50:47.708,test_nexmark_query_4,flink,3,22.071545743965544,-1,-1,-1,25739264,cached,None
+INFO,2024-06-27 20:51:09.519,test_nexmark_query_4,flink,4,21.80889348499477,-1,-1,-1,18649088,cached,None
+INFO,2024-06-27 20:51:17.561,test_nexmark_query_4,renoir,-1,7.801959004020318,3.9629773900378495,3.6732491629663855,-1,0,csv,None
+INFO,2024-06-27 20:51:25.555,test_nexmark_query_4,renoir,0,7.990862725069746,4.081945394980721,3.7446785300271586,-1,0,csv,None
+INFO,2024-06-27 20:51:33.469,test_nexmark_query_4,renoir,1,7.911286775954068,4.084220123011619,3.661591580021195,-1,0,csv,None
+INFO,2024-06-27 20:51:41.338,test_nexmark_query_4,renoir,2,7.865840428974479,4.053900644998066,3.6459853829583153,-1,0,csv,None
+INFO,2024-06-27 20:51:49.254,test_nexmark_query_4,renoir,3,7.913672043941915,4.041341406060383,3.705037953914143,-1,0,csv,None
+INFO,2024-06-27 20:51:59.748,test_nexmark_query_4,renoir,4,10.49098157696426,4.076507959049195,3.6351524140918627,-1,0,csv,None
+INFO,2024-06-27 20:52:07.633,test_nexmark_query_4,renoir,-1,7.650613833917305,3.872405831934884,3.6143818970303982,-1,131072,cached,None
+INFO,2024-06-27 20:52:15.656,test_nexmark_query_4,renoir,0,8.020501045975834,4.080343393958174,3.774876080919057,-1,-135168,cached,None
+INFO,2024-06-27 20:52:23.685,test_nexmark_query_4,renoir,1,8.025528128957376,4.091087289969437,3.77086255105678,-1,0,cached,None
+INFO,2024-06-27 20:52:31.584,test_nexmark_query_4,renoir,2,7.896531378035434,4.110008783987723,3.6222829719772562,-1,0,cached,None
+INFO,2024-06-27 20:52:39.588,test_nexmark_query_4,renoir,3,8.001444678055122,4.1899241369683295,3.6477080860640854,-1,0,cached,None
+INFO,2024-06-27 20:52:47.469,test_nexmark_query_4,renoir,4,7.878859729971737,4.044050307013094,3.668416711036116,-1,0,cached,None
+INFO,2024-06-27 20:52:48.852,test_nexmark_query_6,duckdb,-1,1.149876652052626,-1,-1,-1,-144134144,csv,None
+INFO,2024-06-27 20:52:49.977,test_nexmark_query_6,duckdb,0,1.1217880570329726,-1,-1,-1,-41734144,csv,None
+INFO,2024-06-27 20:52:51.135,test_nexmark_query_6,duckdb,1,1.155757391010411,-1,-1,-1,-161230848,csv,None
+INFO,2024-06-27 20:52:52.280,test_nexmark_query_6,duckdb,2,1.1425790870562196,-1,-1,-1,-21192704,csv,None
+INFO,2024-06-27 20:52:53.414,test_nexmark_query_6,duckdb,3,1.1314143079798669,-1,-1,-1,28229632,csv,None
+INFO,2024-06-27 20:52:54.562,test_nexmark_query_6,duckdb,4,1.144545563030988,-1,-1,-1,10219520,csv,None
+INFO,2024-06-27 20:53:31.846,test_nexmark_query_6,duckdb,-1,0.5053198320092633,-1,-1,-1,-176713728,cached,None
+INFO,2024-06-27 20:53:32.334,test_nexmark_query_6,duckdb,0,0.4850403890013695,-1,-1,-1,-96096256,cached,None
+INFO,2024-06-27 20:53:32.819,test_nexmark_query_6,duckdb,1,0.4822849459014833,-1,-1,-1,-57315328,cached,None
+INFO,2024-06-27 20:53:33.303,test_nexmark_query_6,duckdb,2,0.4814222810091451,-1,-1,-1,-125214720,cached,None
+INFO,2024-06-27 20:53:33.783,test_nexmark_query_6,duckdb,3,0.4772794279269874,-1,-1,-1,-29757440,cached,None
+INFO,2024-06-27 20:53:34.256,test_nexmark_query_6,duckdb,4,0.4708080469863489,-1,-1,-1,-102846464,cached,None
+INFO,2024-06-27 20:53:34.576,test_nexmark_query_6,polars,-1,-1,-1,-1,-1,-1,csv,Traceback (most recent call last):
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 75, in main
+    run_once(test_case, test_instance, count, backend)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 97, in run_once
+    run_timed(test_instance.query.execute, RUN_ONCE_TIMEOUT_S)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 135, in run_timed
+    trace = traceback.format_exc(exception_queue.get())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 187, in format_exc
+    return "".join(format_exception(*sys.exc_info(), limit=limit, chain=chain))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 139, in format_exception
+    te = TracebackException(type(value), value, tb, limit=limit, compact=True)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 690, in __init__
+    self.stack = StackSummary._extract_from_extended_frame_gen(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 409, in _extract_from_extended_frame_gen
+    if limit >= 0:
+       ^^^^^^^^^^
+ TypeError: '>=' not supported between instances of 'OperationNotDefinedError' and 'int'
+
+INFO,2024-06-27 20:53:42.003,test_nexmark_query_6,polars,-1,-1,-1,-1,-1,-1,cached,Traceback (most recent call last):
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 75, in main
+    run_once(test_case, test_instance, count, backend)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 97, in run_once
+    run_timed(test_instance.query.execute, RUN_ONCE_TIMEOUT_S)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 135, in run_timed
+    trace = traceback.format_exc(exception_queue.get())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 187, in format_exc
+    return "".join(format_exception(*sys.exc_info(), limit=limit, chain=chain))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 139, in format_exception
+    te = TracebackException(type(value), value, tb, limit=limit, compact=True)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 690, in __init__
+    self.stack = StackSummary._extract_from_extended_frame_gen(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 409, in _extract_from_extended_frame_gen
+    if limit >= 0:
+       ^^^^^^^^^^
+ TypeError: '>=' not supported between instances of 'OperationNotDefinedError' and 'int'
+
+INFO,2024-06-27 20:53:43.533,test_nexmark_query_6,flink,-1,-1,-1,-1,-1,-1,csv,Traceback (most recent call last):
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 75, in main
+    run_once(test_case, test_instance, count, backend)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 97, in run_once
+    run_timed(test_instance.query.execute, RUN_ONCE_TIMEOUT_S)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 135, in run_timed
+    trace = traceback.format_exc(exception_queue.get())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 187, in format_exc
+    return "".join(format_exception(*sys.exc_info(), limit=limit, chain=chain))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 139, in format_exception
+    te = TracebackException(type(value), value, tb, limit=limit, compact=True)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 690, in __init__
+    self.stack = StackSummary._extract_from_extended_frame_gen(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 409, in _extract_from_extended_frame_gen
+    if limit >= 0:
+       ^^^^^^^^^^
+ TypeError: '>=' not supported between instances of 'UnsupportedOperationError' and 'int'
+
+INFO,2024-06-27 20:53:44.920,test_nexmark_query_6,flink,-1,-1,-1,-1,-1,-1,cached,Traceback (most recent call last):
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 75, in main
+    run_once(test_case, test_instance, count, backend)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 97, in run_once
+    run_timed(test_instance.query.execute, RUN_ONCE_TIMEOUT_S)
+   File "/home/ronconi/Projects/ibis-renoir-compiler/benchmark/internal/internal_benchmark.py", line 135, in run_timed
+    trace = traceback.format_exc(exception_queue.get())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 187, in format_exc
+    return "".join(format_exception(*sys.exc_info(), limit=limit, chain=chain))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 139, in format_exception
+    te = TracebackException(type(value), value, tb, limit=limit, compact=True)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 690, in __init__
+    self.stack = StackSummary._extract_from_extended_frame_gen(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   File "/usr/lib/python3.11/traceback.py", line 409, in _extract_from_extended_frame_gen
+    if limit >= 0:
+       ^^^^^^^^^^
+ TypeError: '>=' not supported between instances of 'UnsupportedOperationError' and 'int'
+
+INFO,2024-06-27 20:53:56.960,test_nexmark_query_6,renoir,-1,11.803778360947035,7.896566537907347,3.689121189992875,-1,-29360128,csv,None
+INFO,2024-06-27 20:54:06.569,test_nexmark_query_6,renoir,0,9.595070441951975,5.739554562023841,3.65955802006647,-1,131072,csv,None
+INFO,2024-06-27 20:54:14.309,test_nexmark_query_6,renoir,1,7.736964518087916,3.8153202780522406,3.658138271071948,-1,-2261028864,csv,None
+INFO,2024-06-27 20:54:22.285,test_nexmark_query_6,renoir,2,7.972967113018967,4.062034619040787,3.7425910980673507,-1,131072,csv,None
+INFO,2024-06-27 20:54:30.359,test_nexmark_query_6,renoir,3,8.071918984060176,4.079728445038199,3.820729506900534,-1,131072,csv,None
+INFO,2024-06-27 20:54:38.359,test_nexmark_query_6,renoir,4,7.996762265916914,4.056175764999352,3.772697193082422,-1,0,csv,None
+INFO,2024-06-27 20:54:46.607,test_nexmark_query_6,renoir,-1,8.013209854019806,4.0458628489868715,3.8002085060579702,-1,0,cached,None
+INFO,2024-06-27 20:54:54.529,test_nexmark_query_6,renoir,0,7.918579267919995,4.041363020078279,3.70829490700271,-1,0,cached,None
+INFO,2024-06-27 20:55:02.422,test_nexmark_query_6,renoir,1,7.890284369932488,4.04357912496198,3.6807545659830794,-1,0,cached,None
+INFO,2024-06-27 20:55:10.432,test_nexmark_query_6,renoir,2,8.00808641302865,4.099377619102597,3.740837109973654,-1,-135168,cached,None
+INFO,2024-06-27 20:55:18.523,test_nexmark_query_6,renoir,3,8.087556976010092,4.084529028972611,3.8365167980082333,-1,0,cached,None
+INFO,2024-06-27 20:55:29.193,test_nexmark_query_6,renoir,4,10.668302673031576,4.09808140899986,3.7877745979931206,-1,0,cached,None

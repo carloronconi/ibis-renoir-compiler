@@ -1,0 +1,188 @@
+level,timestamp,test_name,backend_name,run_count,total_time_s,renoir_compile_time_s,renoir_execute_time_s,ibis_time_s,max_memory_B,table_origin,exception
+INFO,2024-06-26 19:23:20.375,test_nullable_filter_filter_select_select,polars,-1,-1,-1,-1,-1,-1,csv,TimeoutError: run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 19:28:23.244,test_nullable_filter_filter_select_select,polars,-1,-1,-1,-1,-1,-1,cached,TimeoutError: run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 19:28:34.624,test_nullable_filter_filter_select_select,flink,-1,5.87972552399151,-1,-1,-1,2021412864,csv,None
+INFO,2024-06-26 19:28:38.423,test_nullable_filter_filter_select_select,flink,0,3.7966737810056657,-1,-1,-1,489934848,csv,None
+INFO,2024-06-26 19:28:42.065,test_nullable_filter_filter_select_select,flink,1,3.6394100539619103,-1,-1,-1,93233152,csv,None
+INFO,2024-06-26 19:28:45.829,test_nullable_filter_filter_select_select,flink,2,3.759097601985559,-1,-1,-1,-2691072,csv,None
+INFO,2024-06-26 19:28:49.507,test_nullable_filter_filter_select_select,flink,3,3.674689965089783,-1,-1,-1,52277248,csv,None
+INFO,2024-06-26 19:28:53.658,test_nullable_filter_filter_select_select,flink,4,4.146854153950699,-1,-1,-1,-581083136,csv,None
+INFO,2024-06-26 19:29:04.879,test_nullable_filter_filter_select_select,flink,-1,3.71929601195734,-1,-1,-1,374861824,cached,None
+INFO,2024-06-26 19:29:09.773,test_nullable_filter_filter_select_select,flink,0,4.88913445698563,-1,-1,-1,53129216,cached,None
+INFO,2024-06-26 19:29:13.456,test_nullable_filter_filter_select_select,flink,1,3.6803974229842424,-1,-1,-1,33607680,cached,None
+INFO,2024-06-26 19:29:17.130,test_nullable_filter_filter_select_select,flink,2,3.670936448033899,-1,-1,-1,37392384,cached,None
+INFO,2024-06-26 19:29:20.849,test_nullable_filter_filter_select_select,flink,3,3.7166530860122293,-1,-1,-1,9527296,cached,None
+INFO,2024-06-26 19:29:24.521,test_nullable_filter_filter_select_select,flink,4,3.6679968080716208,-1,-1,-1,27492352,cached,None
+INFO,2024-06-26 19:34:28.348,test_nullable_filter_group_mutate,polars,-1,-1,-1,-1,-1,-1,csv,TimeoutError: run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 19:39:31.163,test_nullable_filter_group_mutate,polars,-1,-1,-1,-1,-1,-1,cached,TimeoutError: run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 19:39:38.806,test_nullable_filter_group_mutate,flink,-1,3.8434712550370023,-1,-1,-1,63598592,csv,None
+INFO,2024-06-26 19:39:43.686,test_nullable_filter_group_mutate,flink,0,4.877387420041487,-1,-1,-1,23715840,csv,None
+INFO,2024-06-26 19:39:49.067,test_nullable_filter_group_mutate,flink,1,5.378137873951346,-1,-1,-1,-629886976,csv,None
+INFO,2024-06-26 19:39:52.766,test_nullable_filter_group_mutate,flink,2,3.697061951039359,-1,-1,-1,629170176,csv,None
+INFO,2024-06-26 19:39:56.442,test_nullable_filter_group_mutate,flink,3,3.6731508020311594,-1,-1,-1,21008384,csv,None
+INFO,2024-06-26 19:40:00.137,test_nullable_filter_group_mutate,flink,4,3.6923319529742002,-1,-1,-1,429715456,csv,None
+INFO,2024-06-26 19:40:11.382,test_nullable_filter_group_mutate,flink,-1,3.652097118087113,-1,-1,-1,15675392,cached,None
+INFO,2024-06-26 19:40:16.203,test_nullable_filter_group_mutate,flink,0,4.81858954904601,-1,-1,-1,25088000,cached,None
+INFO,2024-06-26 19:40:19.842,test_nullable_filter_group_mutate,flink,1,3.636584690073505,-1,-1,-1,32780288,cached,None
+INFO,2024-06-26 19:40:23.543,test_nullable_filter_group_mutate,flink,2,3.6978027588920668,-1,-1,-1,23150592,cached,None
+INFO,2024-06-26 19:40:27.181,test_nullable_filter_group_mutate,flink,3,3.631292289006524,-1,-1,-1,41500672,cached,None
+INFO,2024-06-26 19:40:30.821,test_nullable_filter_group_mutate,flink,4,3.6375409280881286,-1,-1,-1,6660096,cached,None
+INFO,2024-06-26 19:45:34.651,test_nullable_filter_group_mutate_reduce,polars,-1,-1,-1,-1,-1,-1,csv,TimeoutError: run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 19:50:40.486,test_nullable_filter_group_mutate_reduce,polars,-1,-1,-1,-1,-1,-1,cached,TimeoutError: run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 19:55:47.463,test_nullable_filter_group_mutate_reduce,flink,-1,-1,-1,-1,-1,-1,csv,TimeoutError: run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 19:55:51.143,test_nullable_filter_group_mutate_reduce,renoir,-1,-1,-1,-1,-1,-1,cached,Py4JError: EnvironmentSettings does not exist in the JVM
+INFO,2024-06-26 20:00:51.275,test_nullable_filter_group_select,polars,-1,-1,-1,-1,-1,-1,csv,TimeoutError: run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 20:05:57.167,test_nullable_filter_group_select,polars,-1,-1,-1,-1,-1,-1,cached,TimeoutError: run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 20:05:57.167,test_nullable_filter_group_select,renoir,-1,-1,-1,-1,-1,-1,csv,Py4JError: EnvironmentSettings does not exist in the JVM
+INFO,2024-06-26 20:05:57.168,test_nullable_filter_group_select,renoir,-1,-1,-1,-1,-1,-1,cached,KeyError: 'c'
+INFO,2024-06-26 20:11:00.222,test_nullable_filter_reduce,polars,-1,-1,-1,-1,-1,-1,csv,TimeoutError: run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 20:16:03.107,test_nullable_filter_reduce,polars,-1,-1,-1,-1,-1,-1,cached,TimeoutError: run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 20:16:03.108,test_nullable_filter_reduce,renoir,-1,-1,-1,-1,-1,-1,csv,Py4JError: EnvironmentSettings does not exist in the JVM
+INFO,2024-06-26 20:16:03.108,test_nullable_filter_reduce,renoir,-1,-1,-1,-1,-1,-1,cached,KeyError: 'c'
+INFO,2024-06-26 20:21:03.244,test_nullable_filter_select,polars,-1,-1,-1,-1,-1,-1,csv,TimeoutError: run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 20:26:06.020,test_nullable_filter_select,polars,-1,-1,-1,-1,-1,-1,cached,TimeoutError: run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 20:26:06.020,test_nullable_filter_select,renoir,-1,-1,-1,-1,-1,-1,csv,Py4JError: EnvironmentSettings does not exist in the JVM
+INFO,2024-06-26 20:26:06.021,test_nullable_filter_select,renoir,-1,-1,-1,-1,-1,-1,cached,KeyError: 'c'
+INFO,2024-06-26 20:31:06.081,test_nullable_group_reduce_group_reduce_join,polars,-1,-1,-1,-1,-1,-1,csv,TimeoutError: run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 20:36:08.950,test_nullable_group_reduce_group_reduce_join,polars,-1,-1,-1,-1,-1,-1,cached,TimeoutError: run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 20:36:08.951,test_nullable_group_reduce_group_reduce_join,renoir,-1,-1,-1,-1,-1,-1,csv,Py4JError: EnvironmentSettings does not exist in the JVM
+INFO,2024-06-26 20:36:08.951,test_nullable_group_reduce_group_reduce_join,renoir,-1,-1,-1,-1,-1,-1,cached,KeyError: 'c'
+INFO,2024-06-26 20:41:09.022,test_nullable_group_reduce_join_mutate,polars,-1,-1,-1,-1,-1,-1,csv,TimeoutError: run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 20:46:11.841,test_nullable_group_reduce_join_mutate,polars,-1,-1,-1,-1,-1,-1,cached,TimeoutError: run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 20:46:11.842,test_nullable_group_reduce_join_mutate,renoir,-1,-1,-1,-1,-1,-1,csv,Py4JError: EnvironmentSettings does not exist in the JVM
+INFO,2024-06-26 20:46:11.842,test_nullable_group_reduce_join_mutate,renoir,-1,-1,-1,-1,-1,-1,cached,KeyError: 'c'
+INFO,2024-06-26 20:51:11.909,test_nullable_inner_join_select,polars,-1,-1,-1,-1,-1,-1,csv,TimeoutError: run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 20:56:14.706,test_nullable_inner_join_select,polars,-1,-1,-1,-1,-1,-1,cached,TimeoutError: run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 20:56:14.707,test_nullable_inner_join_select,renoir,-1,-1,-1,-1,-1,-1,csv,Py4JError: EnvironmentSettings does not exist in the JVM
+INFO,2024-06-26 20:56:14.707,test_nullable_inner_join_select,renoir,-1,-1,-1,-1,-1,-1,cached,KeyError: 'c'
+INFO,2024-06-26 21:01:14.745,test_nullable_join_group_reduce,polars,-1,-1,-1,-1,-1,-1,csv,TimeoutError: run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 21:06:17.540,test_nullable_join_group_reduce,polars,-1,-1,-1,-1,-1,-1,cached,TimeoutError: run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 21:06:17.540,test_nullable_join_group_reduce,renoir,-1,-1,-1,-1,-1,-1,csv,Py4JError: EnvironmentSettings does not exist in the JVM
+INFO,2024-06-26 21:06:17.541,test_nullable_join_group_reduce,renoir,-1,-1,-1,-1,-1,-1,cached,KeyError: 'c'
+INFO,2024-06-26 21:11:17.646,test_nullable_left_join,polars,-1,-1,-1,-1,-1,-1,csv,TimeoutError: run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 21:16:20.391,test_nullable_left_join,polars,-1,-1,-1,-1,-1,-1,cached,TimeoutError: run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 21:16:20.392,test_nullable_left_join,renoir,-1,-1,-1,-1,-1,-1,csv,Py4JError: EnvironmentSettings does not exist in the JVM
+INFO,2024-06-26 21:16:20.393,test_nullable_left_join,renoir,-1,-1,-1,-1,-1,-1,cached,KeyError: 'c'
+INFO,2024-06-26 21:21:20.524,test_nullable_outer_join,polars,-1,-1,-1,-1,-1,-1,csv,TimeoutError: run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 21:26:23.309,test_nullable_outer_join,polars,-1,-1,-1,-1,-1,-1,cached,TimeoutError: run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 21:26:23.309,test_nullable_outer_join,renoir,-1,-1,-1,-1,-1,-1,csv,Py4JError: EnvironmentSettings does not exist in the JVM
+INFO,2024-06-26 21:26:23.310,test_nullable_outer_join,renoir,-1,-1,-1,-1,-1,-1,cached,KeyError: 'c'
+INFO,2024-06-26 21:26:23.374,test_nullable_windowing_explicit,polars,-1,0.05946358002256602,-1,-1,-1,0,csv,None
+INFO,2024-06-26 21:26:23.413,test_nullable_windowing_explicit,polars,0,0.03636976599227637,-1,-1,-1,0,csv,None
+INFO,2024-06-26 21:26:23.450,test_nullable_windowing_explicit,polars,1,0.03443601995240897,-1,-1,-1,131072,csv,None
+INFO,2024-06-26 21:26:23.487,test_nullable_windowing_explicit,polars,2,0.03491851594299078,-1,-1,-1,0,csv,None
+INFO,2024-06-26 21:26:23.547,test_nullable_windowing_explicit,polars,3,0.057061178027652204,-1,-1,-1,131072,csv,None
+INFO,2024-06-26 21:26:23.594,test_nullable_windowing_explicit,polars,4,0.043813675991259515,-1,-1,-1,0,csv,None
+INFO,2024-06-26 21:26:26.397,test_nullable_windowing_explicit,polars,-1,0.036521172034554183,-1,-1,-1,0,cached,None
+INFO,2024-06-26 21:26:26.435,test_nullable_windowing_explicit,polars,0,0.03614199801813811,-1,-1,-1,131072,cached,None
+INFO,2024-06-26 21:26:26.474,test_nullable_windowing_explicit,polars,1,0.03630300797522068,-1,-1,-1,0,cached,None
+INFO,2024-06-26 21:26:26.513,test_nullable_windowing_explicit,polars,2,0.03636084194295108,-1,-1,-1,131072,cached,None
+INFO,2024-06-26 21:26:26.551,test_nullable_windowing_explicit,polars,3,0.0356804970651865,-1,-1,-1,0,cached,None
+INFO,2024-06-26 21:26:26.589,test_nullable_windowing_explicit,polars,4,0.03622141794767231,-1,-1,-1,0,cached,None
+INFO,2024-06-26 21:26:26.590,test_nullable_windowing_explicit,renoir,-1,-1,-1,-1,-1,-1,csv,Py4JError: EnvironmentSettings does not exist in the JVM
+INFO,2024-06-26 21:26:26.590,test_nullable_windowing_explicit,renoir,-1,-1,-1,-1,-1,-1,cached,KeyError: 'c'
+INFO,2024-06-26 21:26:26.632,test_nullable_windowing_explicit_group,polars,-1,0.03790174494497478,-1,-1,-1,0,csv,None
+INFO,2024-06-26 21:26:26.673,test_nullable_windowing_explicit_group,polars,0,0.03828585799783468,-1,-1,-1,0,csv,None
+INFO,2024-06-26 21:26:26.713,test_nullable_windowing_explicit_group,polars,1,0.03804484393913299,-1,-1,-1,131072,csv,None
+INFO,2024-06-26 21:26:26.754,test_nullable_windowing_explicit_group,polars,2,0.038261239998973906,-1,-1,-1,0,csv,None
+INFO,2024-06-26 21:26:26.794,test_nullable_windowing_explicit_group,polars,3,0.03820584004279226,-1,-1,-1,131072,csv,None
+INFO,2024-06-26 21:26:26.835,test_nullable_windowing_explicit_group,polars,4,0.03826951002702117,-1,-1,-1,0,csv,None
+INFO,2024-06-26 21:26:30.491,test_nullable_windowing_explicit_group,polars,-1,0.9474686360917985,-1,-1,-1,-167780352,cached,None
+INFO,2024-06-26 21:26:30.532,test_nullable_windowing_explicit_group,polars,0,0.038338287035003304,-1,-1,-1,0,cached,None
+INFO,2024-06-26 21:26:30.573,test_nullable_windowing_explicit_group,polars,1,0.03884496400132775,-1,-1,-1,0,cached,None
+INFO,2024-06-26 21:26:30.614,test_nullable_windowing_explicit_group,polars,2,0.03863281197845936,-1,-1,-1,0,cached,None
+INFO,2024-06-26 21:26:30.656,test_nullable_windowing_explicit_group,polars,3,0.039154416997916996,-1,-1,-1,0,cached,None
+INFO,2024-06-26 21:26:30.729,test_nullable_windowing_explicit_group,polars,4,0.07046849397011101,-1,-1,-1,0,cached,None
+INFO,2024-06-26 21:26:30.730,test_nullable_windowing_explicit_group,renoir,-1,-1,-1,-1,-1,-1,csv,Py4JError: EnvironmentSettings does not exist in the JVM
+INFO,2024-06-26 21:26:30.731,test_nullable_windowing_explicit_group,renoir,-1,-1,-1,-1,-1,-1,cached,KeyError: 'c'
+INFO,2024-06-26 21:26:30.786,test_nullable_windowing_explicit_window_far,polars,-1,0.049643142032437027,-1,-1,-1,131072,csv,None
+INFO,2024-06-26 21:26:30.839,test_nullable_windowing_explicit_window_far,polars,0,0.04989034298341721,-1,-1,-1,0,csv,None
+INFO,2024-06-26 21:26:30.889,test_nullable_windowing_explicit_window_far,polars,1,0.04597668896894902,-1,-1,-1,131072,csv,None
+INFO,2024-06-26 21:26:30.934,test_nullable_windowing_explicit_window_far,polars,2,0.04226228699553758,-1,-1,-1,0,csv,None
+INFO,2024-06-26 21:26:30.976,test_nullable_windowing_explicit_window_far,polars,3,0.03909749595914036,-1,-1,-1,131072,csv,None
+INFO,2024-06-26 21:26:31.016,test_nullable_windowing_explicit_window_far,polars,4,0.03806448995601386,-1,-1,-1,131072,csv,None
+INFO,2024-06-26 21:26:33.759,test_nullable_windowing_explicit_window_far,polars,-1,0.03923428291454911,-1,-1,-1,0,cached,None
+INFO,2024-06-26 21:26:33.801,test_nullable_windowing_explicit_window_far,polars,0,0.03911091899499297,-1,-1,-1,0,cached,None
+INFO,2024-06-26 21:26:33.842,test_nullable_windowing_explicit_window_far,polars,1,0.03934930695686489,-1,-1,-1,0,cached,None
+INFO,2024-06-26 21:26:33.884,test_nullable_windowing_explicit_window_far,polars,2,0.03872758790384978,-1,-1,-1,131072,cached,None
+INFO,2024-06-26 21:26:33.925,test_nullable_windowing_explicit_window_far,polars,3,0.03867202904075384,-1,-1,-1,131072,cached,None
+INFO,2024-06-26 21:26:33.966,test_nullable_windowing_explicit_window_far,polars,4,0.0391740599879995,-1,-1,-1,0,cached,None
+INFO,2024-06-26 21:26:33.967,test_nullable_windowing_explicit_window_far,renoir,-1,-1,-1,-1,-1,-1,csv,Py4JError: EnvironmentSettings does not exist in the JVM
+INFO,2024-06-26 21:26:33.967,test_nullable_windowing_explicit_window_far,renoir,-1,-1,-1,-1,-1,-1,cached,KeyError: 'c'
+INFO,2024-06-26 21:26:34.011,test_nullable_windowing_implicit_group,polars,-1,0.04053931590169668,-1,-1,-1,0,csv,None
+INFO,2024-06-26 21:26:34.060,test_nullable_windowing_implicit_group,polars,0,0.04530708398669958,-1,-1,-1,0,csv,None
+INFO,2024-06-26 21:26:34.108,test_nullable_windowing_implicit_group,polars,1,0.04548165702726692,-1,-1,-1,131072,csv,None
+INFO,2024-06-26 21:26:34.157,test_nullable_windowing_implicit_group,polars,2,0.045428371988236904,-1,-1,-1,0,csv,None
+INFO,2024-06-26 21:26:34.206,test_nullable_windowing_implicit_group,polars,3,0.045996290049515665,-1,-1,-1,0,csv,None
+INFO,2024-06-26 21:26:34.248,test_nullable_windowing_implicit_group,polars,4,0.038943554973229766,-1,-1,-1,131072,csv,None
+INFO,2024-06-26 21:26:36.990,test_nullable_windowing_implicit_group,polars,-1,0.038321592030115426,-1,-1,-1,0,cached,None
+INFO,2024-06-26 21:26:37.031,test_nullable_windowing_implicit_group,polars,0,0.038562810979783535,-1,-1,-1,131072,cached,None
+INFO,2024-06-26 21:26:37.072,test_nullable_windowing_implicit_group,polars,1,0.038124966085888445,-1,-1,-1,0,cached,None
+INFO,2024-06-26 21:26:37.113,test_nullable_windowing_implicit_group,polars,2,0.038708848995156586,-1,-1,-1,0,cached,None
+INFO,2024-06-26 21:26:37.154,test_nullable_windowing_implicit_group,polars,3,0.03845359000843018,-1,-1,-1,0,cached,None
+INFO,2024-06-26 21:26:37.195,test_nullable_windowing_implicit_group,polars,4,0.038253015954978764,-1,-1,-1,131072,cached,None
+INFO,2024-06-26 21:26:37.195,test_nullable_windowing_implicit_group,renoir,-1,-1,-1,-1,-1,-1,csv,Py4JError: EnvironmentSettings does not exist in the JVM
+INFO,2024-06-26 21:26:37.196,test_nullable_windowing_implicit_group,renoir,-1,-1,-1,-1,-1,-1,cached,KeyError: 'c'
+INFO,2024-06-26 21:26:37.237,test_nullable_windowing_implicit_mean,polars,-1,0.037630176986567676,-1,-1,-1,0,csv,None
+INFO,2024-06-26 21:26:37.277,test_nullable_windowing_implicit_mean,polars,0,0.03788426099345088,-1,-1,-1,131072,csv,None
+INFO,2024-06-26 21:26:37.320,test_nullable_windowing_implicit_mean,polars,1,0.0403930569300428,-1,-1,-1,0,csv,None
+INFO,2024-06-26 21:26:37.369,test_nullable_windowing_implicit_mean,polars,2,0.045230943942442536,-1,-1,-1,0,csv,None
+INFO,2024-06-26 21:26:37.431,test_nullable_windowing_implicit_mean,polars,3,0.05899214604869485,-1,-1,-1,0,csv,None
+INFO,2024-06-26 21:26:37.481,test_nullable_windowing_implicit_mean,polars,4,0.04680472903419286,-1,-1,-1,131072,csv,None
+INFO,2024-06-26 21:26:40.254,test_nullable_windowing_implicit_mean,polars,-1,0.03858728299383074,-1,-1,-1,0,cached,None
+INFO,2024-06-26 21:26:40.321,test_nullable_windowing_implicit_mean,polars,0,0.06367121601942927,-1,-1,-1,0,cached,None
+INFO,2024-06-26 21:26:40.378,test_nullable_windowing_implicit_mean,polars,1,0.05288148100953549,-1,-1,-1,0,cached,None
+INFO,2024-06-26 21:26:40.419,test_nullable_windowing_implicit_mean,polars,2,0.03875944996252656,-1,-1,-1,131072,cached,None
+INFO,2024-06-26 21:26:40.460,test_nullable_windowing_implicit_mean,polars,3,0.03870400693267584,-1,-1,-1,0,cached,None
+INFO,2024-06-26 21:26:40.502,test_nullable_windowing_implicit_mean,polars,4,0.03949365101289004,-1,-1,-1,0,cached,None
+INFO,2024-06-26 21:26:40.503,test_nullable_windowing_implicit_mean,renoir,-1,-1,-1,-1,-1,-1,csv,Py4JError: EnvironmentSettings does not exist in the JVM
+INFO,2024-06-26 21:26:40.503,test_nullable_windowing_implicit_mean,renoir,-1,-1,-1,-1,-1,-1,cached,KeyError: 'c'
+INFO,2024-06-26 21:26:40.544,test_nullable_windowing_implicit_sum,polars,-1,0.03756135399453342,-1,-1,-1,131072,csv,None
+INFO,2024-06-26 21:26:40.585,test_nullable_windowing_implicit_sum,polars,0,0.03802621294744313,-1,-1,-1,0,csv,None
+INFO,2024-06-26 21:26:40.625,test_nullable_windowing_implicit_sum,polars,1,0.037848229985684156,-1,-1,-1,131072,csv,None
+INFO,2024-06-26 21:26:40.665,test_nullable_windowing_implicit_sum,polars,2,0.03768751991447061,-1,-1,-1,0,csv,None
+INFO,2024-06-26 21:26:40.706,test_nullable_windowing_implicit_sum,polars,3,0.03785296797286719,-1,-1,-1,131072,csv,None
+INFO,2024-06-26 21:26:40.749,test_nullable_windowing_implicit_sum,polars,4,0.04046208004001528,-1,-1,-1,0,csv,None
+INFO,2024-06-26 21:26:43.488,test_nullable_windowing_implicit_sum,polars,-1,0.0388838869985193,-1,-1,-1,0,cached,None
+INFO,2024-06-26 21:26:43.530,test_nullable_windowing_implicit_sum,polars,0,0.039281641016714275,-1,-1,-1,0,cached,None
+INFO,2024-06-26 21:26:43.572,test_nullable_windowing_implicit_sum,polars,1,0.03897526301443577,-1,-1,-1,131072,cached,None
+INFO,2024-06-26 21:26:43.613,test_nullable_windowing_implicit_sum,polars,2,0.03887890698388219,-1,-1,-1,131072,cached,None
+INFO,2024-06-26 21:26:43.655,test_nullable_windowing_implicit_sum,polars,3,0.039174948004074395,-1,-1,-1,0,cached,None
+INFO,2024-06-26 21:26:43.696,test_nullable_windowing_implicit_sum,polars,4,0.03927237703464925,-1,-1,-1,131072,cached,None
+INFO,2024-06-26 21:26:43.697,test_nullable_windowing_implicit_sum,renoir,-1,-1,-1,-1,-1,-1,csv,Py4JError: EnvironmentSettings does not exist in the JVM
+INFO,2024-06-26 21:26:43.697,test_nullable_windowing_implicit_sum,renoir,-1,-1,-1,-1,-1,-1,cached,KeyError: 'c'
+INFO,2024-06-26 21:31:43.785,test_nexmark_query_1,polars,-1,-1,-1,-1,-1,-1,csv,TimeoutError: run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 21:36:49.909,test_nexmark_query_1,polars,-1,-1,-1,-1,-1,-1,cached,TimeoutError: run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 21:36:49.910,test_nexmark_query_1,renoir,-1,-1,-1,-1,-1,-1,csv,Py4JError: EnvironmentSettings does not exist in the JVM
+INFO,2024-06-26 21:36:49.910,test_nexmark_query_1,renoir,-1,-1,-1,-1,-1,-1,cached,KeyError: 'c'
+INFO,2024-06-26 21:41:49.993,test_nexmark_query_2,polars,-1,-1,-1,-1,-1,-1,csv,TimeoutError: run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 21:46:56.189,test_nexmark_query_2,polars,-1,-1,-1,-1,-1,-1,cached,TimeoutError: run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 21:46:56.189,test_nexmark_query_2,renoir,-1,-1,-1,-1,-1,-1,csv,Py4JError: EnvironmentSettings does not exist in the JVM
+INFO,2024-06-26 21:46:56.190,test_nexmark_query_2,renoir,-1,-1,-1,-1,-1,-1,cached,KeyError: 'c'
+INFO,2024-06-26 21:51:56.328,test_nexmark_query_3,polars,-1,-1,-1,-1,-1,-1,csv,TimeoutError: run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 21:57:02.509,test_nexmark_query_3,polars,-1,-1,-1,-1,-1,-1,cached,TimeoutError: run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 21:57:02.509,test_nexmark_query_3,renoir,-1,-1,-1,-1,-1,-1,csv,Py4JError: EnvironmentSettings does not exist in the JVM
+INFO,2024-06-26 21:57:02.510,test_nexmark_query_3,renoir,-1,-1,-1,-1,-1,-1,cached,KeyError: 'c'
+INFO,2024-06-26 22:02:05.704,test_nexmark_query_4,polars,-1,-1,-1,-1,-1,-1,csv,TimeoutError: run_timed killed function `execute` after timeout of 300s - skipping other runs with same combination of test_case + backend + table_origin
+INFO,2024-06-26 22:02:11.825,test_nexmark_query_4,polars,-1,0.1198470089584589,-1,-1,-1,-10740334592,cached,None
+INFO,2024-06-26 22:02:11.900,test_nexmark_query_4,polars,0,0.07224844698794186,-1,-1,-1,0,cached,None
+INFO,2024-06-26 22:02:11.972,test_nexmark_query_4,polars,1,0.06913309509400278,-1,-1,-1,131072,cached,None
+INFO,2024-06-26 22:02:12.043,test_nexmark_query_4,polars,2,0.06824671803042293,-1,-1,-1,0,cached,None
+INFO,2024-06-26 22:02:12.114,test_nexmark_query_4,polars,3,0.06861592992208898,-1,-1,-1,0,cached,None
+INFO,2024-06-26 22:02:12.185,test_nexmark_query_4,polars,4,0.0690035680308938,-1,-1,-1,131072,cached,None
+INFO,2024-06-26 22:02:12.186,test_nexmark_query_4,renoir,-1,-1,-1,-1,-1,-1,csv,Py4JError: EnvironmentSettings does not exist in the JVM
+INFO,2024-06-26 22:02:12.186,test_nexmark_query_4,renoir,-1,-1,-1,-1,-1,-1,cached,KeyError: 'c'
+INFO,2024-06-26 22:02:12.261,test_nexmark_query_6,polars,-1,0.07082449703011662,-1,-1,-1,0,csv,None
+INFO,2024-06-26 22:02:12.332,test_nexmark_query_6,polars,0,0.0684730150969699,-1,-1,-1,0,csv,None
+INFO,2024-06-26 22:02:12.403,test_nexmark_query_6,polars,1,0.0684154590126127,-1,-1,-1,-131072,csv,None
+INFO,2024-06-26 22:02:12.474,test_nexmark_query_6,polars,2,0.0686058490537107,-1,-1,-1,0,csv,None
+INFO,2024-06-26 22:02:12.546,test_nexmark_query_6,polars,3,0.06890214805025607,-1,-1,-1,131072,csv,None
+INFO,2024-06-26 22:02:12.616,test_nexmark_query_6,polars,4,0.0682288350071758,-1,-1,-1,0,csv,None
+INFO,2024-06-26 22:02:18.734,test_nexmark_query_6,polars,-1,0.08549988106824458,-1,-1,-1,-26943488,cached,None
+INFO,2024-06-26 22:02:18.822,test_nexmark_query_6,polars,0,0.08480560802854598,-1,-1,-1,0,cached,None
+INFO,2024-06-26 22:02:18.908,test_nexmark_query_6,polars,1,0.08376899093855172,-1,-1,-1,0,cached,None
+INFO,2024-06-26 22:02:18.994,test_nexmark_query_6,polars,2,0.08390671701636165,-1,-1,-1,0,cached,None
+INFO,2024-06-26 22:02:19.080,test_nexmark_query_6,polars,3,0.08395013096742332,-1,-1,-1,0,cached,None
+INFO,2024-06-26 22:02:19.167,test_nexmark_query_6,polars,4,0.08472534804604948,-1,-1,-1,131072,cached,None
+INFO,2024-06-26 22:02:19.168,test_nexmark_query_6,renoir,-1,-1,-1,-1,-1,-1,csv,Py4JError: EnvironmentSettings does not exist in the JVM
+INFO,2024-06-26 22:02:19.169,test_nexmark_query_6,renoir,-1,-1,-1,-1,-1,-1,cached,KeyError: 'c'
