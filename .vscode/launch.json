@@ -16,7 +16,8 @@
                     "--table_origin", "cached", 
                     "--dir", "internal/banana", 
                     "--backends", "duckdb", "polars", "flink", "renoir"],
-            "justMyCode": false
+            "justMyCode": false,
+            "subProcess": true
         },
         {
             "name": "Hyperfine benchmark: flink on Q6",
