@@ -21,7 +21,7 @@ class TestNexmark(TestCompiler):
 
     def init_tables(self):
         if ibis.get_backend().name == "flink":
-            schemas = {"auction":   ibis.schema({"id": ibis.dtype("int64"),
+            self.schemas = {"auction":   ibis.schema({"id": ibis.dtype("int64"),
                                                  "item_name": ibis.dtype("string"),
                                                  "description": ibis.dtype("string"),
                                                  "initial_bid": ibis.dtype("int64"),
@@ -48,7 +48,7 @@ class TestNexmark(TestCompiler):
                                                  "extra": ibis.dtype("string")})}
             no_header_files = self.create_files_no_headers()
             self.tables = {n: ibis.read_csv(
-                f, schema=schemas[n]) for n, f in no_header_files.items()}
+                f, schema=self.schemas[n]) for n, f in no_header_files.items()}
         else:
             self.tables = {n: ibis.read_csv(f) for n, f in self.files.items()}
 

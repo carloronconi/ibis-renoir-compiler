@@ -71,14 +71,20 @@ class TestCompiler(unittest.TestCase):
                 f"Backend {backend} not supported - check if it requires special ibis setup before adding")
 
     def preload_tables(self, backend: str):
-        if backend == "renoir" or backend == "flink":
-            # streaming backends don't allow preloading tables
+        if backend == "renoir":
+            # renoir doesn't allow preloading tables
             return
         # duckdb and polars allow preloading tables
         con = ibis.get_backend()
         for name, table in self.tables.items():
-            self.tables[name] = con.create_table(
-                name, table.to_pandas(), overwrite=True)
+            if backend == "flink":
+                table = ibis.memtable(table, schema=self.schemas[name])
+                self.tables[name] = con.create_table(
+                    name, table, overwrite=True, temp=True)
+            else:
+                self.tables[name] = con.create_table(
+                    name, table, overwrite=True)
+                # adding .cache() caches it on ibis side in memo? seems to have no effect
 
     def create_files_no_headers(self) -> dict[str, str]:
         suffix = "_no_headers"

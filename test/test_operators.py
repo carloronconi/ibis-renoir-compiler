@@ -26,7 +26,7 @@ class TestNullableOperators(TestCompiler):
             # flink requires to explicitly specify schema and doesn't support headers
             # we take care of headers when running benchmark, so that when we run the query
             # and it's loaded from file the same issue doesn't occur
-            schemas = {"ints_strings":  ibis.schema({"int1": ibis.dtype("int64"),
+            self.schemas = {"ints_strings":  ibis.schema({"int1": ibis.dtype("int64"),
                                                      "string1": ibis.dtype("string"),
                                                      "int4": ibis.dtype("int64")}),
                        "many_ints":     ibis.schema({"int1": ibis.dtype("int64"),
@@ -34,7 +34,7 @@ class TestNullableOperators(TestCompiler):
                                                      "int3": ibis.dtype("int64")})}
             no_header_files = self.create_files_no_headers()
             self.tables = {n: ibis.read_csv(
-                f, schema=schemas[n]) for n, f in no_header_files.items()}
+                f, schema=self.schemas[n]) for n, f in no_header_files.items()}
         else:
             self.tables = {n: ibis.read_csv(f) for n, f in self.files.items()}
 
