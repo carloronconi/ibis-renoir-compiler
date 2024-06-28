@@ -7,10 +7,9 @@ import test.test_operators
 import time
 import codegen.benchmark as bm
 from datetime import datetime
-import os
-import psutil
 import multiprocessing
 import traceback
+from memory_profiler import memory_usage
 
 
 TIMEOUT_S = 60 * 5  # 5 minutes
@@ -115,7 +114,7 @@ def child_workload(pipe: multiprocessing.connection.Connection, test_class: str,
             # telling the main thread not to kill this process
             pipe.send((True, message))
     except Exception as e:
-        trace = " ".join(traceback.format_exception(e))
+        trace = " ".join(traceback.format_exception(e)).replace(",", " ").replace("\n", " ")
         test_instance.benchmark.exception = trace
         test_instance.benchmark.log()
         pipe.send((False, trace))
@@ -125,33 +124,21 @@ def run_once(test_case: str, test_instance: test.TestCompiler, run_count: int, b
     test_instance.benchmark.run_count = run_count
     test_instance.benchmark.backend_name = backend
 
-    start_memo = process_memory()
     start_time = time.perf_counter()
 
     test_method = getattr(test_instance, test_case)
-    test_method()
+    memo = memory_usage((test_method,), include_children=True)
     # If the backend is renoir, we have already performed the compilation to renoir code and ran it after this line
-    end_memo = process_memory()
 
     if backend != "renoir":
-        test_instance.query.execute()
-        end_memo = process_memory()
+        memo = memory_usage((test_instance.query.execute,), include_children=True)
 
     end_time = time.perf_counter()
     total_time = end_time - start_time
     test_instance.benchmark.total_time_s = total_time
-    total_memo = end_memo - start_memo
-    test_instance.benchmark.max_memory_B = total_memo
+    test_instance.benchmark.max_memory_MiB = max(memo)
     test_instance.benchmark.log()
     return f"ran once - backend: {backend}\trun: {run_count:03}\ttime: {total_time:.10f}\tquery: {test_case}"
-
-
-def process_memory():
-    process = psutil.Process(os.getpid())
-    memo = process.memory_info().rss
-    for child in process.children(recursive=True):
-        memo += child.memory_info().rss
-    return memo
 
 
 if __name__ == "__main__":
