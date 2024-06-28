@@ -114,8 +114,8 @@ def child_workload(pipe: multiprocessing.connection.Connection, test_class: str,
             message = run_once(test_case, test_instance, count, backend)
             # telling the main thread not to kill this process
             pipe.send((True, message))
-    except Exception:
-        trace = " ".join(traceback.format_exception())
+    except Exception as e:
+        trace = " ".join(traceback.format_exception(e))
         test_instance.benchmark.exception = trace
         test_instance.benchmark.log()
         pipe.send((False, trace))
