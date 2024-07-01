@@ -12,21 +12,21 @@ def main():
     dataset_size = args.dir.split('/')[-1].split('_')[0]
     file = args.dir + "/codegen_log.csv"
     df = pd.read_csv(file)
-    col_groups = ['test_name', 'backend_name', 'table_origin']
-    # find the most common number of runs - a few tests could have failed and have fewer runs
-    test_runs = mode(df.groupby(col_groups).size().reset_index(name='run_count')['run_count'].tolist())
-    agg = df[df['run_count'] != -1].groupby(col_groups).agg({
+    agg = df[df['run_count'] != -1].groupby(['test_name', 'backend_name', 'table_origin']).agg({
         'total_time_s': ['mean', 'std'],
-        'max_memory_MiB': ['mean', 'std']
+        'max_memory_MiB': ['mean', 'std'],
+        'run_count': 'size'
     })
+    # find the most common number of runs - a few tests could have failed and have fewer runs
+    test_runs = mode(agg['run_count']['size'].tolist())
 
     agg_reset = agg.reset_index()
     agg_reset['backend_table_comb'] = agg_reset['backend_name'] + ' + ' + agg_reset['table_origin']
     agg_reset.columns = [('_'.join(col).strip() if col[0] in ['total_time_s', 'max_memory_MiB'] else col[0]) for col in agg_reset.columns.values]
 
     fig = make_subplots(rows=2, cols=2, subplot_titles=('Cached', 'CSV'),
-                        vertical_spacing=0.01, horizontal_spacing=0.02,
-                        shared_xaxes=True, shared_yaxes=True)
+                        vertical_spacing=0.01, horizontal_spacing=0.01,
+                        shared_xaxes='all', shared_yaxes='rows')
 
     time = px.scatter(agg_reset, x='test_name', y='total_time_s_mean', color='backend_name',
                      facet_col='table_origin',
