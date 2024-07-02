@@ -52,7 +52,7 @@ def main():
     fig.update_xaxes(showticklabels=False, row=1, col=2)
     fig.update_yaxes(title_text="Total Time (s)", row=1, col=1)
     fig.update_yaxes(title_text="Max Memory (MiB)", row=2, col=1)
-    fig.update_layout(margin=dict(l = 20, r = 20, t = 100, b = 10), title_text=f"<b>Benchmark Results: Total Time and Max Memory over {dataset_size} dataset and {test_runs} runs<b>")
+    fig.update_layout(margin=dict(l = 20, r = 20, t = 100, b = 10), title_text=f"<b>Backends comparison over tests: total time and max memory over {dataset_size} dataset and {test_runs} runs<b>")
 
     fig.show()
 

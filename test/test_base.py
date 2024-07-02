@@ -66,16 +66,30 @@ class TestCompiler(unittest.TestCase):
             ibis.set_backend(con)
         elif backend == "polars":
             ibis.set_backend("polars")
+        elif backend == "postgres":
+            ibis.set_backend(ibis.postgres.connect(
+                user="postgres",
+                password="postgres",
+                host="localhost",
+                port=5432,
+                database="postgres"))
         else:
             raise ValueError(
                 f"Backend {backend} not supported - check if it requires special ibis setup before adding")
 
     def preload_tables(self, backend: str):
         if backend == "renoir" or backend == "flink":
-            # streaming backends don't allow preloading tables
-            return
-        # duckdb and polars allow preloading tables
+            # instead of wasting time running these backends both in "csv" and "cached" table origins
+            # we raise an exception when trying to run in "cached" mode
+            raise NotImplementedError("Streaming backends don't allow preloading tables")
+        
         con = ibis.get_backend()
+        if backend == "postgres":
+            # postgres doesn't allow reading from csv so self.tables is empty and we create it from scratch here
+            self.tables = {}
+            for name, file_path in self.files.items():
+                self.tables[name] = con.create_table(name, pd.read_csv(file_path), overwrite=True)    
+        # duckdb and polars allow preloading tables
         for name, table in self.tables.items():
             self.tables[name] = con.create_table(
                 name, table.to_pandas(), overwrite=True)

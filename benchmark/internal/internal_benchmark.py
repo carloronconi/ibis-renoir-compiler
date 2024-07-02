@@ -13,7 +13,8 @@ from memory_profiler import memory_usage
 
 
 TIMEOUT_S = 60 * 5  # 5 minutes
-
+NEWLINE_ESCAPE = " NEWLINE_ESCAPE "
+COMMA_ESCAPE = " COMMA_ESCAPE "
 
 def main():
     parser = argparse.ArgumentParser("ibis-renoir-compiler")
@@ -30,8 +31,8 @@ def main():
                         help="Suffix for test files used by test_case. Useful for having same file with growing sizes.",
                         default="", type=str)
     parser.add_argument("--backends",
-                        help="List of backends to use among duckdb, flink, polars, renoir. Defaults to all.",
-                        type=str, nargs='+', default=["duckdb", "flink", "polars", "renoir"])
+                        help="List of backends to use among duckdb, flink, polars, renoir, postgres, snowflake. Defaults to all.",
+                        type=str, nargs='+', default=["duckdb", "flink", "polars", "postgres", "snowflake", "renoir"])
     parser.add_argument("--table_origin",
                         help="Instead of running the query starting from the csv load, read it directly from backend table. \
                               No need to perform load as instrumented run can load before running without affecting the measured data",
@@ -76,7 +77,7 @@ def allow_runs(count: int, p: multiprocessing.Process, conn: multiprocessing.con
             return
         success, message = conn.recv()
         if not success:
-            print("exception: " + message)
+            print("exception: " + message.replace(NEWLINE_ESCAPE, "\n").replace(COMMA_ESCAPE, ","))
             return
         print("success: " + message)
 
@@ -114,7 +115,7 @@ def child_workload(pipe: multiprocessing.connection.Connection, test_class: str,
             # telling the main thread not to kill this process
             pipe.send((True, message))
     except Exception as e:
-        trace = " ".join(traceback.format_exception(e)).replace(",", " ").replace("\n", " ")
+        trace = " ".join(traceback.format_exception(e)).replace(",", COMMA_ESCAPE).replace("\n", NEWLINE_ESCAPE)
         test_instance.benchmark.exception = trace
         test_instance.benchmark.log()
         pipe.send((False, trace))
