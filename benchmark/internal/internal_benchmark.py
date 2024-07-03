@@ -31,8 +31,8 @@ def main():
                         help="Suffix for test files used by test_case. Useful for having same file with growing sizes.",
                         default="", type=str)
     parser.add_argument("--backends",
-                        help="List of backends to use among duckdb, flink, polars, renoir, postgres, snowflake. Defaults to all.",
-                        type=str, nargs='+', default=["duckdb", "flink", "polars", "postgres", "snowflake", "renoir"])
+                        help="List of backends to use among duckdb, flink, polars, renoir, postgres. Defaults to all.",
+                        type=str, nargs='+', default=["duckdb", "flink", "polars", "postgres", "renoir"])
     parser.add_argument("--table_origin",
                         help="Instead of running the query starting from the csv load, read it directly from backend table. \
                               No need to perform load as instrumented run can load before running without affecting the measured data",
