@@ -73,6 +73,20 @@ class TestCompiler(unittest.TestCase):
                 host="localhost",
                 port=5432,
                 database="postgres"))
+        elif backend == "snowflake":
+            # create a snowflake free trial account
+            ibis.set_backend(ibis.snowflake.connect(
+                # username and password created in first login link from confirmation email
+                user="snowflake1", 
+                password="FreeTrial1",
+                # create a SQL worksheet in projects > worksheets > + 
+                # and run `use role orgadmin; show organization accounts;`
+                # insert the organization_name and account_name separated by a hyphen
+                account="YNFEVUB-UA79950", 
+                # create a database and a schema within the database
+                # in data > databases > +database
+                # insert the database and schema separated by a forward slash
+                database="IBIS/PUBLIC"))
         else:
             raise ValueError(
                 f"Backend {backend} not supported - check if it requires special ibis setup before adding")
