@@ -57,8 +57,8 @@ class TestCompiler(unittest.TestCase):
             # while for duckdb it's used to store the tables
             ibis.set_backend("duckdb")
         elif backend == "duckdb" and cached:
-            # in-storage duckdb instance
-            ibis.set_backend(ibis.connect("duckdb://duckdb.db"))
+            # in-memory duckdb instance
+            ibis.set_backend(ibis.connect("duckdb://"))
         elif backend == "flink":
             table_env = TableEnvironment.create(
                 EnvironmentSettings.in_streaming_mode())
@@ -108,8 +108,9 @@ class TestCompiler(unittest.TestCase):
             # postgres doesn't allow reading from csv so self.tables is empty and we create it from scratch here
             self.tables = {}
             for name, file_path in self.files.items():
-                self.tables[name] = con.create_table(name, pd.read_csv(file_path), overwrite=True)    
-        # duckdb and polars allow preloading tables
+                self.tables[name] = con.create_table(name, pd.read_csv(file_path), overwrite=True)
+            return
+        # in `cached` mode we preload tables using create_table
         for name, table in self.tables.items():
             self.tables[name] = con.create_table(
                 name, table.to_pandas(), overwrite=True)
