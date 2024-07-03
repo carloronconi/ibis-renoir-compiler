@@ -20,7 +20,8 @@ class TestNexmark(TestCompiler):
         self.files = {n: f"{file_prefix}{n}{file_suffix}" for n in names}
 
     def init_tables(self):
-        if ibis.get_backend().name == "flink":
+        backend = ibis.get_backend().name
+        if backend == "flink":
             schemas = {"auction":   ibis.schema({"id": ibis.dtype("int64"),
                                                  "item_name": ibis.dtype("string"),
                                                  "description": ibis.dtype("string"),
@@ -49,6 +50,12 @@ class TestNexmark(TestCompiler):
             no_header_files = self.create_files_no_headers()
             self.tables = {n: ibis.read_csv(
                 f, schema=schemas[n]) for n, f in no_header_files.items()}
+        elif backend == "postgres":
+            # postgres doesn't support reading from csv and requires preloading the tables instead
+            # tables are created only if preload_tables is called (with the "cached" table_origin)
+            # by returning here, tables are not created and an exception is raised when not finding
+            # them during a "csv" run
+            return
         else:
             self.tables = {n: ibis.read_csv(f) for n, f in self.files.items()}
 
