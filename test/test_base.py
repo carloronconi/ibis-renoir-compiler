@@ -67,6 +67,12 @@ class TestCompiler(unittest.TestCase):
         elif backend == "polars":
             ibis.set_backend("polars")
         elif backend == "postgres":
+            # when running `pip install -r requirements3.11.txt` a failure will occur with psycopg2
+            # to fix it:
+            # - `sudo apt install libpq-dev` which contains pg_config, `which pg_config` and `export PATH=/usr/bin/pg_config:$PATH`
+            # - `sudo apt install python3.11-dev` which contains the python headers
+            # - `pip install -r requirements3.11.txt`
+            # before running tests with postgres, you also need to `docker compose -f benchmark/compose-postgres.yaml up`
             ibis.set_backend(ibis.postgres.connect(
                 user="postgres",
                 password="postgres",
