@@ -11,18 +11,30 @@ def main():
 
     dataset_size = args.dir.split('/')[-1].split('_')[0]
     file = args.dir + "/codegen_log.csv"
-    df = pd.read_csv(file)
-    agg = df[df['run_count'] != -1].groupby(['test_name', 'backend_name', 'table_origin']).agg({
+    df = pd.read_csv(file, dtype={'exception': 'str'}, na_values=['None'])
+
+
+    # remove warmup runs, but keep those that failed
+    agg = df[(df['run_count'] != -1) | df['exception'].notna()].groupby(['test_name', 'backend_name', 'table_origin']).agg({
         'total_time_s': ['mean', 'std'],
         'max_memory_MiB': ['mean', 'std'],
-        'run_count': 'size'
+        'run_count': 'size',
+        'exception': 'first'
     })
+
     # find the most common number of runs - a few tests could have failed and have fewer runs
     test_runs = mode(agg['run_count']['size'].tolist())
 
     agg_reset = agg.reset_index()
     agg_reset['backend_table_comb'] = agg_reset['backend_name'] + ' + ' + agg_reset['table_origin']
-    agg_reset.columns = [('_'.join(col).strip() if col[0] in ['total_time_s', 'max_memory_MiB'] else col[0]) for col in agg_reset.columns.values]
+    agg_reset.columns = [('_'.join(col).strip() if col[0] in ['total_time_s', 'max_memory_MiB', 'exception'] else col[0]) for col in agg_reset.columns.values]
+
+    agg_reset.loc[agg_reset['exception_first'].str.startswith('Traceback', na=False), 'exception_first'] = 'raise'
+
+    # Remove invalid times so that they're not shown in the plot
+    agg_reset.loc[(agg_reset['exception_first'] == 'timeout'), 'total_time_s_mean'] = -20
+    agg_reset.loc[(agg_reset['exception_first'] == 'raise'), 'total_time_s_mean'] = -10
+    agg_reset.loc[(agg_reset['max_memory_MiB_mean'] < 0), 'max_memory_MiB_mean'] = None
 
     fig = make_subplots(rows=2, cols=2, subplot_titles=('Cached', 'CSV'),
                         vertical_spacing=0.01, horizontal_spacing=0.01,
