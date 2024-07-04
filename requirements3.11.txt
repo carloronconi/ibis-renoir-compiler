@@ -118,9 +118,9 @@ ruamel.yaml==0.18.6
 ruamel.yaml.clib==0.2.8
 six==1.16.0
 snowflake-connector-python==3.11.0
-snowflake-sqlalchemy==1.5.3
 sortedcontainers==2.4.0
-SQLAlchemy==1.4.52
+SQLAlchemy==2.0.0
+sqlalchemy-risingwave==1.1.0
 sqlalchemy-views==0.3.2
 sqlglot==20.11.0
 tenacity==8.4.1

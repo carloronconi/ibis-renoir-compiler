@@ -14,7 +14,7 @@ python -m benchmark.internal.internal_benchmark \
     --warmup 1 \
     --table_origin csv cached \
     --dir internal/$1 \
-    --backends duckdb polars flink postgres renoir \
+    --backends duckdb polars flink postgres risingwave renoir \
     --path_suffix _10000000 \
 && cp benchmark/internal/internal_benchmark.sh log/internal/$1/internal_benchmark.sh
 

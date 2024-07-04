@@ -79,6 +79,12 @@ class TestCompiler(unittest.TestCase):
                 host="localhost",
                 port=5432,
                 database="postgres"))
+        elif backend == "risingwave":
+            ibis.set_backend(ibis.risingwave.connect(
+                user="root",
+                host="localhost",
+                port=4566,
+                database="dev",))
         else:
             raise ValueError(
                 f"Backend {backend} not supported - check if it requires special ibis setup before adding")
@@ -90,8 +96,8 @@ class TestCompiler(unittest.TestCase):
             raise NotImplementedError("Streaming backends don't allow preloading tables")
         
         con = ibis.get_backend()
-        if backend == "postgres":
-            # postgres doesn't allow reading from csv so self.tables is empty and we create it from scratch here
+        if backend == "postgres" or backend == "risingwave":
+            # these doesn't allow reading from csv so self.tables is empty and we create it from scratch here
             self.tables = {}
             for name, file_path in self.files.items():
                 self.tables[name] = con.create_table(name, pd.read_csv(file_path), overwrite=True)

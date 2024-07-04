@@ -36,8 +36,8 @@ class TestNullableOperators(TestCompiler):
             no_header_files = self.create_files_no_headers()
             self.tables = {n: ibis.read_csv(
                 f, schema=schemas[n]) for n, f in no_header_files.items()}
-        elif backend == "postgres":
-            # postgres doesn't support reading from csv and requires preloading the tables instead
+        elif backend == "postgres" or backend == "risingwave":
+            # these doesn't support reading from csv and requires preloading the tables instead
             # tables are created only if preload_tables is called (with the "cached" table_origin)
             # by returning here, tables are not created and an exception is raised when not finding
             # them during a "csv" run
