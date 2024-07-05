@@ -52,10 +52,12 @@ def main():
                      title='Mean Max Memory per Test by Table Origin and Backend',
                      error_y='max_memory_MiB_std')
     
-    for i, trace in enumerate(time.data):
-        fig.add_trace(trace, row=1, col=(i % 2) + 1)
-    for i, trace in enumerate(memo.data):
-        fig.add_trace(trace, row=2, col=(i % 2) + 1)
+    for trace in time.data:
+        col = 1 if trace.yaxis == "y" else 2
+        fig.add_trace(trace, row=1, col=col)
+    for trace in memo.data:
+        col = 1 if trace.yaxis == "y" else 2
+        fig.add_trace(trace, row=2, col=col)
 
     # fig.update_layout(height=1000)
     # fig.update_xaxes(title_text="Test Name", row=2, col=1)

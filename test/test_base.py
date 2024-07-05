@@ -52,6 +52,7 @@ class TestCompiler(unittest.TestCase):
         self.print_output_to_file = False
 
     def set_backend(self, backend: str, cached: bool):
+        self.benchmark.backend_name = backend
         if backend == "renoir" or (backend == "duckdb" and not cached):
             # in-memory duckdb, for renoir it's used just to create the AST
             # while for duckdb it's used to store the tables
