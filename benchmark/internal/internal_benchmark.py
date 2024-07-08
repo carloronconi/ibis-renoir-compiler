@@ -78,9 +78,6 @@ def allow_runs(count: int, p: multiprocessing.Process, conn: multiprocessing.con
         success, message = conn.recv()
         if not success:
             print("exception: " + message.replace(NEWLINE_ESCAPE, "\n").replace(COMMA_ESCAPE, ","))
-            # the process was able to send the exception, so it logged already: we just kill it and return
-            p.kill()
-            p.join()
             return
         print("success: " + message)
 
