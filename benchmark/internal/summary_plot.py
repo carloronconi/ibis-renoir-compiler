@@ -2,7 +2,6 @@ import argparse
 import pandas as pd
 import plotly.express as px
 from plotly.subplots import make_subplots
-from statistics import mode
 
 def main():
     parser = argparse.ArgumentParser(description='Plot summary of internal benchmark run.')
@@ -22,8 +21,8 @@ def main():
         'exception': 'first'
     })
 
-    # find the most common number of runs - a few tests could have failed and have fewer runs
-    test_runs = mode(agg['run_count']['size'].tolist())
+    # find the max number of runs - a few tests could have failed and have fewer runs
+    test_runs = max(agg['run_count']['size'].tolist())
 
     agg_reset = agg.reset_index()
     agg_reset['backend_table_comb'] = agg_reset['backend_name'] + ' + ' + agg_reset['table_origin']
