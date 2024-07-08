@@ -11,8 +11,7 @@ from codegen import ROOT_DIR, Benchmark
 from ibis import _
 from pyflink.table import EnvironmentSettings, TableEnvironment
 import os
-from shutil import move
-from tempfile import NamedTemporaryFile
+import shutil
 
 
 class TestCompiler(unittest.TestCase):
@@ -91,11 +90,32 @@ class TestCompiler(unittest.TestCase):
                 f"Backend {backend} not supported - check if it requires special ibis setup before adding")
 
     def preload_tables(self, backend: str):
-        if backend == "renoir" or backend == "flink":
+        if backend == "flink":
             # instead of wasting time running these backends both in "csv" and "cached" table origins
             # we raise an exception when trying to run in "cached" mode
-            raise NotImplementedError("Streaming backends don't allow preloading tables")
-        
+            raise NotImplementedError(
+                "Streaming backends don't allow preloading tables")
+
+        if backend == "renoir":
+            # here we create the two initialization files for evcxr:
+            # - init.evcxr: for the imports, from cargo.toml
+            # - prelude.rs: for reading tables from csv
+            # to only time the query execution and disregard the read time
+            # when timing the renoir in cached mode we first run `evcxr` (which initializes the above)
+            # then we start the timer and submit to the same shell (using subprocess.Popen) the query
+
+            # copy init.evcxr dependencies to evcxr's required directory
+            source = ROOT_DIR + "/noir_template/init.evcxr"
+            dest = os.path.expanduser("~/.config/evcxr/init.evcxr")
+            if not os.path.exists(os.path.dirname(dest)):
+                os.makedirs(os.path.dirname(dest))
+            shutil.copyfile(source, dest)
+
+            # create a prelude.rs file to preload the tables within evcxr
+            pass
+
+            return
+
         con = ibis.get_backend()
         if backend == "postgres" or backend == "risingwave":
             # these doesn't allow reading from csv so self.tables is empty and we create it from scratch here
