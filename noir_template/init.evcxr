@@ -1,6 +1,6 @@
 :dep color-eyre = { version = "0.6.2" }
 :dep eyre = { version = "0.6.12" }
-:dep renoir = { git = "https://github.com/deib-polimi/renoir" }
+:dep renoir = { git = "https://github.com/deib-polimi/renoir", branch = "dev" }
 :dep tracing = { version = "0.1.40" }
 :dep tracing-subscriber = { version = "0.3.18" }
 :dep serde = { version = "1.0.197" }

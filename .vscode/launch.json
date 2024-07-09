@@ -13,9 +13,9 @@
             "args": ["--test_patterns", "test_nexmark_query_4",
                     "--runs", "1", 
                     "--warmup", "1", 
-                    "--table_origin", "csv", "cached", 
+                    "--table_origin", "cached", 
                     "--dir", "internal/banana", 
-                    "--backends", "duckdb", "polars", "flink", "postgres", "risingwave", "renoir"],
+                    "--backends", "renoir"],
             "justMyCode": false,
             "subProcess": true
         },
