@@ -98,9 +98,15 @@ class TestCompiler(unittest.TestCase):
         
         con = ibis.get_backend()
         if backend == "postgres" or backend == "risingwave":
-            # these doesn't allow reading from csv so self.tables is empty and we create it from scratch here
+            # These backends don't allow reading from csv so self.tables is empty and we create it from scratch here.
+            # Because the create table for these backends is extremely slow, we first check if the tables are
+            # already in place and of the right size: if so, we skip the creation.
             self.tables = {}
             for name, file_path in self.files.items():
+                if name in con.list_tables() and con.table(name).count().execute() == pd.read_csv(file_path).shape[0]:
+                    self.tables[name] = con.table(name)
+                    continue
+                print(f"Creating table {name} in {backend} from {file_path}. Could take a while...")
                 self.tables[name] = con.create_table(name, pd.read_csv(file_path), overwrite=True)
             return
         # in `cached` mode we preload tables using create_table
