@@ -106,7 +106,7 @@ class TestCompiler(unittest.TestCase):
                 if name in con.list_tables() and con.table(name).count().execute() == pd.read_csv(file_path).shape[0]:
                     self.tables[name] = con.table(name)
                     continue
-                print(f"Creating table {name} in {backend} from {file_path}. Could take a while...")
+                print(f"Creating table {name} in {backend} from {file_path}. Could take a while: might need to increase timeout...")
                 self.tables[name] = con.create_table(name, pd.read_csv(file_path), overwrite=True)
             return
         # in `cached` mode we preload tables using create_table
