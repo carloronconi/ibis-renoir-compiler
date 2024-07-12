@@ -57,18 +57,33 @@ def compile_ibis_to_noir(files_tables: list[tuple[str, PhysicalTable]],
 
 def compile_preloaded_tables_evcxr(files_tables: list[tuple[str, PhysicalTable]]):
 
-    mid = "\nlet ctx = StreamContext::new_local();\n"
+    mid = "\nfn cache() -> "
+    func = "{\nlet ctx = StreamContext::new_local();\n"
     for file, table in files_tables:
         struct = Struct.from_table(table)
         right_path = file.split(utl.ROOT_DIR)[1]
         
-        # not using underscore separators as evcxr is strict with upper camel case structs out of closed scope
-        struct.name_short = right_path[1:].replace("/", "").replace("_", "").split(".")[0]
-        struct.name_struct = "Struct" + struct.name_short
+        struct.name_short = right_path[1:].replace("/", "_").split(".")[0]
+        struct.name_struct = "Struct_" + struct.name_short
+        name_temp = struct.name_short + "_temp"
 
-        rel_path = ".." + right_path
-        mid += (f"let ({struct.name_short}, _): (StreamCache<{struct.name_struct}>, _) = ctx.stream_csv::<{struct.name_struct}>(\"{rel_path}\").batch_mode(BatchMode::fixed(16000)).cache();\n")
-    mid += "ctx.execute_blocking();\n"
+        func += f"let ({struct.name_short}, {name_temp}) = ctx.stream_csv::<{struct.name_struct}>(\"{file}\").batch_mode(BatchMode::fixed(16000)).cache();\n{name_temp}.for_each(|x| {{std::hint::black_box(x);}});\n"
+    func += "ctx.execute_blocking();\n"
+
+    if len(Struct.structs) == 0:
+        st = Struct.structs[0]
+        mid += f"StreamCache<{st.name_struct}>"
+        func += f"return {st.name_short};\n}}"
+        mid += func
+    else:
+        mid += "("
+        func += "return ("
+        for st in Struct.structs:
+            mid += f"StreamCache<{st.name_struct}>,"
+            func += f"{st.name_short}, "
+        mid += ")"
+        func += ");\n}"
+        mid += func
 
     with open(utl.ROOT_DIR + "/noir_template/main_top_evcxr.rs") as f:
         top = f.read()

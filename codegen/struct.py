@@ -7,7 +7,7 @@ class Struct(object):
     name_counter = 0
     ibis_to_noir_type = {"Int64": "i64", "String": "String", "Float64": "f64"}
     last_complete_transform: "Struct"
-    structs = []
+    structs: list["Struct"] = []
     # copied when generating new structs: toggle if operator turns to keyed/un-keyed
     with_keyed_stream: dict[str, DataType] = None
 
