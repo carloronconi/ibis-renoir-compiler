@@ -3,12 +3,17 @@ import subprocess
 import time
 
 from ibis.common.graph import Node
+import ibis.expr
+import ibis.expr.datatypes
 from ibis.expr.operations import PhysicalTable
+import ibis.expr.types
 from ibis.expr.visualize import to_graph
 from codegen.benchmark import Benchmark
 
 import codegen.utils as utl
-from codegen.operators import Operator
+from codegen.operators import Operator, DatabaseOperator
+import ibis
+from codegen.struct import Struct
 
 
 def compile_ibis_to_noir(files_tables: list[tuple[str, PhysicalTable]],
@@ -50,6 +55,33 @@ def compile_ibis_to_noir(files_tables: list[tuple[str, PhysicalTable]],
             benchmark.renoir_execute_time_s = end_time - start_time
 
 
+def compile_preloaded_tables_evcxr(files_tables: list[tuple[str, PhysicalTable]]):
+
+    mid = "\nlet ctx = StreamContext::new_local();\n"
+    for file, table in files_tables:
+        struct = Struct.from_table(table)
+        right_path = file.split(utl.ROOT_DIR)[1]
+        
+        # not using underscore separators as evcxr is strict with upper camel case structs out of closed scope
+        struct.name_short = right_path[1:].replace("/", "").replace("_", "").split(".")[0]
+        struct.name_struct = "Struct" + struct.name_short
+
+        rel_path = ".." + right_path
+        mid += (f"let ({struct.name_short}, _): (StreamCache<{struct.name_struct}>, _) = ctx.stream_csv::<{struct.name_struct}>(\"{rel_path}\").batch_mode(BatchMode::fixed(16000)).cache();\n")
+    mid += "ctx.execute_blocking();\n"
+
+    with open(utl.ROOT_DIR + "/noir_template/main_top_evcxr.rs") as f:
+        top = f.read()
+    for st in Struct.structs:
+        top += st.generate()
+
+    with open(utl.ROOT_DIR + '/noir_template/preload_evcxr.rs', 'w+') as f:
+        f.write(top)
+        f.write(mid)
+
+    return
+
+
 def post_order_dfs(root: Node):
     stack: list[tuple[Node, bool]] = [(root, False)]
     visited: set[Node] = set()
@@ -65,7 +97,7 @@ def post_order_dfs(root: Node):
                 stack.append((child, False))
 
 
-def gen_noir_code():
+def gen_noir_code(override_file: str = None):
     mid = ""
     for op in Operator.operators:
         # operators can also modify structs while generating, so generate mid before top
@@ -75,10 +107,14 @@ def gen_noir_code():
     bot = Operator.new_bot().generate()
     top = Operator.new_top().generate()
 
-    directory = utl.ROOT_DIR + '/noir_template/src'
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-    with open(directory + '/main.rs', 'w+') as f:
+    if not override_file:
+        directory = utl.ROOT_DIR + '/noir_template/src'
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        file = directory + '/main.rs'
+    else:
+        file = override_file
+    with open(file, 'w+') as f:
         f.write(top)
         f.write(mid)
         f.write(bot)

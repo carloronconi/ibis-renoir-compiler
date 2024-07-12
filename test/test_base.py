@@ -4,6 +4,8 @@ import time
 import unittest
 import ibis.backends
 import ibis.backends.duckdb
+import ibis.expr
+import ibis.expr.types
 import pandas as pd
 import ibis
 from difflib import unified_diff
@@ -12,6 +14,7 @@ from ibis import _
 from pyflink.table import EnvironmentSettings, TableEnvironment
 import os
 import shutil
+from codegen import compile_ibis_to_noir, compile_preloaded_tables_evcxr
 
 
 class TestCompiler(unittest.TestCase):
@@ -112,7 +115,7 @@ class TestCompiler(unittest.TestCase):
             shutil.copyfile(source, dest)
 
             # create a prelude.rs file to preload the tables within evcxr
-            pass
+            compile_preloaded_tables_evcxr([(self.files[k], self.tables[k]) for k in self.files.keys()])
 
             return
 

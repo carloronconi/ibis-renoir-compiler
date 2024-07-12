@@ -43,6 +43,12 @@ class Struct(object):
         names = list(node.schema.names)
         types = list(node.schema.types)
         return cls(name=str(id(node)), cols_types=dict(zip(names, types)))
+    
+    @classmethod
+    def from_table(cls, table):
+        names = list(table.schema().names)
+        types = list(table.schema().types)
+        return cls(name=str(id(table)), cols_types=dict(zip(names, types)))
 
     @classmethod
     def from_join(cls, left: "Struct", right: "Struct"):
