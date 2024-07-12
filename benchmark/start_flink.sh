@@ -1,14 +1,27 @@
 #!/bin/bash
-file="flink-1.19.0-bin-scala_2.12.tgz"
-dir="flink-1.19.0"
+# from official guide https://nightlies.apache.org/flink/flink-docs-master/docs/deployment/resource-providers/standalone/docker/
+# to test if it's running: http://localhost:8081/
+FLINK_PROPERTIES="jobmanager.rpc.address: jobmanager
+taskmanager.numberOfTaskSlots: 1"
+docker network rm flink-network
+docker stop jobmanager
+docker stop taskmanager
 
-if [ ! -s $file ]; then
-    curl -O https://dlcdn.apache.org/flink/flink-1.19.0/$file
-fi
+docker network create flink-network
 
-if [ ! -d $dir ]; then
-    tar -xzf $file
-fi
+# share the ./data dir with the container with read-write permissions
+docker run -d \
+    --rm \
+    --name=jobmanager \
+    --network flink-network \
+    --publish 8081:8081 \
+    --env FLINK_PROPERTIES="${FLINK_PROPERTIES}" \
+    -v ./data:/opt/flink/data:rw \
+    flink:1.19.1 jobmanager 
 
-cd flink-1.19.0
-./bin/start-cluster.sh
+docker run -d \
+    --rm \
+    --name=taskmanager \
+    --network flink-network \
+    --env FLINK_PROPERTIES="${FLINK_PROPERTIES}" \
+    flink:1.19.1 taskmanager

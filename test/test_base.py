@@ -11,8 +11,10 @@ from codegen import ROOT_DIR, Benchmark
 from ibis import _
 from pyflink.table import EnvironmentSettings, TableEnvironment
 import os
-from shutil import move
-from tempfile import NamedTemporaryFile
+from pyflink.java_gateway import get_gateway
+from pyflink.datastream import StreamExecutionEnvironment
+from pyflink.table import EnvironmentSettings, StreamTableEnvironment
+import ibis.expr.datatypes as dt
 
 
 class TestCompiler(unittest.TestCase):
@@ -61,10 +63,32 @@ class TestCompiler(unittest.TestCase):
             # in-memory duckdb instance
             ibis.set_backend(ibis.connect("duckdb://"))
         elif backend == "flink":
-            table_env = TableEnvironment.create(
-                EnvironmentSettings.in_streaming_mode())
+            gateway = get_gateway()
+            string_class = gateway.jvm.String
+            string_array = gateway.new_array(string_class, 0)
+            stream_env = gateway.jvm.org.apache.flink.streaming.api.environment.StreamExecutionEnvironment
+            j_stream_exection_environment = stream_env.createRemoteEnvironment(
+                "localhost", 
+                8081, 
+                string_array
+            )
+
+            table_env = StreamTableEnvironment.create(
+                StreamExecutionEnvironment(j_stream_exection_environment),
+                EnvironmentSettings.in_streaming_mode()
+            )
+
             con = ibis.flink.connect(table_env)
             ibis.set_backend(con)
+
+            # testing simple case below, remove for final push after always adjusting path for flink
+            res = con.read_csv('/opt/flink/data/nullable_op/ints_strings.csv', schema=ibis.Schema({
+                "int1": dt.int64,
+                "string1": dt.string,
+                "int4": dt.int64
+            })).count().execute()
+            print(res)
+
         elif backend == "polars":
             ibis.set_backend("polars")
         elif backend == "postgres":

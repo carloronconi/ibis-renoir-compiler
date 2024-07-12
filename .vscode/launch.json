@@ -12,10 +12,10 @@
             "console": "integratedTerminal",
             "args": ["--test_patterns", "test_nexmark_query_4",
                     "--runs", "1", 
-                    "--warmup", "1", 
-                    "--table_origin", "csv", "cached", 
+                    "--warmup", "0", 
+                    "--table_origin", "csv", 
                     "--dir", "internal/banana", 
-                    "--backends", "duckdb", "polars", "flink", "postgres", "risingwave", "renoir"],
+                    "--backends", "flink"],
             "justMyCode": false,
             "subProcess": true
         },
