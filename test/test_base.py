@@ -1,4 +1,6 @@
+import asyncio
 import os
+import subprocess
 import sys
 import time
 import unittest
@@ -107,16 +109,14 @@ class TestCompiler(unittest.TestCase):
             # when timing the renoir in cached mode we first run `evcxr` (which initializes the above)
             # then we start the timer and submit to the same shell (using subprocess.Popen) the query
 
-            # copy init.evcxr dependencies to evcxr's required directory
-            source = ROOT_DIR + "/noir_template/init.evcxr"
-            dest = os.path.expanduser("~/.config/evcxr/init.evcxr")
-            if not os.path.exists(os.path.dirname(dest)):
-                os.makedirs(os.path.dirname(dest))
-            shutil.copyfile(source, dest)
-
-            # create a prelude.rs file to preload the tables within evcxr
             compile_preloaded_tables_evcxr([(self.files[k], self.tables[k]) for k in self.files.keys()])
 
+            proc = asyncio.run(self.run_evcxr())
+            # with open(ROOT_DIR + "/noir_template/init.evcxr", 'r') as file:
+            #     proc.stdin.write(file.read()) 
+            # with open(ROOT_DIR + "/noir_template/preload_evcxr.rs", 'r') as file:
+            #     proc.stdin.write(file.read())
+            
             return
 
         con = ibis.get_backend()
@@ -136,6 +136,16 @@ class TestCompiler(unittest.TestCase):
         for name, table in self.tables.items():
             self.tables[name] = con.create_table(
                 name, table.to_pandas(), overwrite=True)
+            
+    async def run_evcxr(self):
+        proc = await asyncio.subprocess.create_subprocess_exec(
+            "evcxr", stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE
+        )
+        print(await proc.stdout.read(1024))
+        proc.stdin.write(b"let a = 3;\n")
+        proc.stdin.write(b":vars\n")
+        print(await proc.stdout.read(1024))
+        return proc
 
     def create_files_no_headers(self) -> dict[str, str]:
         suffix = "_no_headers"
