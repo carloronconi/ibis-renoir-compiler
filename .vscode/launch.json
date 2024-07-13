@@ -10,7 +10,7 @@
             "request": "launch",
             "module": "benchmark.internal.internal_benchmark",
             "console": "integratedTerminal",
-            "args": ["--test_patterns", "filter_filter_select_select",
+            "args": ["--test_patterns", "test_nullable_filter_filter_select_select",
                     "--runs", "1", 
                     "--warmup", "0", 
                     "--table_origin", "cached", 

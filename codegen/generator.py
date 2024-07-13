@@ -21,7 +21,8 @@ def compile_ibis_to_noir(files_tables: list[tuple[str, PhysicalTable]],
                          run_after_gen=True,
                          print_output_to_file=True,
                          render_query_graph=True,
-                         benchmark: Benchmark = None):
+                         benchmark: Benchmark = None,
+                         renoir_cached = False):
 
     if benchmark:
         start_time = time.perf_counter()

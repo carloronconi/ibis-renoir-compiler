@@ -39,6 +39,7 @@ class TestCompiler(unittest.TestCase):
             "PERFORM_BENCHMARK", "true") == "true" else None
         self.perform_compilation = True
         self.print_output_to_file = True
+        self.renoir_cached = False
 
         super().__init__(methodName=methodName)
 
@@ -61,6 +62,8 @@ class TestCompiler(unittest.TestCase):
             # in-memory duckdb, for renoir it's used just to create the AST
             # while for duckdb it's used to store the tables
             ibis.set_backend("duckdb")
+            # for cached renoir, we set here the flag
+            self.renoir_cached = (backend == "renoir" and cached)
         elif backend == "duckdb" and cached:
             # in-memory duckdb instance
             ibis.set_backend(ibis.connect("duckdb://"))
