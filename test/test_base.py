@@ -146,8 +146,8 @@ class TestCompiler(unittest.TestCase):
             proc.stdin.write(file.read().encode())
         with open(ROOT_DIR + "/noir_template/preload_evcxr.rs", 'r') as file:
             proc.stdin.write(file.read().encode())
-        # run the cache function and preload the tables in variables stored in evcxr
-        proc.stdin.write(b"let (a, b) = cache();\n:vars\n")
+        # make sure that cache() has finished running by asking for :vars and waiting for the output
+        proc.stdin.write(b":vars\n")
         # wait for the output of :vars to ensure that the tables are loaded before returning
         print(await proc.stdout.read(1024))
         return proc

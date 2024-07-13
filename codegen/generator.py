@@ -76,6 +76,7 @@ def compile_preloaded_tables_evcxr(files_tables: list[tuple[str, PhysicalTable]]
         mid += f"StreamCache<{st.name_struct}>"
         func += f"return {st.name_short};\n}}"
         mid += func
+        mid += f"let {st.name_short} = cache();\n"
     else:
         mid += "("
         func += "return ("
@@ -85,6 +86,10 @@ def compile_preloaded_tables_evcxr(files_tables: list[tuple[str, PhysicalTable]]
         mid += ")"
         func += ");\n}"
         mid += func
+        mid += f"let ("
+        for st in Struct.structs:
+            mid += f"{st.name_short}, "
+        mid += ") = cache();\n"
 
     with open(utl.ROOT_DIR + "/noir_template/main_top_evcxr.rs") as f:
         top = f.read()
