@@ -111,12 +111,7 @@ class TestCompiler(unittest.TestCase):
 
             compile_preloaded_tables_evcxr([(self.files[k], self.tables[k]) for k in self.files.keys()])
 
-            proc = asyncio.run(self.run_evcxr())
-            # with open(ROOT_DIR + "/noir_template/init.evcxr", 'r') as file:
-            #     proc.stdin.write(file.read()) 
-            # with open(ROOT_DIR + "/noir_template/preload_evcxr.rs", 'r') as file:
-            #     proc.stdin.write(file.read())
-            
+            self.evcxr_process = asyncio.run(self.run_evcxr())
             return
 
         con = ibis.get_backend()
@@ -141,9 +136,16 @@ class TestCompiler(unittest.TestCase):
         proc = await asyncio.subprocess.create_subprocess_exec(
             "evcxr", stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE
         )
-        print(await proc.stdout.read(1024))
-        proc.stdin.write(b"let a = 3;\n")
-        proc.stdin.write(b":vars\n")
+        # read the welcome message
+        print(await proc.stdout.readline())
+        # load the imports and the table preloading function cache()
+        with open(ROOT_DIR + "/noir_template/init.evcxr", 'r') as file:
+            proc.stdin.write(file.read().encode())
+        with open(ROOT_DIR + "/noir_template/preload_evcxr.rs", 'r') as file:
+            proc.stdin.write(file.read().encode())
+        # run the cache function and preload the tables in variables stored in evcxr
+        proc.stdin.write(b"let (a, b) = cache();\n:vars\n")
+        # wait for the output of :vars to ensure that the tables are loaded before returning
         print(await proc.stdout.read(1024))
         return proc
 
