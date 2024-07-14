@@ -722,7 +722,7 @@ class DatabaseOperator(Operator):
         else:
             cache = Struct.cached_tables_structs[self.cache_counter].name_short
             self.cache_counter += 1
-            return (f";\nlet {struct.name_short} = {cache}.stream_in(&ctx)")
+            return (f";\nlet {struct.name_short} = {cache}.stream_in(&ctx);\nlet var_{struct.id_counter + count_structs} = {struct.name_short}")
 
     def does_add_struct(self) -> bool:
         return True
@@ -770,7 +770,10 @@ class BotOperator(Operator):
         
         if not self.print_output_to_file:
             bot = f"; {last_struct.name_short}.for_each(|x| {{std::hint::black_box(x);}});"
-            with open(utl.ROOT_DIR + "/noir_template/main_bot_no_print.rs") as f:
+            bot_file = utl.ROOT_DIR + "/noir_template/main_bot_no_print.rs"
+            if self.renoir_cached:
+                bot_file = utl.ROOT_DIR + "/noir_template/main_bot_evcxr.rs"
+            with open(bot_file) as f:
                 bot += f.read()
             return bot
 
@@ -792,8 +795,6 @@ class BotOperator(Operator):
             bot += f"}}, v)).drop_key().write_csv_one(\"{out_path}\", true);"
 
         bot_file = utl.ROOT_DIR + "/noir-template/main_bot.rs"
-        if self.renoir_cached:
-            bot_file = utl.ROOT_DIR + "/noir-template/main_bot_evcxr.rs"
         with open(bot_file) as f:
             bot += f.read()
         return bot
