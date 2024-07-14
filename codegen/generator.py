@@ -34,6 +34,9 @@ def compile_ibis_to_noir(files_tables: list[tuple[str, PhysicalTable]],
         to_graph(query).render(utl.ROOT_DIR + "/out/query")
         subprocess.run(f"open {utl.ROOT_DIR}/out/query.pdf", shell=True)
 
+    if renoir_cached:
+        Operator.renoir_cached = True
+
     post_order_dfs(query.op())
     Operator.print_output_to_file = print_output_to_file
     gen_noir_code()
@@ -95,6 +98,9 @@ def compile_preloaded_tables_evcxr(files_tables: list[tuple[str, PhysicalTable]]
         top = f.read()
     for st in Struct.structs:
         top += st.generate()
+
+    Struct.cached_tables_structs = Struct.structs.copy()
+    Struct.cleanup()
 
     with open(utl.ROOT_DIR + '/noir_template/preload_evcxr.rs', 'w+') as f:
         f.write(top)

@@ -13,6 +13,7 @@ class Operator:
     # value to prioritize one over the other and change ordeding of operators in noir code
     priority = 0
     print_output_to_file = True
+    renoir_cached = False
 
     def __init__(self):
         Operator.operators.append(self)
@@ -713,8 +714,12 @@ class DatabaseOperator(Operator):
         # turning full path to relative path so that rust code contains relative path and expected code can work across machines
         full_path = utl.TAB_FILES[self.table.name]
         rel_path = ".." + full_path.split(utl.ROOT_DIR)[1]
-        return (f";\nlet {struct.name_short} = ctx.stream_csv::<{struct.name_struct}>(\"{rel_path}\").batch_mode(BatchMode::fixed(16000));\n" +
-                f"let var_{struct.id_counter + count_structs} = {struct.name_short}")
+        if not self.renoir_cached:
+            return (f";\nlet {struct.name_short} = ctx.stream_csv::<{struct.name_struct}>(\"{rel_path}\").batch_mode(BatchMode::fixed(16000));\n" +
+                    f"let var_{struct.id_counter + count_structs} = {struct.name_short}")
+        else:
+            cache = Struct.cached_tables_structs.pop(0).name_short
+            return (f";\nlet {struct.name_short} = {cache}.stream_in(&ctx);\n")
 
     def does_add_struct(self) -> bool:
         return True
@@ -733,15 +738,23 @@ class TopOperator(Operator):
         # cleanup operators: TopOperator should be the last to generate
         Operator.cleanup()
 
-        with open(utl.ROOT_DIR + "/noir_template/main_top.rs") as f:
-            top = f.read()
+        top = ""
+        if not self.renoir_cached:
+            with open(utl.ROOT_DIR + "/noir_template/main_top.rs") as f:
+                top += f.read()
         for st in Struct.structs:
             top += st.generate()
 
         # cleanup structs: same reason
         Struct.cleanup()
 
-        top += "\nfn logic(ctx: StreamContext) {\n"
+        if not self.renoir_cached:
+            top += "\nfn logic(ctx: StreamContext) {\n"
+        else:
+            top += "\nfn logic("
+            for st in Struct.cached_tables_structs:
+                top += f"{st.name_short}: StreamCache<{st.name_struct}>, "
+            top += f") {{\nlet ctx = StreamContext::new({Struct.cached_tables_structs[0].name_short}.config());\n"
         return top
 
 
@@ -758,8 +771,11 @@ class BotOperator(Operator):
                 bot += f.read()
             return bot
 
+        out_path = "../out/noir-result.csv"
+        if self.renoir_cached:
+            out_path = utl.ROOT_DIR + "/out/noir-result.csv"
         if not last_struct.is_keyed_stream:
-            bot = f";\n{last_struct.name_short}.write_csv_one(\"../out/noir-result.csv\", true);"
+            bot = f";\n{last_struct.name_short}.write_csv_one(\"{out_path}\", true);"
         else:
             names_types = Struct.last().with_keyed_stream
             new_struct = Struct.from_args(str(id(self)), list(names_types.keys()), list(
@@ -770,9 +786,12 @@ class BotOperator(Operator):
             else:
                 for i, name in enumerate(names_types):
                     bot += f"{name}: k.{i}.clone(),"
-            bot += "}, v)).drop_key().write_csv_one(\"../out/noir-result.csv\", true);"
+            bot += f"}}, v)).drop_key().write_csv_one(\"{out_path}\", true);"
 
-        with open(utl.ROOT_DIR + "/noir_template/main_bot.rs") as f:
+        bot_file = utl.ROOT_DIR + "/noir-template/main_bot.rs"
+        if self.renoir_cached:
+            bot_file = utl.ROOT_DIR + "/noir-template/main_bot_evcxr.rs"
+        with open(bot_file) as f:
             bot += f.read()
         return bot
 

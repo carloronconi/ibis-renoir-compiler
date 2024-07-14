@@ -10,6 +10,7 @@ class Struct(object):
     structs: list["Struct"] = []
     # copied when generating new structs: toggle if operator turns to keyed/un-keyed
     with_keyed_stream: dict[str, DataType] = None
+    cached_tables_structs: list["Struct"] = []
 
     @classmethod
     def id_counter_to_name_short(cls, id_c: int) -> str:
