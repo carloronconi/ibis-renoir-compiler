@@ -17,6 +17,8 @@ from pyflink.table import EnvironmentSettings, TableEnvironment
 import os
 import shutil
 from codegen import compile_ibis_to_noir, compile_preloaded_tables_evcxr
+from memory_profiler import memory_usage
+
 
 
 class TestCompiler(unittest.TestCase):
@@ -107,14 +109,11 @@ class TestCompiler(unittest.TestCase):
         if backend == "renoir":
             # here we create the two initialization files for evcxr:
             # - init.evcxr: for the imports, from cargo.toml
-            # - prelude.rs: for reading tables from csv
-            # to only time the query execution and disregard the read time
-            # when timing the renoir in cached mode we first run `evcxr` (which initializes the above)
-            # then we start the timer and submit to the same shell (using subprocess.Popen) the query
-
+            # - preload_evcxr.rs: for reading tables from csv
             compile_preloaded_tables_evcxr([(self.files[k], self.tables[k]) for k in self.files.keys()])
-
-            self.evcxr_process = asyncio.run(self.run_evcxr())
+            # note: we don't actually run the code we compiled into evcxr yet, we just write it to file here
+            # so technically, we didn't preload the tables yet: well'do that in the test run, just before
+            # starting the timer
             return
 
         con = ibis.get_backend()
@@ -135,7 +134,8 @@ class TestCompiler(unittest.TestCase):
             self.tables[name] = con.create_table(
                 name, table.to_pandas(), overwrite=True)
             
-    async def run_evcxr(self):
+    async def run_evcxr(self, test_name: str):
+        # preloading the tables in evcxr
         proc = await asyncio.subprocess.create_subprocess_exec(
             "evcxr", stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE
         )
@@ -150,7 +150,18 @@ class TestCompiler(unittest.TestCase):
         proc.stdin.write(b":vars\n")
         # wait for the output of :vars to ensure that the tables are loaded before returning
         print(await proc.stdout.read(1024))
-        return proc
+
+        # performing the actual timed query
+        test_method = getattr(self, test_name)
+        start_time = time.perf_counter()
+        # test_method only compiles to main_evcxr.rt, then we run it in evcxr
+        memo = memory_usage((test_method,), include_children=True)
+        with open(ROOT_DIR + "/noir_template/main_evcxr.rs", 'r') as file:
+            proc.stdin.write(file.read().encode())
+        print(await proc.stdout.read(1024))
+        end_time = time.perf_counter()
+
+        return memo, end_time - start_time
 
     def create_files_no_headers(self) -> dict[str, str]:
         suffix = "_no_headers"

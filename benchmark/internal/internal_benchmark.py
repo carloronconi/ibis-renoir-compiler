@@ -1,3 +1,4 @@
+import asyncio
 import multiprocessing.connection
 import benchmark.discover.load_tests as bench
 import test
@@ -111,7 +112,7 @@ def child_workload(pipe: multiprocessing.connection.Connection, test_class: str,
             # wait for permission from main thread
             # which starts counting down before sending the message so it can kill this process in case it hangs
             pipe.recv()
-            message = run_once(test_case, test_instance, count, backend)
+            message = run_once(test_case, test_instance, count, backend, table_origin)
             # telling the main thread not to kill this process
             pipe.send((True, message))
     except Exception as e:
@@ -121,21 +122,21 @@ def child_workload(pipe: multiprocessing.connection.Connection, test_class: str,
         pipe.send((False, trace))
 
 
-def run_once(test_case: str, test_instance: test.TestCompiler, run_count: int, backend: str) -> str:
+def run_once(test_case: str, test_instance: test.TestCompiler, run_count: int, backend: str, table_origin: str) -> str:
     test_instance.benchmark.run_count = run_count
     test_instance.benchmark.backend_name = backend
 
-    start_time = time.perf_counter()
-
-    test_method = getattr(test_instance, test_case)
-    memo = memory_usage((test_method,), include_children=True)
-    # If the backend is renoir, we have already performed the compilation to renoir code and ran it after this line
-
-    if backend != "renoir":
-        memo = memory_usage((test_instance.query.execute,), include_children=True)
-
-    end_time = time.perf_counter()
-    total_time = end_time - start_time
+    if backend == "renoir" and table_origin == "cached":
+        memo, total_time = asyncio.run(test_instance.run_evcxr(test_case))
+    else:
+        test_method = getattr(test_instance, test_case)
+        start_time = time.perf_counter()
+        memo = memory_usage((test_method,), include_children=True)
+        # If the backend is renoir, we have already performed the compilation to renoir code and ran it after this line
+        if backend != "renoir":
+            memo = memory_usage((test_instance.query.execute,), include_children=True)
+        end_time = time.perf_counter()
+        total_time = end_time - start_time
     test_instance.benchmark.total_time_s = total_time
     test_instance.benchmark.max_memory_MiB = max(memo)
     test_instance.benchmark.log()

@@ -21,8 +21,7 @@ def compile_ibis_to_noir(files_tables: list[tuple[str, PhysicalTable]],
                          run_after_gen=True,
                          print_output_to_file=True,
                          render_query_graph=True,
-                         benchmark: Benchmark = None,
-                         renoir_cached = False):
+                         benchmark: Benchmark = None):
 
     if benchmark:
         start_time = time.perf_counter()
@@ -34,13 +33,13 @@ def compile_ibis_to_noir(files_tables: list[tuple[str, PhysicalTable]],
         to_graph(query).render(utl.ROOT_DIR + "/out/query")
         subprocess.run(f"open {utl.ROOT_DIR}/out/query.pdf", shell=True)
 
-    if renoir_cached:
-        Operator.renoir_cached = True
-
     post_order_dfs(query.op())
     Operator.print_output_to_file = print_output_to_file
     gen_noir_code()
 
+    if Operator.renoir_cached:
+        return
+    
     if subprocess.run(f"cd {utl.ROOT_DIR}/noir_template && cargo-fmt > /dev/null 2>&1 && cargo build --release > /dev/null 2>&1", shell=True).returncode != 0:
         raise Exception("Failed to compile generated noir code!")
 
@@ -60,6 +59,7 @@ def compile_ibis_to_noir(files_tables: list[tuple[str, PhysicalTable]],
 
 
 def compile_preloaded_tables_evcxr(files_tables: list[tuple[str, PhysicalTable]]):
+    Operator.renoir_cached = True
 
     mid = "\nfn cache() -> "
     func = "{\nlet ctx = StreamContext::new_local();\n"
