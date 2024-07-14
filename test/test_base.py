@@ -154,9 +154,9 @@ class TestCompiler(unittest.TestCase):
         # performing the actual timed query
         test_method = getattr(self, test_name)
         start_time = time.perf_counter()
-        # test_method only compiles to main_evcxr.rt, then we run it in evcxr
+        # test_method only compiles to main_evcxr.rs, then we run it in evcxr
         memo = memory_usage((test_method,), include_children=True)
-        with open(ROOT_DIR + "/noir_template/main_evcxr.rs", 'r') as file:
+        with open(ROOT_DIR + "/noir_template/src/main_evcxr.rs", 'r') as file:
             proc.stdin.write(file.read().encode())
         print(await proc.stdout.read(1024))
         end_time = time.perf_counter()

@@ -688,6 +688,8 @@ class ImplicitWindowOperator(WindowOperator):
 
 
 class DatabaseOperator(Operator):
+    cache_counter = 0
+
     def __init__(self, node: ops.DatabaseTable):
         self.table = node
         super().__init__()
@@ -718,8 +720,9 @@ class DatabaseOperator(Operator):
             return (f";\nlet {struct.name_short} = ctx.stream_csv::<{struct.name_struct}>(\"{rel_path}\").batch_mode(BatchMode::fixed(16000));\n" +
                     f"let var_{struct.id_counter + count_structs} = {struct.name_short}")
         else:
-            cache = Struct.cached_tables_structs.pop(0).name_short
-            return (f";\nlet {struct.name_short} = {cache}.stream_in(&ctx);\n")
+            cache = Struct.cached_tables_structs[self.cache_counter].name_short
+            self.cache_counter += 1
+            return (f";\nlet {struct.name_short} = {cache}.stream_in(&ctx)")
 
     def does_add_struct(self) -> bool:
         return True

@@ -139,6 +139,8 @@ def gen_noir_code(override_file: str = None):
         if not os.path.exists(directory):
             os.makedirs(directory)
         file = directory + '/main.rs'
+        if Operator.renoir_cached:
+            file = directory + '/main_evcxr.rs'
     else:
         file = override_file
     with open(file, 'w+') as f:
