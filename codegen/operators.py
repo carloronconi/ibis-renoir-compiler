@@ -769,12 +769,19 @@ class BotOperator(Operator):
         last_struct = Struct.last()
         
         if not self.print_output_to_file:
+            # to verify that it's actually doing something, add this before the .for_each:
+            # .inspect(|e| eprintln!(\"{{e:?}}\"))
             bot = f"; {last_struct.name_short}.for_each(|x| {{std::hint::black_box(x);}});"
             bot_file = utl.ROOT_DIR + "/noir_template/main_bot_no_print.rs"
             if self.renoir_cached:
                 bot_file = utl.ROOT_DIR + "/noir_template/main_bot_evcxr.rs"
             with open(bot_file) as f:
                 bot += f.read()
+            for st in Struct.cached_tables_structs:
+                bot += f"\nlogic("
+                for st in Struct.cached_tables_structs:
+                    bot += f"{st.name_short}, "
+                bot += ");"
             return bot
 
         out_path = "../out/noir-result.csv"

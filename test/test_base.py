@@ -161,6 +161,8 @@ class TestCompiler(unittest.TestCase):
         print(await proc.stdout.read(1024))
         end_time = time.perf_counter()
 
+        proc.terminate()
+
         return memo, end_time - start_time
 
     def create_files_no_headers(self) -> dict[str, str]:
