@@ -148,8 +148,12 @@ class TestCompiler(unittest.TestCase):
             proc.stdin.write(file.read().encode())
         # make sure that cache() has finished running by asking for :vars and waiting for the output
         proc.stdin.write(b":vars\n")
-        # wait for the output of :vars to ensure that the tables are loaded before returning
-        print(await proc.stdout.read(1024))
+        # wait for the output of :vars to ensure that the tables are loaded before continuing
+        # there should be 2 tables in the cache plus an empty line
+        print((await proc.stdout.readline()).decode("utf-8"))
+        print((await proc.stdout.readline()).decode("utf-8"))
+        print((await proc.stdout.readline()).decode("utf-8"))
+
 
         # performing the actual timed query
         test_method = getattr(self, test_name)
@@ -158,7 +162,13 @@ class TestCompiler(unittest.TestCase):
         memo = memory_usage((test_method,), include_children=True)
         with open(ROOT_DIR + "/noir_template/src/main_evcxr.rs", 'r') as file:
             proc.stdin.write(file.read().encode())
-        print(await proc.stdout.read(1024))
+
+        # no output is shown for logic, even though it prints
+        # to ensure it ran, we write :version and wait for the output of 2 lines
+        proc.stdin.write(b":version\n")
+        print((await proc.stdout.readline()).decode("utf-8"))
+        print((await proc.stdout.readline()).decode("utf-8"))
+
         end_time = time.perf_counter()
 
         proc.terminate()

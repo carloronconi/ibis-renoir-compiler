@@ -777,11 +777,10 @@ class BotOperator(Operator):
                 bot_file = utl.ROOT_DIR + "/noir_template/main_bot_evcxr.rs"
             with open(bot_file) as f:
                 bot += f.read()
+            bot += f"\nlogic("
             for st in Struct.cached_tables_structs:
-                bot += f"\nlogic("
-                for st in Struct.cached_tables_structs:
-                    bot += f"{st.name_short}, "
-                bot += ");"
+                bot += f"{st.name_short}, "
+            bot += ");\n"
             return bot
 
         out_path = "../out/noir-result.csv"
