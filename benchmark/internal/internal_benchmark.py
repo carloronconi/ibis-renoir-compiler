@@ -127,7 +127,7 @@ def run_once(test_case: str, test_instance: test.TestCompiler, run_count: int, b
     test_instance.benchmark.backend_name = backend
 
     if backend == "renoir" and table_origin == "cached":
-        memo, total_time = asyncio.run(test_instance.run_evcxr(test_case))
+        memo, total_time = run_async_from_sync(test_instance.run_evcxr(test_case))
     else:
         test_method = getattr(test_instance, test_case)
         start_time = time.perf_counter()
@@ -141,6 +141,16 @@ def run_once(test_case: str, test_instance: test.TestCompiler, run_count: int, b
     test_instance.benchmark.max_memory_MiB = max(memo)
     test_instance.benchmark.log()
     return f"ran once - backend: {backend}\trun: {run_count:03}\ttime: {total_time:.10f}\tquery: {test_case}"
+
+
+def run_async_from_sync(coro):
+# https://discuss.python.org/t/calling-coroutines-from-sync-code-2/24093
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(coro)
+    else:
+        return loop.run_until_complete(coro)
 
 
 if __name__ == "__main__":
