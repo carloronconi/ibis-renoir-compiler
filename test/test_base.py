@@ -1,9 +1,13 @@
+import asyncio
 import os
+import subprocess
 import sys
 import time
 import unittest
 import ibis.backends
 import ibis.backends.duckdb
+import ibis.expr
+import ibis.expr.types
 import pandas as pd
 import ibis
 from difflib import unified_diff
@@ -11,8 +15,10 @@ from codegen import ROOT_DIR, Benchmark
 from ibis import _
 from pyflink.table import EnvironmentSettings, TableEnvironment
 import os
-from shutil import move
-from tempfile import NamedTemporaryFile
+import shutil
+from codegen import compile_ibis_to_noir, compile_preloaded_tables_evcxr
+from memory_profiler import memory_usage
+
 
 
 class TestCompiler(unittest.TestCase):
@@ -35,6 +41,7 @@ class TestCompiler(unittest.TestCase):
             "PERFORM_BENCHMARK", "true") == "true" else None
         self.perform_compilation = True
         self.print_output_to_file = True
+        self.renoir_cached = False
 
         super().__init__(methodName=methodName)
 
@@ -57,6 +64,8 @@ class TestCompiler(unittest.TestCase):
             # in-memory duckdb, for renoir it's used just to create the AST
             # while for duckdb it's used to store the tables
             ibis.set_backend("duckdb")
+            # for cached renoir, we set here the flag
+            self.renoir_cached = (backend == "renoir" and cached)
         elif backend == "duckdb" and cached:
             # in-memory duckdb instance
             ibis.set_backend(ibis.connect("duckdb://"))
@@ -91,11 +100,22 @@ class TestCompiler(unittest.TestCase):
                 f"Backend {backend} not supported - check if it requires special ibis setup before adding")
 
     def preload_tables(self, backend: str):
-        if backend == "renoir" or backend == "flink":
+        if backend == "flink":
             # instead of wasting time running these backends both in "csv" and "cached" table origins
             # we raise an exception when trying to run in "cached" mode
-            raise NotImplementedError("Streaming backends don't allow preloading tables")
-        
+            raise NotImplementedError(
+                "Streaming backends don't allow preloading tables")
+
+        if backend == "renoir":
+            # here we create the two initialization files for evcxr:
+            # - init.evcxr: for the imports, from cargo.toml
+            # - preload_evcxr.rs: for reading tables from csv
+            compile_preloaded_tables_evcxr([(self.files[k], self.tables[k]) for k in self.files.keys()])
+            # note: we don't actually run the code we compiled into evcxr yet, we just write it to file here
+            # so technically, we didn't preload the tables yet: well'do that in the test run, just before
+            # starting the timer
+            return
+
         con = ibis.get_backend()
         if backend == "postgres" or backend == "risingwave":
             # These backends don't allow reading from csv so self.tables is empty and we create it from scratch here.
@@ -113,6 +133,37 @@ class TestCompiler(unittest.TestCase):
         for name, table in self.tables.items():
             self.tables[name] = con.create_table(
                 name, table.to_pandas(), overwrite=True)
+            
+    async def run_evcxr(self, test_name: str):
+        # preloading the tables in evcxr
+        proc = await asyncio.subprocess.create_subprocess_exec(
+            "evcxr", stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE
+        )
+        # read the welcome message
+        print(await proc.stdout.readline())
+        # load the imports and the table preloading function cache()
+        with open(ROOT_DIR + "/noir_template/init.evcxr", 'r') as file:
+            proc.stdin.write(file.read().encode())
+        with open(ROOT_DIR + "/noir_template/preload_evcxr.rs", 'r') as file:
+            proc.stdin.write(file.read().encode())
+        # make sure that cache() has finished running by asking for :vars and waiting for the output
+        proc.stdin.write(b":vars\n")
+        # wait for the output of :vars to ensure that the tables are loaded before returning
+        print(await proc.stdout.read(1024))
+
+        # performing the actual timed query
+        test_method = getattr(self, test_name)
+        start_time = time.perf_counter()
+        # test_method only compiles to main_evcxr.rs, then we run it in evcxr
+        memo = memory_usage((test_method,), include_children=True)
+        with open(ROOT_DIR + "/noir_template/src/main_evcxr.rs", 'r') as file:
+            proc.stdin.write(file.read().encode())
+        print(await proc.stdout.read(1024))
+        end_time = time.perf_counter()
+
+        proc.terminate()
+
+        return memo, end_time - start_time
 
     def create_files_no_headers(self) -> dict[str, str]:
         suffix = "_no_headers"

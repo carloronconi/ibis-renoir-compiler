@@ -7,9 +7,10 @@ class Struct(object):
     name_counter = 0
     ibis_to_noir_type = {"Int64": "i64", "String": "String", "Float64": "f64"}
     last_complete_transform: "Struct"
-    structs = []
+    structs: list["Struct"] = []
     # copied when generating new structs: toggle if operator turns to keyed/un-keyed
     with_keyed_stream: dict[str, DataType] = None
+    cached_tables_structs: list["Struct"] = []
 
     @classmethod
     def id_counter_to_name_short(cls, id_c: int) -> str:
@@ -43,6 +44,12 @@ class Struct(object):
         names = list(node.schema.names)
         types = list(node.schema.types)
         return cls(name=str(id(node)), cols_types=dict(zip(names, types)))
+    
+    @classmethod
+    def from_table(cls, table):
+        names = list(table.schema().names)
+        types = list(table.schema().types)
+        return cls(name=str(id(table)), cols_types=dict(zip(names, types)))
 
     @classmethod
     def from_join(cls, left: "Struct", right: "Struct"):
