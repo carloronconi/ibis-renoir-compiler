@@ -172,6 +172,10 @@ class TestCompiler(unittest.TestCase):
         end_time = time.perf_counter()
 
         proc.terminate()
+        # TODO: detect failure in evcxr and raise exception
+        # right now, because it's an interactive process, it doesn't simply terminate with error code, but instead
+        # when it fails it prints an error message and continues running
+        # could return Ok or Err from logic() and check what is printed to proc.stout
 
         return memo, end_time - start_time
 
