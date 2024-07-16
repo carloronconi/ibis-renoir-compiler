@@ -3,4 +3,4 @@
 :dep openssl = { version = "0.10.64", features = ["vendored"] }
 // leave renoir last so there are no issues with openssl on which it depends
 // also pin exact commit on dev branch
-:dep renoir = { git = "https://github.com/deib-polimi/renoir", rev = "9068581" }
+:dep renoir = { git = "https://github.com/deib-polimi/renoir"}
