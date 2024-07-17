@@ -51,7 +51,7 @@ class TestCompiler(unittest.TestCase):
         except FileNotFoundError:
             pass
 
-    def init_benchmark_settings(self, perform_compilation: bool):
+    def init_benchmark_settings(self, perform_compilation: bool = False):
         self.run_after_gen = True
         self.render_query_graph = False
         self.perform_assertions = False

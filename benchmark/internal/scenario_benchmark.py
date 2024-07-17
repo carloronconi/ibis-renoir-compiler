@@ -4,6 +4,7 @@ import benchmark.discover.load_tests as discover
 import test
 from . import internal_benchmark as ib
 from . import backend_benchmark as bb
+import codegen.benchmark as bm
 
 
 def main():
@@ -37,7 +38,7 @@ def police_benchmark(proc: mp.Process, con: tuple[con.Connection, con.Connection
             
 
 def execute_benchmark(pipe: con.Connection, failed_scenario: str = None, failed_test: str = None, failed_backend: str = None):
-    scenarios = Scenario.all()
+    scenarios = Scenario.__subclasses__()
     if failed_scenario:
         # run the failed scenario with special parameters to make it skip already performed tests
         # and then run the rest of the scenarios anyway
@@ -55,7 +56,7 @@ class Scenario:
     warmup = 1
     path_suffix = ""
     dir = "banana"
-    timeout = 10 # 5 minutes
+    timeout = 60
 
     def __init__(self, pipe: con.Connection):
         # start from the next backend of the same test
@@ -82,34 +83,32 @@ class Scenario:
                         self.pipe.send(("permission_to_run", self.__class__.__name__, test_full, backend_name))
                         self.pipe.recv()
                         
-                        backend = bb.BackendBenchmark.by_name(backend_name, test_full)
+                        test_class, test_case = test_full.rsplit(".", 1)
+                        self.test_instance: test.TestCompiler = eval(f"{test_class}(\"{test_case}\")")
+                        self.test_instance.benchmark = bm.Benchmark(test_case, dir)
+                        test_method = getattr(self.test_instance, test_case)
+
+                        backend = bb.BackendBenchmark.by_name(backend_name, self.test_instance, test_method)
                         self.perform_setup(backend)
                         time, memo = self.perform_measure(backend)
+
+                        self.test_instance.benchmark.total_time_s = time
+                        self.test_instance.benchmark.max_memory_MiB = memo
+                        self.test_instance.benchmark.log()
                         
-                        self.pipe.send((True, backend_name, test_full, run_id, time, memo))
-                except:
-                    self.pipe.send((False, backend_name))
+                        self.pipe.send((True, ""))
+                except Exception as e:
+                    self.pipe.send((False, e))
         self.pipe.send(("done", None))
 
     def perform_setup(self, backend: bb.BackendBenchmark):
-        raise NotImplementedError
+        backend.logger.scenario = self.__class__.__name__
+        self.test_instance.init_files(file_suffix=self.path_suffix)
+        self.test_instance.init_tables()
 
     def perform_measure(self, backend: bb.BackendBenchmark) -> tuple[float, float]:
         # returns time and memory
         raise NotImplementedError
-
-    @classmethod
-    def all(cls):
-        subclasses = []
-        stack = [cls]
-        while stack:
-            curr = stack.pop()
-            subclasses: list[type[Scenario]] = curr.__subclasses__()
-            if subclasses:
-                stack.extend(subclasses)
-            else:
-                subclasses.append(curr)
-        return subclasses
 
 
 class Scenario1(Scenario):
@@ -118,30 +117,14 @@ class Scenario1(Scenario):
         self.table_origin = "file"
         self.data_destination = "file"
         self.test_patterns = ["test_nexmark"]
-        self.backend_names = ["duckdb", "flink"]
+        self.backend_names = ["duckdb", "renoir"]
         super().__init__(pipe)
 
     def perform_setup(self, backend: bb.BackendBenchmark):
-        pass  
+        super().perform_setup(backend)
 
     def perform_measure(self, backend: bb.BackendBenchmark) -> tuple[float, float]:
-        pass
-
-
-class Scenario2(Scenario):
-    # Test
-    def __init__(self, pipe):
-        self.table_origin = "file"
-        self.data_destination = "file"
-        self.test_patterns = ["test_nullable"]
-        self.backend_names = ["duckdb", "flink"]
-        super().__init__(pipe)
-
-    def perform_setup(self, backend: bb.BackendBenchmark):
-        pass
-
-    def perform_measure(self, backend: bb.BackendBenchmark) -> tuple[float, float]:
-        pass
+        return backend.perform_query_to_file()
     
 
 if __name__ == "__main__":
