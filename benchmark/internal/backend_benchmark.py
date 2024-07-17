@@ -1,12 +1,21 @@
+import test
+
+
 class BackendBenchmark():
     @classmethod
-    def by_name(cls, name: str) -> "BackendBenchmark":
+    def by_name(cls, name: str, test_full: str) -> "BackendBenchmark":
         match name:
             case "duckdb": 
-                return DuckdbBenchmark()
+                return DuckdbBenchmark(test_full)
+            case "flink":
+                return FlinkBenchmark(test_full)
+            case _:
+                raise ValueError(f"Unknown backend {name}")
 
-    def __init__(self) -> None:
-        pass
+    def __init__(self, test_full) -> None:
+        test_class, test_case = test_full.rsplit(".", 1)
+        self.test_instance: test.TestCompiler = eval(f"{test_class}(\"{test_case}\")")
+
     def preload_tables():
         pass
     def perform_initial_query():
@@ -17,8 +26,9 @@ class BackendBenchmark():
         pass
 
 class DuckdbBenchmark(BackendBenchmark):
-    def __init__(self) -> None:
-        pass
+    def __init__(self, test_full) -> None:
+        super().__init__(test_full)
+
     def preload_tables():
         pass
     def perform_initial_query():
@@ -29,8 +39,9 @@ class DuckdbBenchmark(BackendBenchmark):
         pass
 
 class FlinkBenchmark(BackendBenchmark):
-    def __init__(self) -> None:
-        pass
+    def __init__(self, test_full) -> None:
+        super().__init__(test_full)
+
     def preload_tables():
         pass
     def perform_initial_query():

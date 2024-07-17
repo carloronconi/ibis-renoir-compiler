@@ -60,22 +60,16 @@ class Scenario:
     def __init__(self, pipe: con.Connection):
         # start from the next backend of the same test
         self.pipe = pipe
-        self.tests = self.discover_tests()
-        self.backends = [(b, bb.BackendBenchmark.by_name(b)) for b in self.backend_names]
+        self.tests_full = [t for t in discover.main() if any(pat in t for pat in self.test_patterns)]
 
-    def discover_tests(self) -> list[tuple[str, str, str]]:
-        tests_full = [t for t in discover.main() if any(pat in t for pat in self.test_patterns)]
-        return [t.rsplit(".", 1) + [t] for t in tests_full]
-        
     def run(self, failed_test: str = None, failed_backend: str = None):
-        for test_class, test_case, test_full in self.tests:
+        for test_full in self.tests_full:
             # skip all tests before the failed one resuming from that
             if failed_test and failed_test != test_full:
                 continue
             if failed_test and failed_test == test_full:
                 failed_test = None
-            test_instance: test.TestCompiler = eval(f"{test_class}(\"{test_case}\")")
-            for backend_name, backend in self.backends:
+            for backend_name in self.backend_names:
                 # skip all backends before and including the failed one
                 if failed_backend and failed_backend != backend_name:
                     continue
@@ -88,10 +82,11 @@ class Scenario:
                         self.pipe.send(("permission_to_run", self.__class__.__name__, test_full, backend_name))
                         self.pipe.recv()
                         
+                        backend = bb.BackendBenchmark.by_name(backend_name, test_full)
                         self.perform_setup(backend)
                         time, memo = self.perform_measure(backend)
                         
-                        self.pipe.send((True, backend_name, test_case, run_id, time, memo))
+                        self.pipe.send((True, backend_name, test_full, run_id, time, memo))
                 except:
                     self.pipe.send((False, backend_name))
         self.pipe.send(("done", None))
@@ -127,12 +122,10 @@ class Scenario1(Scenario):
         super().__init__(pipe)
 
     def perform_setup(self, backend: bb.BackendBenchmark):
-        print(f"scenario 1 - {backend.__class__.__name__} sleeping...")
-        while(True):  
-            pass  
+        pass  
 
     def perform_measure(self, backend: bb.BackendBenchmark) -> tuple[float, float]:
-        raise NotImplementedError
+        pass
 
 
 class Scenario2(Scenario):
@@ -145,10 +138,10 @@ class Scenario2(Scenario):
         super().__init__(pipe)
 
     def perform_setup(self, backend: bb.BackendBenchmark):
-        print("setup")
+        pass
 
     def perform_measure(self, backend: bb.BackendBenchmark) -> tuple[float, float]:
-        print("measure")
+        pass
     
 
 if __name__ == "__main__":
