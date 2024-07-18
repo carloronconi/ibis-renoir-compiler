@@ -164,6 +164,23 @@ class Scenario3(Scenario):
         backend.preload_cached_query()
 
     def perform_measure(self, backend: bb.BackendBenchmark) -> tuple[float, float]:
+        return backend.perform_measure_cached_to_none()
+    
+
+class Scenario4(Scenario):
+    # File data exploration
+    # - table_origin: read from file
+    # - data_destination: none
+    def __init__(self, pipe):
+        self.test_patterns = ["test_nexmark_query_2"]
+        # TODO: missing postgres and risingwave because no direct read from file
+        self.backend_names = ["duckdb", "polars", "flink", "renoir"]
+        super().__init__(pipe)
+
+    def perform_setup(self, backend: bb.BackendBenchmark):
+        super().perform_setup(backend)
+
+    def perform_measure(self, backend: bb.BackendBenchmark) -> tuple[float, float]:
         return backend.perform_measure_to_none()
 
 

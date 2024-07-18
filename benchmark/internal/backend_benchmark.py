@@ -30,6 +30,10 @@ class BackendBenchmark():
     def logger(self):
         return self.test_instance.benchmark
     
+    def perform_measure_cached_to_none(self) -> tuple[float, float]:
+        # by default, same behavior as perform_measure_to_none
+        return self.perform_measure_to_none()
+    
     def perform_measure_to_none(self) -> tuple[float, float]:
         def run(test_method, test_instance):
             test_method()
@@ -102,15 +106,26 @@ class RenoirBenchmark(BackendBenchmark):
         ibis.set_backend("duckdb://")
         self.test_instance.perform_compilation = True
 
-    def perform_measure_to_file(self) -> tuple[float, float]:
-        # override to run with renoir instead of ibis
-        self.test_instance.print_output_to_file = True
+    def perform_measure_compile_and_run(self) -> tuple[float, float]:
         start_time = time.perf_counter()
         memo = memory_usage((self.test_method,), include_children=True)
         end_time = time.perf_counter()
         return end_time - start_time, max(memo)
+
+    def perform_measure_to_file(self) -> tuple[float, float]:
+        # override to run with renoir instead of ibis
+        self.test_instance.print_output_to_file = True
+        return self.perform_measure_compile_and_run()
     
     def perform_measure_to_none(self) -> tuple[float, float]:
+        # for renoir, we don't need to call query.execute() as the perform_compilation
+        # flag is already set
+        # test_instance also has a renoir_cached flag which was interfering when the 
+        # scenario with .compile_preloaded_tables_evcxr was called, but fixed inside that func
+        self.test_instance.print_output_to_file = False
+        return self.perform_measure_compile_and_run()
+
+    def perform_measure_cached_to_none(self) -> tuple[float, float]:
         memo, total_time = ib.run_async_from_sync(self.test_instance.run_evcxr(self.test_method))
         return total_time, memo
 

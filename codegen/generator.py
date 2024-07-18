@@ -116,6 +116,7 @@ def compile_preloaded_tables_evcxr(files_tables: list[tuple[str, PhysicalTable]]
         f.write(top)
         f.write(mid)
 
+    Operator.renoir_cached = False
     return
 
 
