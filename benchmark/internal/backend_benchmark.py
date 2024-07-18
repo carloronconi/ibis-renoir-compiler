@@ -1,9 +1,12 @@
 import time
+
+import pandas as pd
 import test
 import ibis
 from pyflink.table import EnvironmentSettings, TableEnvironment
 from memory_profiler import memory_usage
-
+from codegen import compile_preloaded_tables_evcxr
+from ibis import _
 
 
 class BackendBenchmark():
@@ -26,7 +29,7 @@ class BackendBenchmark():
     def logger(self):
         return self.test_instance.benchmark
 
-    def perform_query_to_file(self)-> tuple[float, float]:
+    def perform_measure_to_file(self)-> tuple[float, float]:
         def run(test_method, test_instance):
             test_method()
             result = test_instance.query.execute()
@@ -38,7 +41,38 @@ class BackendBenchmark():
         memo = memory_usage((run, [self.test_method, self.test_instance]), include_children=True)
         end_time = time.perf_counter()
         return end_time - start_time, max(memo)
-
+    
+    def preload_cached_query(self):
+        # by default we preload tables using create_table
+        con = ibis.get_backend()
+        for name, table in self.test_instance.tables.items():
+            if name == "ints_strings":
+                modified_table = (table
+                                  .group_by("int1")
+                                  .aggregate(agg=_.int4.sum())
+                                  .drop("int4")
+                                  .rename(agg="int4")
+                                  .execute())
+            else:
+                modified_table = table.execute()
+            self.test_instance.tables[name] = con.create_table(
+                name, modified_table, overwrite=True)
+            
+    def preload_cached_query_without_csv(self):
+        # These backends don't allow reading from csv so self.tables is empty and we create it from scratch here.
+        # Because the create table for these backends is extremely slow, we first check if the tables are
+        # already in place and of the right size: if so, we skip the creation.
+        con = ibis.get_backend()
+        tables = {}
+        for name, file_path in self.test_instance.files.items():
+            # TODO: do same as preload_cached_query making sure to not reload when already existing
+            if name in con.list_tables() and con.table(name).count().execute() == pd.read_csv(file_path).shape[0]:
+                tables[name] = con.table(name)
+                continue
+            print(f"Creating table {name} in {con.name} from {file_path}. Could take a while: might need to increase timeout...")
+            tables[name] = con.create_table(name, pd.read_csv(file_path), overwrite=True)
+        self.test_instance.tables = tables
+    
 
 class RenoirBenchmark(BackendBenchmark):
     name = "renoir"
@@ -48,13 +82,19 @@ class RenoirBenchmark(BackendBenchmark):
         ibis.set_backend("duckdb://")
         self.test_instance.perform_compilation = True
 
-    def perform_query_to_file(self):
-        # overrides to run with renoir instead of ibis
+    def perform_measure_to_file(self):
+        # override to run with renoir instead of ibis
         self.test_instance.print_output_to_file = True
         start_time = time.perf_counter()
         memo = memory_usage((self.test_method,), include_children=True)
         end_time = time.perf_counter()
         return end_time - start_time, max(memo)
+
+    def preload_cached_query(self):
+        # override to use evcxr, which for now has hardcoded cached query
+        files = self.test_instance.files
+        tables = self.test_instance.tables
+        compile_preloaded_tables_evcxr([(files[k], tables[k]) for k in files.keys()])
 
 class DuckdbBenchmark(BackendBenchmark):
     name = "duckdb"
@@ -94,6 +134,9 @@ class PostgresBenchmark(BackendBenchmark):
                 host="localhost",
                 port=5432,
                 database="postgres"))
+        
+    def preload_cached_query(self):
+        return super().preload_cached_query_without_csv()
 
 
 class RisingwaveBenchmark(BackendBenchmark):
@@ -106,3 +149,6 @@ class RisingwaveBenchmark(BackendBenchmark):
                 host="localhost",
                 port=4566,
                 database="dev",))
+        
+    def preload_cached_query(self):
+        return super().preload_cached_query_without_csv()

@@ -65,7 +65,7 @@ class Scenario:
     warmup = 1
     path_suffix = ""
     dir = "banana"
-    timeout = 60 * 5 # 5 minutes
+    timeout = 5 # 5 minutes
 
     def __init__(self, pipe: con.Connection):
         # start from the next backend of the same test
@@ -128,19 +128,37 @@ class Scenario:
 
 class Scenario1(Scenario):
     # Preprocessing
+    # - table_origin: read from file
+    # - data_destination: write to file
     def __init__(self, pipe):
-        self.table_origin = "file"
-        self.data_destination = "file"
-        self.test_patterns = ["test_nexmark"]
-        self.backend_names = ["duckdb", "renoir"]
+        self.test_patterns = ["test_nullable", "test_nexmark"]
+        # TODO: missing postgres and risingwave because no direct read from file
+        self.backend_names = ["duckdb", "flink", "renoir"]
         super().__init__(pipe)
 
     def perform_setup(self, backend: bb.BackendBenchmark):
         super().perform_setup(backend)
+        # only default setup is required, as loading from file means we don't need to 
+        # preload the tables into the backend
 
     def perform_measure(self, backend: bb.BackendBenchmark) -> tuple[float, float]:
-        return backend.perform_query_to_file()
+        # special to_file measure is used
+        return backend.perform_measure_to_file()
     
+
+class Scenario3(Scenario):
+    # Interactive data exploration
+    # - table_origin: preload table and perform computationally intensive query
+    # - data_destination: none
+    def __init__(self, pipe):
+        self.test_patterns = ["test_nullable"]
+        self.backend_names = ["duckdb", "polars", "risingwave", "renoir"]
+        super().__init__(pipe)
+
+    def perform_setup(self, backend: bb.BackendBenchmark):
+        super().perform_setup(backend)
+        backend.preload_cached_query()
+
 
 if __name__ == "__main__":
     main()

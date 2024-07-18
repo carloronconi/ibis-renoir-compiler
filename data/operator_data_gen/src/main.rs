@@ -55,11 +55,12 @@ fn main() -> eyre::Result<()> {
 
         let seed = [0; 32];
         let mut rng = StdRng::from_seed(seed);
+        let range = args.size / 10;
         for _ in 0..args.size {
             let row = type_.chars()
                 .map(|c| 
                     match c {
-                        'i' => rng.gen_range(0..MAX).to_string(),
+                        'i' => rng.gen_range(0..range).to_string(),
                         's' => rng.borrow_mut().sample_iter(&Alphanumeric).take(10).map(char::from).collect(),
                         _ => panic!("Invalid type character"),
                     })
