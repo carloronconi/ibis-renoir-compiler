@@ -1,10 +1,14 @@
 import multiprocessing as mp
 import multiprocessing.connection as con
+import os
+import traceback
+import psutil
 import benchmark.discover.load_tests as discover
 import test
+import codegen.benchmark as bm
 from . import internal_benchmark as ib
 from . import backend_benchmark as bb
-import codegen.benchmark as bm
+from signal import SIGKILL
 
 
 def main():
@@ -12,7 +16,6 @@ def main():
     _, other = con
     proc = mp.Process(target=execute_benchmark, args=(other,))
     proc.start()
-    count = Scenario.warmup + Scenario.runs
     timeout = Scenario.timeout
     police_benchmark(proc, con, timeout)
 
@@ -20,13 +23,19 @@ def main():
 def police_benchmark(proc: mp.Process, con: tuple[con.Connection, con.Connection], timeout: int):
     pipe, other = con
     while True:
+        pipe.send("start")
         request, curr_scenario, curr_test, curr_backend = pipe.recv()
         if request == "done":
             return
         pipe.send("permission_granted")
         if not pipe.poll(timeout):
-            proc.kill()
-            proc.join()
+            
+            # kill all the children of the current process so memory_profiler doesn't complain
+            # we killed the process it was monitoring
+            parent = psutil.Process(os.getpid())
+            for child in parent.children(recursive=True):
+                os.kill(child.pid, SIGKILL)
+
             print("timeout: killed process")
             # restart the process from same scenario, skipping to the next backend
             proc = mp.Process(target=execute_benchmark, args=(other, curr_scenario, curr_test, curr_backend))
@@ -56,7 +65,7 @@ class Scenario:
     warmup = 1
     path_suffix = ""
     dir = "banana"
-    timeout = 60
+    timeout = 60 * 5 # 5 minutes
 
     def __init__(self, pipe: con.Connection):
         # start from the next backend of the same test
@@ -79,6 +88,7 @@ class Scenario:
                     continue
                 try:
                     for i in range(self.warmup + self.runs):
+                        self.pipe.recv()
                         run_id = i - self.warmup if i >= self.warmup else -1
                         self.pipe.send(("permission_to_run", self.__class__.__name__, test_full, backend_name))
                         self.pipe.recv()
@@ -86,6 +96,7 @@ class Scenario:
                         test_class, test_case = test_full.rsplit(".", 1)
                         self.test_instance: test.TestCompiler = eval(f"{test_class}(\"{test_case}\")")
                         self.test_instance.benchmark = bm.Benchmark(test_case, dir)
+                        self.test_instance.benchmark.run_count = run_id
                         test_method = getattr(self.test_instance, test_case)
 
                         backend = bb.BackendBenchmark.by_name(backend_name, self.test_instance, test_method)
@@ -98,8 +109,12 @@ class Scenario:
                         
                         self.pipe.send((True, ""))
                 except Exception as e:
-                    self.pipe.send((False, e))
-        self.pipe.send(("done", None))
+                    trace = " ".join(traceback.format_exception(e)).replace(",", "COMMA_ESCAPE").replace("\n", "NEWLINE_ESCAPE")
+                    self.test_instance.benchmark.exception = trace
+                    self.test_instance.benchmark.log()
+                    self.pipe.send((False, trace))
+        self.pipe.recv()
+        self.pipe.send(("done", None, None, None))
 
     def perform_setup(self, backend: bb.BackendBenchmark):
         backend.logger.scenario = self.__class__.__name__
