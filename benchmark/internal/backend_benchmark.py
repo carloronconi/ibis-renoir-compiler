@@ -7,6 +7,7 @@ from pyflink.table import EnvironmentSettings, TableEnvironment
 from memory_profiler import memory_usage
 from codegen import compile_preloaded_tables_evcxr
 from ibis import _
+from . import internal_benchmark as ib
 
 
 class BackendBenchmark():
@@ -28,6 +29,15 @@ class BackendBenchmark():
     @property
     def logger(self):
         return self.test_instance.benchmark
+    
+    def perform_measure_to_none(self) -> tuple[float, float]:
+        def run(test_method, test_instance):
+            test_method()
+            test_instance.query.execute()
+        start_time = time.perf_counter()
+        memo = memory_usage((run, [self.test_method, self.test_instance]), include_children=True)
+        end_time = time.perf_counter()
+        return end_time - start_time, max(memo)
 
     def perform_measure_to_file(self)-> tuple[float, float]:
         def run(test_method, test_instance):
@@ -92,13 +102,17 @@ class RenoirBenchmark(BackendBenchmark):
         ibis.set_backend("duckdb://")
         self.test_instance.perform_compilation = True
 
-    def perform_measure_to_file(self):
+    def perform_measure_to_file(self) -> tuple[float, float]:
         # override to run with renoir instead of ibis
         self.test_instance.print_output_to_file = True
         start_time = time.perf_counter()
         memo = memory_usage((self.test_method,), include_children=True)
         end_time = time.perf_counter()
         return end_time - start_time, max(memo)
+    
+    def perform_measure_to_none(self) -> tuple[float, float]:
+        memo, total_time = ib.run_async_from_sync(self.test_instance.run_evcxr(self.test_method))
+        return total_time, memo
 
     def preload_cached_query(self):
         # override to use evcxr, which for now has hardcoded cached query

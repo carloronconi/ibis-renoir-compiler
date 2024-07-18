@@ -6,7 +6,6 @@ import psutil
 import benchmark.discover.load_tests as discover
 import test
 import codegen.benchmark as bm
-from . import internal_benchmark as ib
 from . import backend_benchmark as bb
 from signal import SIGKILL
 
@@ -25,7 +24,9 @@ def police_benchmark(proc: mp.Process, con: tuple[con.Connection, con.Connection
     while True:
         pipe.send("start")
         request, curr_scenario, curr_test, curr_backend = pipe.recv()
-        if request == "done":
+        if request == "done_scenario":
+            continue
+        if request == "done_all":
             return
         pipe.send("permission_granted")
         if not pipe.poll(timeout):
@@ -58,14 +59,16 @@ def execute_benchmark(pipe: con.Connection, failed_scenario: str = None, failed_
     for S in scenarios:
         scenario = S(pipe)
         scenario.run()
+    pipe.recv()
+    pipe.send(("done_all", None, None, None))
 
 
 class Scenario:
     runs = 1
     warmup = 1
     path_suffix = ""
-    dir = "banana"
-    timeout = 5 # 5 minutes
+    dir = "scenario/banana"
+    timeout = 60 * 5 # 5 minutes
 
     def __init__(self, pipe: con.Connection):
         # start from the next backend of the same test
@@ -88,6 +91,7 @@ class Scenario:
                     continue
                 try:
                     for i in range(self.warmup + self.runs):
+                        print(f"Running {test_full} with {backend_name} at run {i}")
                         self.pipe.recv()
                         run_id = i - self.warmup if i >= self.warmup else -1
                         self.pipe.send(("permission_to_run", self.__class__.__name__, test_full, backend_name))
@@ -114,7 +118,7 @@ class Scenario:
                     self.test_instance.benchmark.log()
                     self.pipe.send((False, trace))
         self.pipe.recv()
-        self.pipe.send(("done", None, None, None))
+        self.pipe.send(("done_scenario", None, None, None))
 
     def perform_setup(self, backend: bb.BackendBenchmark):
         backend.logger.scenario = self.__class__.__name__
@@ -158,6 +162,9 @@ class Scenario3(Scenario):
     def perform_setup(self, backend: bb.BackendBenchmark):
         super().perform_setup(backend)
         backend.preload_cached_query()
+
+    def perform_measure(self, backend: bb.BackendBenchmark) -> tuple[float, float]:
+        return backend.perform_measure_to_none()
 
 
 if __name__ == "__main__":
