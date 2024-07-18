@@ -62,15 +62,25 @@ class BackendBenchmark():
         # These backends don't allow reading from csv so self.tables is empty and we create it from scratch here.
         # Because the create table for these backends is extremely slow, we first check if the tables are
         # already in place and of the right size: if so, we skip the creation.
+        cache_con = ibis.duckdb.connect()
         con = ibis.get_backend()
         tables = {}
         for name, file_path in self.test_instance.files.items():
-            # TODO: do same as preload_cached_query making sure to not reload when already existing
-            if name in con.list_tables() and con.table(name).count().execute() == pd.read_csv(file_path).shape[0]:
+            if name == "ints_strings":
+                modified_table = (cache_con
+                                  .read_csv(file_path)
+                                  .group_by("int1")
+                                  .aggregate(agg=_.int4.sum())
+                                  .drop("int4")
+                                  .rename(agg="int4")
+                                  .to_pandas())
+            else:
+                modified_table = pd.read_csv(file_path)
+            if name in con.list_tables() and con.table(name).count().execute() == modified_table.shape[0]:
                 tables[name] = con.table(name)
                 continue
             print(f"Creating table {name} in {con.name} from {file_path}. Could take a while: might need to increase timeout...")
-            tables[name] = con.create_table(name, pd.read_csv(file_path), overwrite=True)
+            tables[name] = con.create_table(name, modified_table, overwrite=True)
         self.test_instance.tables = tables
     
 
