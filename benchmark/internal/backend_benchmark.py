@@ -62,10 +62,8 @@ class BackendBenchmark():
         for name, table in self.test_instance.tables.items():
             if name == "ints_strings":
                 modified_table = (table
-                                  .group_by("int1")
-                                  .aggregate(agg=_.int4.sum())
-                                  .drop("int4")
-                                  .rename(agg="int4")
+                                  .group_by(_.int1)
+                                  .aggregate(int4=_.int4.sum(), string1=_.string1.first())
                                   .execute())
             else:
                 modified_table = table.execute()
@@ -83,10 +81,8 @@ class BackendBenchmark():
             if name == "ints_strings":
                 modified_table = (cache_con
                                   .read_csv(file_path)
-                                  .group_by("int1")
-                                  .aggregate(agg=_.int4.sum())
-                                  .drop("int4")
-                                  .rename(agg="int4")
+                                  .group_by(_.int1)
+                                  .aggregate(agg=_.int4.sum(), string1=_.string1.first())
                                   .to_pandas())
             else:
                 modified_table = pd.read_csv(file_path)
@@ -126,7 +122,9 @@ class RenoirBenchmark(BackendBenchmark):
         return self.perform_measure_compile_and_run()
 
     def perform_measure_cached_to_none(self) -> tuple[float, float]:
+        self.test_instance.renoir_cached = True
         memo, total_time = ib.run_async_from_sync(self.test_instance.run_evcxr(self.test_method))
+        self.test_instance.renoir_cached = False
         return total_time, memo
 
     def preload_cached_query(self):

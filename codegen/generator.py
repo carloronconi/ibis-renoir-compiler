@@ -38,6 +38,7 @@ def compile_ibis_to_noir(files_tables: list[tuple[str, PhysicalTable]],
     gen_noir_code()
 
     if Operator.renoir_cached:
+        Operator.renoir_cached = False
         return
     
     if subprocess.run(f"cd {utl.ROOT_DIR}/noir_template && cargo-fmt > /dev/null 2>&1 && cargo build --release > /dev/null 2>&1", shell=True).returncode != 0:
@@ -79,7 +80,8 @@ def compile_preloaded_tables_evcxr(files_tables: list[tuple[str, PhysicalTable]]
         # to generate this code
         if "ints_strings" in struct.name_short:
             func += (".group_by(|x| (x.int1.clone())).reduce(|a, b| {"
-                     "a.int4 = a.int4.zip(b.int4).map(|(x, y)| x + y);}).drop_key()")
+                     "a.int4 = a.int4.zip(b.int4).map(|(x, y)| x + y);\n"
+                     "a.string1 = a.string1.clone().zip(b.string1).map(|(x, _)| x)}).drop_key()")
 
         func += f".cache();\n{name_temp}.for_each(|x| {{std::hint::black_box(x);}});\n"
     func += "ctx.execute_blocking();\n"
@@ -116,7 +118,6 @@ def compile_preloaded_tables_evcxr(files_tables: list[tuple[str, PhysicalTable]]
         f.write(top)
         f.write(mid)
 
-    Operator.renoir_cached = False
     return
 
 
