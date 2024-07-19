@@ -62,8 +62,8 @@ class BackendBenchmark():
         for name, table in self.test_instance.tables.items():
             if name == "ints_strings":
                 modified_table = (table
-                                  .group_by(_.int1)
-                                  .aggregate(int4=_.int4.sum(), string1=_.string1.first())
+                                  .group_by(_.string1)
+                                  .aggregate(int4=_.int4.sum(), int1=_.int1.max())
                                   .execute())
             else:
                 modified_table = table.execute()
@@ -81,8 +81,8 @@ class BackendBenchmark():
             if name == "ints_strings":
                 modified_table = (cache_con
                                   .read_csv(file_path)
-                                  .group_by(_.int1)
-                                  .aggregate(agg=_.int4.sum(), string1=_.string1.first())
+                                  .group_by(_.string1)
+                                  .aggregate(int4=_.int4.sum(), int1=_.int1.max())
                                   .to_pandas())
             else:
                 modified_table = pd.read_csv(file_path)
@@ -125,7 +125,7 @@ class RenoirBenchmark(BackendBenchmark):
         self.test_instance.renoir_cached = True
         memo, total_time = ib.run_async_from_sync(self.test_instance.run_evcxr(self.test_method))
         self.test_instance.renoir_cached = False
-        return total_time, memo
+        return total_time, max(memo)
 
     def preload_cached_query(self):
         # override to use evcxr, which for now has hardcoded cached query

@@ -75,13 +75,15 @@ def compile_preloaded_tables_evcxr(files_tables: list[tuple[str, PhysicalTable]]
         func += (f"let ({struct.name_short}, {name_temp}) = ctx.stream_csv::<{struct.name_struct}>(\"{file}\")"
                  ".batch_mode(BatchMode::fixed(16000))")
                  
-        # TODO: the two lines below add a fixed cached query for test_nullable
+        # TODO: the lines below add a fixed cached query for test_nullable
         # should be improved to be able to pass a query to the function and use that
         # to generate this code
         if "ints_strings" in struct.name_short:
-            func += (".group_by(|x| (x.int1.clone())).reduce(|a, b| {"
-                     "a.int4 = a.int4.zip(b.int4).map(|(x, y)| x + y);\n"
-                     "a.string1 = a.string1.clone().zip(b.string1).map(|(x, _)| x)}).drop_key()")
+            func += (".group_by(|x| (x.string1.clone()))"
+                     ".reduce(|a, b| {"
+                     "a.int1 = a.int1.zip(b.int1).map(|(x, y)| max(x, y));"
+                     "a.int4 = a.int4.zip(b.int4).map(|(x, y)| x + y)})"
+                     ".drop_key()")
 
         func += f".cache();\n{name_temp}.for_each(|x| {{std::hint::black_box(x);}});\n"
     func += "ctx.execute_blocking();\n"
