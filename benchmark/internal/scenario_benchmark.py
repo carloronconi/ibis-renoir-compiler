@@ -48,7 +48,7 @@ def police_benchmark(proc: mp.Process, con: tuple[con.Connection, con.Connection
             
 
 def execute_benchmark(pipe: con.Connection, failed_scenario: str = None, failed_test: str = None, failed_backend: str = None):
-    scenarios = Scenario.__subclasses__()
+    scenarios = [s for s in Scenario.__subclasses__() if "" in s.__name__]
     if failed_scenario:
         # run the failed scenario with special parameters to make it skip already performed tests
         # and then run the rest of the scenarios anyway
@@ -135,9 +135,9 @@ class Scenario1(Scenario):
     # - table_origin: read from file
     # - data_destination: write to file
     def __init__(self, pipe):
-        self.test_patterns = ["test_nullable", "test_nexmark"]
+        self.test_patterns = ["test_nexmark_query_1"]
         # TODO: missing postgres and risingwave because no direct read from file
-        self.backend_names = ["duckdb", "flink", "renoir"]
+        self.backend_names = ["flink"]
         super().__init__(pipe)
 
     def perform_setup(self, backend: bb.BackendBenchmark):
@@ -155,7 +155,7 @@ class Scenario3(Scenario):
     # - table_origin: preload table and perform computationally intensive query
     # - data_destination: none
     def __init__(self, pipe):
-        self.test_patterns = ["test_nullable"]
+        self.test_patterns = ["test_nullable_filter_filter_select_select"]
         self.backend_names = ["duckdb", "polars", "risingwave", "renoir"]
         super().__init__(pipe)
 
@@ -173,7 +173,7 @@ class Scenario4(Scenario):
     # - data_destination: none
     def __init__(self, pipe):
         self.test_patterns = ["test_nexmark_query_2"]
-        # TODO: missing postgres and risingwave because no direct read from file
+        # TODO: missing risingwave because no direct read from file
         self.backend_names = ["duckdb", "polars", "flink", "renoir"]
         super().__init__(pipe)
 

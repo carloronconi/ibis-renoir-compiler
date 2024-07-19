@@ -3,11 +3,13 @@ import time
 import pandas as pd
 import test
 import ibis
-from pyflink.table import EnvironmentSettings, TableEnvironment
 from memory_profiler import memory_usage
 from codegen import compile_preloaded_tables_evcxr
 from ibis import _
 from . import internal_benchmark as ib
+from pyflink.java_gateway import get_gateway
+from pyflink.datastream import StreamExecutionEnvironment
+from pyflink.table import EnvironmentSettings, StreamTableEnvironment
 
 
 class BackendBenchmark():
@@ -146,8 +148,20 @@ class FlinkBenchmark(BackendBenchmark):
 
     def __init__(self, test_instance: test.TestCompiler, test_method) -> None:
         super().__init__(test_instance, test_method)
-        table_env = TableEnvironment.create(
-                EnvironmentSettings.in_streaming_mode())
+        # connecting to a standalone flink cluster instead of the built-in one
+        gateway = get_gateway()
+        string_class = gateway.jvm.String
+        string_array = gateway.new_array(string_class, 0)
+        stream_env = gateway.jvm.org.apache.flink.streaming.api.environment.StreamExecutionEnvironment
+        j_stream_exection_environment = stream_env.createRemoteEnvironment(
+            "localhost", 
+            8081, 
+            string_array)
+
+        table_env = StreamTableEnvironment.create(
+            StreamExecutionEnvironment(j_stream_exection_environment),
+            EnvironmentSettings.in_streaming_mode())
+
         con = ibis.flink.connect(table_env)
         ibis.set_backend(con)
 
