@@ -5,6 +5,16 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Scenario debug: debugpy",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "benchmark.internal.scenario_benchmark",
+            "console": "integratedTerminal",
+            "args": [],
+            "justMyCode": false,
+            "subProcess": true
+        },
+        {
             "name": "Internal benchmark: debug",
             "type": "debugpy",
             "request": "launch",

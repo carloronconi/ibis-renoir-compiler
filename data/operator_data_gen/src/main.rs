@@ -54,13 +54,27 @@ fn main() -> eyre::Result<()> {
         writeln!(writer, "{}", header)?;
 
         let seed = [0; 32];
-        let mut rng = StdRng::from_seed(seed);
+        let mut rng_loop = StdRng::from_seed(seed);
+        let mut rng_string = StdRng::from_seed(seed);
+        let range = args.size / 10;
+
+        // generate `range` unique strings
+        let mut unique_strings = Vec::new();
+        for _ in 0..range {
+            let unique_str: String = (&mut rng_string).sample_iter(&Alphanumeric).take(10).map(char::from).collect();
+            unique_strings.push(unique_str);
+        }
+
         for _ in 0..args.size {
             let row = type_.chars()
                 .map(|c| 
                     match c {
-                        'i' => rng.gen_range(0..MAX).to_string(),
-                        's' => rng.borrow_mut().sample_iter(&Alphanumeric).take(10).map(char::from).collect(),
+                        'i' => rng_loop.gen_range(0..range).to_string(),
+                        's' => {
+                            // randomly select one of the pre-generated strings
+                            let index = rng_loop.gen_range(0..unique_strings.len());
+                            unique_strings[index].clone()
+                        },
                         _ => panic!("Invalid type character"),
                     })
                 .collect::<Vec<String>>();

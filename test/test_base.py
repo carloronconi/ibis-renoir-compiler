@@ -51,7 +51,7 @@ class TestCompiler(unittest.TestCase):
         except FileNotFoundError:
             pass
 
-    def init_benchmark_settings(self, perform_compilation: bool):
+    def init_benchmark_settings(self, perform_compilation: bool = False):
         self.run_after_gen = True
         self.render_query_graph = False
         self.perform_assertions = False
@@ -134,7 +134,7 @@ class TestCompiler(unittest.TestCase):
             self.tables[name] = con.create_table(
                 name, table.to_pandas(), overwrite=True)
             
-    async def run_evcxr(self, test_name: str):
+    async def run_evcxr(self, test_method):
         # preloading the tables in evcxr
         proc = await asyncio.subprocess.create_subprocess_exec(
             "evcxr", stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE
@@ -156,7 +156,6 @@ class TestCompiler(unittest.TestCase):
 
 
         # performing the actual timed query
-        test_method = getattr(self, test_name)
         start_time = time.perf_counter()
         # test_method only compiles to main_evcxr.rs, then we run it in evcxr
         memo = memory_usage((test_method,), include_children=True)

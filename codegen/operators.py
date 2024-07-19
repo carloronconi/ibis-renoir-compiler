@@ -800,7 +800,7 @@ class BotOperator(Operator):
                     bot += f"{name}: k.{i}.clone(),"
             bot += f"}}, v)).drop_key().write_csv_one(\"{out_path}\", true);"
 
-        bot_file = utl.ROOT_DIR + "/noir-template/main_bot.rs"
+        bot_file = utl.ROOT_DIR + "/noir_template/main_bot.rs"
         with open(bot_file) as f:
             bot += f.read()
         return bot

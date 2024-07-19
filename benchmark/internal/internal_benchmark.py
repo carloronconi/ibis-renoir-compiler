@@ -1,5 +1,7 @@
 import asyncio
 import multiprocessing.connection
+
+import ibis
 import benchmark.discover.load_tests as bench
 import test
 import argparse
@@ -19,7 +21,7 @@ COMMA_ESCAPE = " COMMA_ESCAPE "
 
 def main():
     parser = argparse.ArgumentParser("ibis-renoir-compiler")
-    parser.add_argument("--test_patterns",
+    parser.add_argument("--test-patterns",
                         help="Pattern to select which tests to run among those discoverable by unittest. By default all are included",
                         default=[""], type=str, nargs='+')
     parser.add_argument("--runs",
@@ -28,34 +30,39 @@ def main():
     parser.add_argument("--warmup",
                         help="Number of warmup runs to perform for each test. Defaults to 1",
                         type=int, default=1)
-    parser.add_argument("--path_suffix",
+    parser.add_argument("--path-suffix",
                         help="Suffix for test files used by test_case. Useful for having same file with growing sizes.",
                         default="", type=str)
     parser.add_argument("--backends",
                         help="List of backends to use among duckdb, flink, polars, renoir, postgres. Defaults to all.",
                         type=str, nargs='+', default=["duckdb", "flink", "polars", "postgres", "renoir"])
-    parser.add_argument("--table_origin",
+    parser.add_argument("--table-origin",
                         help="Instead of running the query starting from the csv load, read it directly from backend table. \
                               No need to perform load as instrumented run can load before running without affecting the measured data",
-                        type=str, nargs='+', choices=["csv", "cached"],  default="csv")
+                        type=str, nargs='+', choices=["file", "db"],  default="file")
+    parser.add_argument("--data-destination",
+                        help="Where to store the data. Defaults to none",
+                        type=str, nargs='+', choices=["none", "file", "db"],  default="none")
     parser.add_argument("--dir",
                         help="Where to store the log file. Defaults to directory from timestamp.",
                         type=str, default=datetime.now().strftime("%Y-%m-%d_%H:%M:%S"))
     args = parser.parse_args()
+    run_benchmark_with_args(args)
 
+
+def run_benchmark_with_args(args):
     tests_full = [t for t in bench.main() if any(
         pat in t for pat in args.test_patterns)]
     tests_split: list[tuple] = [t.rsplit(".", 1) for t in tests_full]
 
     for test_class, test_case in tests_split:
         for backend in args.backends:
-            for table_origin in args.table_origin:
-                main, worker = multiprocessing.Pipe(duplex=True)
-                p = multiprocessing.Process(target=child_workload, args=(
-                    worker, test_class, test_case, backend, table_origin, args.path_suffix, args.runs, args.warmup, args.dir))
-                p.start()
-                count = args.warmup + args.runs
-                allow_runs(count, p, main, test_case, backend, table_origin, args.dir)
+            main, worker = multiprocessing.Pipe(duplex=True)
+            p = multiprocessing.Process(target=child_workload, args=(
+                worker, test_class, test_case, backend, args.table_origin, args.data_destination, args.path_suffix, args.runs, args.warmup, args.dir))
+            p.start()
+            count = args.warmup + args.runs
+            allow_runs(count, p, main, test_case, backend, args.data_destination, args.dir)
 
 
 def allow_runs(count: int, p: multiprocessing.Process, conn: multiprocessing.connection.Connection, test_case: str, backend: str, table_origin: str, dir: str):
@@ -83,7 +90,7 @@ def allow_runs(count: int, p: multiprocessing.Process, conn: multiprocessing.con
         print("success: " + message)
 
 
-def child_workload(pipe: multiprocessing.connection.Connection, test_class: str, test_case: str, backend: str, table_origin: str, path_suffix: str, runs: int, warmup: int, dir: str):
+def child_workload(pipe: multiprocessing.connection.Connection, test_class: str, test_case: str, backend: str, table_origin: str, data_destination: str, path_suffix: str, runs: int, warmup: int, dir: str):
     try:
         test_instance: test.TestCompiler = eval(
             f"{test_class}(\"{test_case}\")")
@@ -94,7 +101,7 @@ def child_workload(pipe: multiprocessing.connection.Connection, test_class: str,
         # in case the backend is renoir, we leave the default duckdb backend to read the tables to create the AST
         # otherwise, we load the tables with the desired one
         test_instance.set_backend(
-            backend, cached=(table_origin == "cached"))
+            backend, cached=(table_origin == "db"))
 
         test_instance.init_benchmark_settings(
             perform_compilation=(backend == "renoir"))
@@ -104,7 +111,7 @@ def child_workload(pipe: multiprocessing.connection.Connection, test_class: str,
 
         # if table origin is cached, we need to pre-load the tables in the backends before submitting the queries
         # otherwise, we measure the time of both loading the table and running the query
-        if table_origin == "cached":
+        if table_origin == "db":
             test_instance.preload_tables(backend)
 
         for i in range(warmup + runs):
@@ -112,7 +119,7 @@ def child_workload(pipe: multiprocessing.connection.Connection, test_class: str,
             # wait for permission from main thread
             # which starts counting down before sending the message so it can kill this process in case it hangs
             pipe.recv()
-            message = run_once(test_case, test_instance, count, backend, table_origin)
+            message = run_once(test_case, test_instance, count, backend, table_origin, data_destination)
             # telling the main thread not to kill this process
             pipe.send((True, message))
     except Exception as e:
@@ -122,11 +129,14 @@ def child_workload(pipe: multiprocessing.connection.Connection, test_class: str,
         pipe.send((False, trace))
 
 
-def run_once(test_case: str, test_instance: test.TestCompiler, run_count: int, backend: str, table_origin: str) -> str:
+def run_once(test_case: str, test_instance: test.TestCompiler, run_count: int, backend: str, table_origin: str, data_destination: str) -> str:
     test_instance.benchmark.run_count = run_count
     test_instance.benchmark.backend_name = backend
 
-    if backend == "renoir" and table_origin == "cached":
+    # if backend is renoir, we pass here the data destination to tell it to compile the print-to-csv (or the future store-to-db) part
+    test_instance.print_output_to_file = (data_destination == "file")
+
+    if backend == "renoir" and table_origin == "db":
         memo, total_time = run_async_from_sync(test_instance.run_evcxr(test_case))
     else:
         test_method = getattr(test_instance, test_case)
@@ -134,7 +144,18 @@ def run_once(test_case: str, test_instance: test.TestCompiler, run_count: int, b
         memo = memory_usage((test_method,), include_children=True)
         # If the backend is renoir, we have already performed the compilation to renoir code and ran it after this line
         if backend != "renoir":
-            memo = memory_usage((test_instance.query.execute,), include_children=True)
+            if data_destination == "none":
+                memo = memory_usage((test_instance.query.execute,), include_children=True)
+            elif data_destination == "file":
+                con = ibis.get_backend()
+                memo, result = memory_usage((test_instance.query.execute,), include_children=True, retval=True)
+                # create a string with the result and store it
+                result = result.to_csv()
+                with open("./out/ibis-backend-result.csv", "w") as file:
+                    file.write(result)
+            else:
+                # data destination == "db"
+                pass
         end_time = time.perf_counter()
         total_time = end_time - start_time
     test_instance.benchmark.total_time_s = total_time
