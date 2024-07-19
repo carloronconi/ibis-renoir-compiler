@@ -150,6 +150,26 @@ class Scenario1(Scenario):
         return backend.perform_measure_to_file()
     
 
+class Scenario2(Scenario):
+    # Incremental view update
+    # - table_origin: preload view and add data incrementally
+    # - data_destination: view is updated
+    def __init__(self, pipe):
+        self.test_patterns = ["test_nexmark"]
+        self.backend_names = ["risingwave", "spark"]
+        super().__init__(pipe)
+
+    def perform_setup(self, backend: bb.BackendBenchmark):
+        super().perform_setup(backend)
+        # only default setup is required, as loading from file means we don't need to 
+        # preload the tables into the backend
+        backend.create_view()
+
+    def perform_measure(self, backend: bb.BackendBenchmark) -> tuple[float, float]:
+        # special to_file measure is used
+        return backend.perform_measure_to_view()
+    
+
 class Scenario3(Scenario):
     # Interactive data exploration
     # - table_origin: preload table and perform computationally intensive query

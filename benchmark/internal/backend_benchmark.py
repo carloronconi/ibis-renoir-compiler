@@ -1,5 +1,6 @@
 import time
 
+import ibis.backends
 import pandas as pd
 import test
 import ibis
@@ -189,3 +190,13 @@ class RisingwaveBenchmark(BackendBenchmark):
         
     def preload_cached_query(self):
         return super().preload_cached_query_without_csv()
+    
+    def create_view(self):
+        con = ibis.get_backend()
+        # create the query's AST already, to place it in the view
+        self.test_method()
+        con.create_materialized_view("mat_view", self.test_instance.query, overwrite=True)
+
+    def perform_measure_to_view():
+        pass
+
