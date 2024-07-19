@@ -99,7 +99,7 @@ class Scenario:
                         
                         test_class, test_case = test_full.rsplit(".", 1)
                         self.test_instance: test.TestCompiler = eval(f"{test_class}(\"{test_case}\")")
-                        self.test_instance.benchmark = bm.Benchmark(test_case, dir)
+                        self.test_instance.benchmark = bm.Benchmark(test_case, self.dir)
                         self.test_instance.benchmark.run_count = run_id
                         test_method = getattr(self.test_instance, test_case)
 
