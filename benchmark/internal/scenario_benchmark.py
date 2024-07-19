@@ -53,7 +53,7 @@ def police_benchmark(proc: mp.Process, con: tuple[con.Connection, con.Connection
         if success:
             message = f"success: {curr_test} with {curr_backend} in {curr_scenario}"
         else:
-            message = f"exception: {curr_test} with {curr_backend} in {curr_scenario} -\ttrace: {exception[:50]}"
+            message = f"exception: {curr_test} with {curr_backend} in {curr_scenario} - trace: {exception[-50:]}"
         print(message)
         # same behavior for success or failure: the process itself will skip to next backend
             
@@ -142,6 +142,8 @@ class Scenario:
 
 class Scenario1(Scenario):
     # Preprocessing
+    # Unstructured data from external environment (e.g. MQTT, sensors) represented by files
+    # is cleaned and restructured, before being stored back in files
     # - table_origin: read from file
     # - data_destination: write to file
     def __init__(self, pipe):

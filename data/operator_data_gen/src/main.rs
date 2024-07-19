@@ -45,7 +45,7 @@ fn main() -> eyre::Result<()> {
                     .enumerate()
                     .map(|(i, c)| 
                         match c {
-                            'i' => format!("int{}", i),
+                            'i' | 'I' => format!("int{}", i),
                             's' => format!("string{}", i),
                             _ => panic!("Invalid type character"),
                         })
@@ -69,7 +69,18 @@ fn main() -> eyre::Result<()> {
             let row = type_.chars()
                 .map(|c| 
                     match c {
-                        'i' => rng_loop.gen_range(0..range).to_string(),
+                        'i' => {
+                            rng_loop.gen_range(0..range).to_string()
+                        },
+                        'I' => {
+                            // interpret I type as nullable int: 0s are turned to blanks
+                            let value = rng_loop.gen_range(0..range);
+                            if value == 0 {
+                                "".to_owned()
+                            } else {
+                                value.to_string()
+                            }
+                        },
                         's' => {
                             // randomly select one of the pre-generated strings
                             let index = rng_loop.gen_range(0..unique_strings.len());
