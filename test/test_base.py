@@ -140,7 +140,7 @@ class TestCompiler(unittest.TestCase):
             "evcxr", stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE
         )
         # read the welcome message
-        print(await proc.stdout.readline())
+        await proc.stdout.readline()
         # load the imports and the table preloading function cache()
         with open(ROOT_DIR + "/noir_template/init.evcxr", 'r') as file:
             proc.stdin.write(file.read().encode())
@@ -150,9 +150,9 @@ class TestCompiler(unittest.TestCase):
         proc.stdin.write(b":vars\n")
         # wait for the output of :vars to ensure that the tables are loaded before continuing
         # there should be 2 tables in the cache plus an empty line
-        print((await proc.stdout.readline()).decode("utf-8"))
-        print((await proc.stdout.readline()).decode("utf-8"))
-        print((await proc.stdout.readline()).decode("utf-8"))
+        await proc.stdout.readline()
+        await proc.stdout.readline()
+        await proc.stdout.readline()
 
 
         # performing the actual timed query
@@ -162,20 +162,16 @@ class TestCompiler(unittest.TestCase):
         with open(ROOT_DIR + "/noir_template/src/main_evcxr.rs", 'r') as file:
             proc.stdin.write(file.read().encode())
 
-        # no output is shown for logic, even though it prints
-        # to ensure it ran, we write :version and wait for the output of 2 lines
-        proc.stdin.write(b":version\n")
-        print((await proc.stdout.readline()).decode("utf-8"))
-        print((await proc.stdout.readline()).decode("utf-8"))
-
+        # no output is visible, so we check for failures by detecting the new var "result"
+        # created if the process didn't panic, plus the additional newline
+        proc.stdin.write(b":vars\n")
+        success = "result: bool" in (await proc.stdout.readline()).decode("utf-8")
+        await proc.stdout.readline()
+        proc.stdin.write(b":quit\n")
         end_time = time.perf_counter()
 
-        proc.terminate()
-        # TODO: detect failure in evcxr and raise exception
-        # right now, because it's an interactive process, it doesn't simply terminate with error code, but instead
-        # when it fails it prints an error message and continues running
-        # could return Ok or Err from logic() and check what is printed to proc.stout
-
+        if not success:
+            raise Exception("Noir code panicked within evcxr!")
         return memo, end_time - start_time
 
     def create_files_no_headers(self) -> dict[str, str]:

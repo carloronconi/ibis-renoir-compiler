@@ -756,7 +756,7 @@ class TopOperator(Operator):
             top += "\nfn logic("
             for st in Struct.cached_tables_structs:
                 top += f"{st.name_short}: StreamCache<{st.name_struct}>, "
-            top += ") {\n"
+            top += ") -> bool {\n"
         return top
 
 
@@ -777,7 +777,7 @@ class BotOperator(Operator):
             with open(bot_file) as f:
                 bot += f.read()
             if self.renoir_cached:
-                bot += f"\nlogic("
+                bot += f"\nlet result = logic("
                 for st in Struct.cached_tables_structs:
                     bot += f"{st.name_short}, "
                 bot += ");\n"

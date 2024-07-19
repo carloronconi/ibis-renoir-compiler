@@ -137,7 +137,7 @@ class Scenario1(Scenario):
     def __init__(self, pipe):
         self.test_patterns = ["test_nexmark_query_1"]
         # TODO: missing postgres and risingwave because no direct read from file
-        self.backend_names = ["flink"]
+        self.backend_names = ["duckdb", "flink", "renoir"]
         super().__init__(pipe)
 
     def perform_setup(self, backend: bb.BackendBenchmark):
