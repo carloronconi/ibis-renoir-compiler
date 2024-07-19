@@ -59,7 +59,7 @@ def police_benchmark(proc: mp.Process, con: tuple[con.Connection, con.Connection
             
 
 def execute_benchmark(pipe: con.Connection, failed_scenario: str = None, failed_test: str = None, failed_backend: str = None):
-    scenarios = [s for s in Scenario.__subclasses__() if "" in s.__name__]
+    scenarios = [s for s in Scenario.__subclasses__() if "1" in s.__name__]
     if failed_scenario:
         # run the failed scenario with special parameters to make it skip already performed tests
         # and then run the rest of the scenarios anyway
@@ -147,7 +147,7 @@ class Scenario1(Scenario):
     # - table_origin: read from file
     # - data_destination: write to file
     def __init__(self, pipe):
-        self.test_patterns = ["test_nexmark_query_1"]
+        self.test_patterns = ["test_scenarios_preprocess"]
         # TODO: missing postgres and risingwave because no direct read from file
         self.backend_names = ["duckdb", "flink", "renoir"]
         super().__init__(pipe)
