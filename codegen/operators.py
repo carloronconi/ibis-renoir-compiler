@@ -125,12 +125,17 @@ class FilterOperator(Operator):
         equalses = list(filter(is_equals_col_lit_or_col_col, node.__children__))
         log_bins = list(filter((lambda c: isinstance(c, ops.logical.LogicalBinary) and any(
             is_equals_col_lit_or_col_col(cc) for cc in c.__children__)), node.__children__))
+        log_uns = list(filter((lambda c: isinstance(c, ops.NotNull) and any(
+            isinstance(cc, ops.TableColumn) for cc in c.__children__)), node.__children__))
 
         for eq in equalses:
             cls(eq)
 
         for lb in log_bins:
             cls(lb)
+
+        for lu in log_uns:
+            cls(lu)
 
 
 class MapOperator(Operator):
@@ -918,4 +923,6 @@ def operator_arg_stringify(operand: Node, struct_name=None, window_resolve=None)
         # it just created, which is second to last (last is new col added by MapOperator)
         # since python 3.7, dict maintains insertion order
         return f"{struct_name}.{Struct.last().columns[-2]}"
+    elif isinstance(operand, ops.NotNull):
+        return f"{operator_arg_stringify(operand.__children__[0], struct_name, window_resolve)}.is_some()"
     raise Exception(f"Unsupported operand type: {operand}")

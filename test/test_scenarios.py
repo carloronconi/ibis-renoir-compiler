@@ -7,10 +7,8 @@ class TestScenarios(TestNullableOperators):
     def test_scenarios_preprocess_1_dropna(self):
         table = self.tables["ints_strings"]
         self.query = (table
-                      .filter(table.int4.isnull().__invert__()))
+                      .filter(table.int4.notnull()))
 
-        # TODO: check why renoir seems to be unaffected and even write deleted values!
-        # I think flink has to do with it when it writes the file without headers
         if self.perform_compilation:
             compile_ibis_to_noir([(self.files["ints_strings"], self.tables["ints_strings"])],
                                  self.query, self.run_after_gen, self.print_output_to_file, True, self.benchmark)
