@@ -153,13 +153,13 @@ class FlinkBenchmark(BackendBenchmark):
         string_class = gateway.jvm.String
         string_array = gateway.new_array(string_class, 0)
         stream_env = gateway.jvm.org.apache.flink.streaming.api.environment.StreamExecutionEnvironment
-        j_stream_exection_environment = stream_env.createRemoteEnvironment(
+        j_stream_execution_environment = stream_env.createRemoteEnvironment(
             "localhost", 
             8081, 
             string_array)
 
         table_env = StreamTableEnvironment.create(
-            StreamExecutionEnvironment(j_stream_exection_environment),
+            StreamExecutionEnvironment(j_stream_execution_environment),
             EnvironmentSettings.in_streaming_mode())
 
         con = ibis.flink.connect(table_env)
