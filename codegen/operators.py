@@ -108,13 +108,13 @@ class FilterOperator(Operator):
     @classmethod
     def recognize(cls, node: Node):
 
-        def is_equals_col_lit_or_col_col(node: Node) -> bool:
+        def is_equals_collit_or_colcol_or_binlit(node: Node) -> bool:
             if not (isinstance(node, ops.logical.Comparison) and len(node.__children__) == 2):
                 return False
             left, right = node.__children__[0], node.__children__[1]
-            if isinstance(left, ops.TableColumn) and isinstance(right, ops.Literal):
+            if (isinstance(left, ops.TableColumn) or isinstance(left, ops.NumericBinary)) and isinstance(right, ops.Literal):
                 return True
-            if isinstance(left, ops.Literal) and isinstance(right, ops.TableColumn):
+            if isinstance(left, ops.Literal) and (isinstance(right, ops.TableColumn) or isinstance(right, ops.NumericBinary)):
                 return True
             if isinstance(left, ops.TableColumn) and isinstance(right, ops.TableColumn):
                 return True
@@ -122,9 +122,9 @@ class FilterOperator(Operator):
 
         if not (isinstance(node, ops.Selection) or isinstance(node, ops.Aggregation)):
             return
-        equalses = list(filter(is_equals_col_lit_or_col_col, node.__children__))
+        equalses = list(filter(is_equals_collit_or_colcol_or_binlit, node.__children__))
         log_bins = list(filter((lambda c: isinstance(c, ops.logical.LogicalBinary) and any(
-            is_equals_col_lit_or_col_col(cc) for cc in c.__children__)), node.__children__))
+            is_equals_collit_or_colcol_or_binlit(cc) for cc in c.__children__)), node.__children__))
         log_uns = list(filter((lambda c: isinstance(c, ops.NotNull) and any(
             isinstance(cc, ops.TableColumn) for cc in c.__children__)), node.__children__))
 
@@ -875,7 +875,7 @@ class WindowFuncGen:
 # if operand is table column, return its index in the original table
 # if resolve_optionals_to_some we're recursively resolving a binary operation and also need struct_name
 def operator_arg_stringify(operand: Node, struct_name=None, window_resolve=None) -> str:
-    math_ops = {"Multiply": "*", "Add": "+", "Subtract": "-", "Divide": "/"}
+    math_ops = {"Multiply": "*", "Add": "+", "Subtract": "-", "Divide": "/", "Modulus": "%"}
     comp_ops = {"Equals": "==", "Greater": ">",
                 "GreaterEqual": ">=", "Less": "<", "LessEqual": "<="}
     log_ops = {"And": "&", "Or": "|"}
@@ -911,7 +911,7 @@ def operator_arg_stringify(operand: Node, struct_name=None, window_resolve=None)
         right = operator_arg_stringify(
             operand.right, struct_name, window_resolve)
         return f"{left} {log_ops[type(operand).__name__]} {right}"
-    elif isinstance(operand, ops.numeric.NumericBinary):
+    elif isinstance(operand, ops.NumericBinary):
         # resolve recursively
 
         # for ibis, dividing two int64 results in a float64, but for noir it's still int64

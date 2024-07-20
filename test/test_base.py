@@ -51,6 +51,25 @@ class TestCompiler(unittest.TestCase):
         except FileNotFoundError:
             pass
 
+    def complete_test_tasks(self, tab_name: str = None):
+        # if tab_name defaults to None, selecting all tables
+        if tab_name:
+            files_tabs = [(self.files[tab_name], self.tables[tab_name])]
+        else:
+            files_tabs = [(self.files[k], self.tables[k]) for k in self.files.keys()]
+
+        if self.perform_compilation:
+            compile_ibis_to_noir(files_tabs,
+                                 self.query, 
+                                 self.run_after_gen, 
+                                 self.print_output_to_file, 
+                                 self.render_query_graph, 
+                                 self.benchmark)
+
+        if self.perform_assertions:
+            self.assert_similarity_noir_output()
+            self.assert_equality_noir_source()
+
     def init_benchmark_settings(self, perform_compilation: bool = False):
         self.run_after_gen = True
         self.render_query_graph = False
