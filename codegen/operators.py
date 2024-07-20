@@ -690,6 +690,35 @@ class ImplicitWindowOperator(WindowOperator):
             hasattr(window_func.frame, "start")
                 and window_func.frame.start is None):
             return cls(node)
+        
+
+class CoalesceOperator(Operator):
+    def __init__(self, node: ops.Coalesce):
+        self.col = [c for c in node.__children__ if isinstance(c, ops.TableColumn)][0]
+        self.lit = [c for c in node.__children__ if isinstance(c, ops.Literal)][0]
+        super().__init__()
+
+    def generate(self) -> str:
+            # .map(|x| {
+            #        Struct_var_0 {
+            #            int4: Some(x.int4.unwrap_or(0)),
+            #            ..x
+            #        }
+            #    })
+
+        prev_struct = Struct.last()
+        
+        mid = (f".map(|x| {{{prev_struct.name_struct}{{\n"
+               f"{self.col.name}: Some(x.{self.col.name}.unwrap_or({self.lit.value})),\n"
+               "..x\n}})")
+        return mid
+
+    @classmethod
+    def recognize(cls, node: Node):
+        if (isinstance(node, ops.Coalesce) and
+            any(isinstance(c, ops.TableColumn) for c in node.__children__) and
+            any(isinstance(c, ops.Literal) for c in node.__children__)):
+            return cls(node)
 
 
 class DatabaseOperator(Operator):
