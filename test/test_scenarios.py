@@ -25,5 +25,11 @@ class TestScenarios(TestNullableOperators):
 
         self.complete_test_tasks("ints_strings")
 
-    # def test_scenarios_preprocess_4_group_agg_sum(self):
-    #     self.test_nullable_filter_group_select()
+    def test_scenarios_preprocess_4_group_agg(self):
+        self.query = (self.tables["ints_strings"]
+                      .filter(_.string1.contains("a"))
+                      .group_by("string1")
+                      .aggregate(int1_agg=_["int1"].sum())
+                      .select(["int1_agg"]))
+        
+        self.complete_test_tasks("ints_strings")

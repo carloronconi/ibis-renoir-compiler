@@ -123,19 +123,20 @@ class FilterOperator(Operator):
         if not (isinstance(node, ops.Selection) or isinstance(node, ops.Aggregation)):
             return
         equalses = list(filter(is_equals_collit_or_colcol_or_binlit, node.__children__))
-        log_bins = list(filter((lambda c: isinstance(c, ops.logical.LogicalBinary) and any(
+        log_bins = list(filter((lambda c: isinstance(c, ops.LogicalBinary) and any(
             is_equals_collit_or_colcol_or_binlit(cc) for cc in c.__children__)), node.__children__))
         log_uns = list(filter((lambda c: isinstance(c, ops.NotNull) and any(
             isinstance(cc, ops.TableColumn) for cc in c.__children__)), node.__children__))
+        str_cont = list(filter((lambda c: isinstance(c, ops.StringContains) and len(c.__children__) == 2), node.__children__))
 
         for eq in equalses:
             cls(eq)
-
         for lb in log_bins:
             cls(lb)
-
         for lu in log_uns:
             cls(lu)
+        for sc in str_cont:
+            cls(sc)
 
 
 class MapOperator(Operator):
@@ -954,4 +955,13 @@ def operator_arg_stringify(operand: Node, struct_name=None, window_resolve=None)
         return f"{struct_name}.{Struct.last().columns[-2]}"
     elif isinstance(operand, ops.NotNull):
         return f"{operator_arg_stringify(operand.__children__[0], struct_name, window_resolve)}.is_some()"
+    elif isinstance(operand, ops.StringContains):
+        haystack = operator_arg_stringify(
+            operand.haystack, struct_name, window_resolve)
+        needle = operator_arg_stringify(
+            operand.needle, struct_name, window_resolve)
+        if not operand.haystack.dtype.nullable: 
+            return f"{haystack}.contains({needle})"
+        else:
+            return f"{haystack}.clone().is_some_and(|x| x.contains({needle}))"
     raise Exception(f"Unsupported operand type: {operand}")

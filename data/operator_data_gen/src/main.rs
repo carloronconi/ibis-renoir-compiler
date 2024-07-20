@@ -56,25 +56,39 @@ fn main() -> eyre::Result<()> {
         let seed = [0; 32];
         let mut rng_loop = StdRng::from_seed(seed);
         let mut rng_string = StdRng::from_seed(seed);
-        let range = args.size / 10;
+        let range = args.size / 4;
 
         // generate `range` unique strings
         let mut unique_strings = Vec::new();
         for _ in 0..range {
-            let unique_str: String = (&mut rng_string).sample_iter(&Alphanumeric).take(10).map(char::from).collect();
+            let unique_str: String = (&mut rng_string)
+                .sample_iter(&Alphanumeric).take(10)
+                .map(char::from)
+                .collect::<String>()
+                .to_lowercase();
             unique_strings.push(unique_str);
+        }
+
+        // generate `range` unique ints
+        let mut unique_ints = Vec::new();
+        // always have 0 as one of the ints
+        unique_ints.push(0);
+        for _ in 1..range {
+            let unique_int = rng_loop.gen_range(1..MAX);
+            unique_ints.push(unique_int);
         }
 
         for _ in 0..args.size {
             let row = type_.chars()
-                .map(|c| 
+                .map(|c|{ 
+                    let index = rng_loop.gen_range(0..range);
                     match c {
                         'i' => {
-                            rng_loop.gen_range(0..range).to_string()
+                            unique_ints[index].to_string()
                         },
                         'I' => {
                             // interpret I type as nullable int: 0s are turned to blanks
-                            let value = rng_loop.gen_range(0..range);
+                            let value = unique_ints[index];
                             if value == 0 {
                                 "".to_owned()
                             } else {
@@ -83,11 +97,10 @@ fn main() -> eyre::Result<()> {
                         },
                         's' => {
                             // randomly select one of the pre-generated strings
-                            let index = rng_loop.gen_range(0..unique_strings.len());
                             unique_strings[index].clone()
                         },
                         _ => panic!("Invalid type character"),
-                    })
+                    }})
                 .collect::<Vec<String>>();
             writeln!(writer, "{}", row.join(","))?;
         }
