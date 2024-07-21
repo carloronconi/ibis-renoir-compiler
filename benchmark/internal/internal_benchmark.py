@@ -170,7 +170,7 @@ def run_async_from_sync(coro):
     try:
         loop = asyncio.get_running_loop()
     except RuntimeError:
-        loop = asyncio.new_event_loop()
+        loop = asyncio.get_event_loop()
     finally:
         return loop.run_until_complete(coro)
 
