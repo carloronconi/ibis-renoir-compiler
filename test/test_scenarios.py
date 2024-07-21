@@ -39,8 +39,16 @@ class TestScenarios(TestNullableOperators):
                       .select(["int1_agg"]))
         self.complete_test_tasks("ints_strings")
 
-    def test_scenarios_analytics_1_inner_join(self):
+    def test_scenarios_analytics_1_group_mean(self):
         # ints_strings is already pre-aggregated: group_by string1, aggregate int4.sum(), int1.max()
+        # group and aggregate on int1, which was pre-aggregated by previous step
+        self.query = (self.tables["ints_strings"]
+                      .group_by("int1")
+                      .aggregate(int4_agg=_["int4"].mean())
+                      .select(["int4_agg"]))
+        self.complete_test_tasks("ints_strings")
+
+    def test_scenarios_analytics_2_inner_join(self):
         # join with many_ints on int1 filtered by int3 not null
         # un-optimizable filter based on field from either table
         table1 = self.tables["ints_strings"]
@@ -49,6 +57,6 @@ class TestScenarios(TestNullableOperators):
                       .filter(_.int3.notnull())
                       .join(table1, "int1")
                       .filter((_.int4 + _.int3) % 2 == 0)
-                      .select(["int4", "int3"])
-                      )
+                      .select(["int4", "int3"]))
         self.complete_test_tasks()
+    
