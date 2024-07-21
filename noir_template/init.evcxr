@@ -2,5 +2,5 @@
 :dep csv = { version = "1.3.0" }
 :dep openssl = { version = "0.10.64", features = ["vendored"] }
 // leave renoir last so there are no issues with openssl on which it depends
-// also pin exact commit on dev branch
-:dep renoir = { git = "https://github.com/deib-polimi/renoir"}
+// also pin exact commit to avoid recompiling and have reproducibility
+:dep renoir = { git = "https://github.com/deib-polimi/renoir", rev = "a4736ca" }

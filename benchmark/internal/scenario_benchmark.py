@@ -59,7 +59,7 @@ def police_benchmark(proc: mp.Process, con: tuple[con.Connection, con.Connection
             
 
 def execute_benchmark(pipe: con.Connection, failed_scenario: str = None, failed_test: str = None, failed_backend: str = None):
-    scenarios = [s for s in Scenario.__subclasses__() if "1" in s.__name__]
+    scenarios = [s for s in Scenario.__subclasses__() if "3" in s.__name__]
     if failed_scenario:
         # run the failed scenario with special parameters to make it skip already performed tests
         # and then run the rest of the scenarios anyway
@@ -164,11 +164,15 @@ class Scenario1(Scenario):
 
 class Scenario3(Scenario):
     # Interactive data exploration
+    # Exploratory analytics, performing successive queries on the same data, simulated
+    # by preloading the data into the backend and performing a first un-timed query that
+    # is stored in the backend, and then performing a second timed query over that
     # - table_origin: preload table and perform computationally intensive query
     # - data_destination: none
     def __init__(self, pipe):
-        self.test_patterns = ["test_nullable_filter_filter_select_select"]
-        self.backend_names = ["duckdb", "polars", "risingwave", "renoir"]
+        self.test_patterns = ["test_scenarios_analytics"]
+        # self.backend_names = ["duckdb", "polars", "risingwave", "renoir"]
+        self.backend_names = ["duckdb", "renoir"]
         super().__init__(pipe)
 
     def perform_setup(self, backend: bb.BackendBenchmark):
