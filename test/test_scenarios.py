@@ -51,5 +51,4 @@ class TestScenarios(TestNullableOperators):
                       .filter((_.int4 + _.int3) % 2 == 0)
                       .select(["int4", "int3"])
                       )
-        self.render_query_graph = True
         self.complete_test_tasks()

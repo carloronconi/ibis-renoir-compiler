@@ -171,8 +171,7 @@ class Scenario3(Scenario):
     # - data_destination: none
     def __init__(self, pipe):
         self.test_patterns = ["test_scenarios_analytics"]
-        # self.backend_names = ["duckdb", "polars", "risingwave", "renoir"]
-        self.backend_names = ["duckdb", "renoir"]
+        self.backend_names = ["duckdb", "polars", "risingwave", "renoir"]
         super().__init__(pipe)
 
     def perform_setup(self, backend: bb.BackendBenchmark):

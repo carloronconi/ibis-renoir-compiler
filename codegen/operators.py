@@ -350,22 +350,15 @@ class JoinOperator(Operator):
         # we can write from the ".join" onwards, and the var on which we call "join" has already
         # been created by the previous operator
         # so here we take the structs inverted from what they should be
+        # TODO: fix requires also checking ordering of operators for previous ops
         right_struct = Struct.last_complete_transform
         left_struct = Struct.last()
 
         equals = self.join.predicates[0]
-        # equals isn't guaranteed to have left and right in correct position
-        # compared to structs
         left: ops.TableColumn = equals.left
         right: ops.TableColumn = equals.right
         left_col = operator_arg_stringify(left)
         right_col = operator_arg_stringify(right)
-        # TableColumns have an attribute .table with columns (Selection, DatabaseTable...)
-        # so to check if the l-r mapping is correct, we check if all the columns of the columnar nodes are 
-        # in the inverted structs, otherwise we swap them
-        if ((set(right_struct.columns) != set(left.table.schema.names)) or 
-            (set(left_struct.columns) != set(right.table.schema.names))):
-            left_col, right_col = right_col, left_col
         join_t = self.noir_types[type(self.join).__name__]
 
         Struct.with_keyed_stream = {equals.left.name: equals.left.dtype}
