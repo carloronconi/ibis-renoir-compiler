@@ -243,19 +243,21 @@ class GroupReduceOperator(Operator):
                      "First": "a.{0} = a.{0}"}
 
     def __init__(self, node: ops.Aggregation):
-        self.alias = next(
+        self.aliases = list(
             filter(lambda c: isinstance(c, ops.Alias), node.__children__))
-        self.reducer = self.alias.__children__[0]
+        self.reducers = [a.__children__[0] for a in self.aliases]
         self.bys = node.by
         self.node = node
         super().__init__()
 
     def generate(self) -> str:
         mid = ""
-        aggr_name = type(self.reducer).__name__
         bys = [operator_arg_stringify(by) for by in self.bys]
-        col = operator_arg_stringify(self.reducer.__children__[0])
-        is_reduced_col_nullable = Struct.last().is_col_nullable(col)
+        aggs = {type(r).__name__: r.__children__[0] for r in self.reducers}
+        is_agg_nullable = {n: Struct.last().is_col_nullable(c) if n != "Count" else True for n, c in aggs.items()}
+        # aggr_name = type(self.reducer).__name__
+        # col = operator_arg_stringify(self.reducer.__children__[0])
+        # is_reduced_col_nullable = Struct.last().is_col_nullable(col)
 
         # this group_by follows another, so drop_key is required
         if Struct.last().is_keyed_stream:
@@ -263,19 +265,19 @@ class GroupReduceOperator(Operator):
 
         # for Mean we use specific `.group_by_avg` method, to avoid needing to keep sum and count and
         # then divide them in the end and map to new struct
-        if aggr_name == "Mean":
+        if any(aggs.keys() == "Mean"):
             mid += ".group_by_avg(|x| ("
             for by in bys:
                 mid += f"x.{by}.clone(), "
             # remove last comma and space
             mid = mid[:-2]
             mid += "), |x| "
-            if is_reduced_col_nullable:
-                mid += f"x.{col}.unwrap_or(0) as f64)"
+            if is_agg_nullable["Mean"]:
+                mid += f"x.{aggs["Mean"]}.unwrap_or(0) as f64)"
             else:
-                mid += f"x.{col} as f64)"
+                mid += f"x.{aggs["Mean"]} as f64)"
 
-        # simple cases with only one accumulator required
+        # multiple accumulators supported for non-Mean aggregations
         else:
             mid += ".group_by(|x| ("
             for by in bys:
@@ -284,22 +286,35 @@ class GroupReduceOperator(Operator):
             mid = mid[:-2]
             mid += "))"
 
-            if is_reduced_col_nullable:
-                op = self.aggr_ops[aggr_name]
-                mid += f".reduce(|a, b| {{a.{col} = a.{col}.zip(b.{col}).map(|(x, y)| {op});}})"
-            else:
-                op = self.aggr_ops_form[aggr_name].format(col)
-                mid += f".reduce(|a, b| {op})"
+            mid += ".reduce(|a, b| {"
+            for aggr_name, col in aggs.items():
+                if is_agg_nullable[aggr_name]:
+                    op = self.aggr_ops[aggr_name]
+                    if aggr_name != "Count":
+                        mid += f"a.{col} = a.{col}.zip(b.{col}).map(|(x, y)| {op});\n"
+                    else:
+                        # TODO: no way to aggregate if a has no field to place count
+                        # follow same solution used for WindowOperator, where multiple
+                        # aggregators are supported, so the "Mean" operator can use same
+                        # approach as all others
+                        pass
+                else:
+                    op = self.aggr_ops_form[aggr_name].format(col)
+                    mid += op
+            mid += "})"
 
         bys_n_t = {b.name: b.dtype for b in self.bys}
-        aggr_col_name = self.node.schema.names[-1]
-        aggr_col_type = self.node.schema.types[-1]
+        aggr_count = len(aggs)
+        aggr_col_names = self.node.schema.names[-aggr_count:]
+        aggr_col_types = self.node.schema.types[-aggr_count:]
 
         Struct.with_keyed_stream = bys_n_t
         # new struct will contain the aggregated field plus the "by" fields also preserved by
         # the key of the keyed stream, kept in both to be able to drop_key if other group_by follows
         new_struct = Struct.from_args(
-            str(id(self.alias)), list(bys_n_t.keys()) + [aggr_col_name], list(bys_n_t.values()) + [aggr_col_type])
+            str(id(self.alias)), list(bys_n_t.keys()) + aggr_col_names, 
+            list(bys_n_t.values()) + aggr_col_types
+        )
 
         mid += f".map(|(k, x)| {new_struct.name_struct}{{"
         if len(bys_n_t) == 1:
