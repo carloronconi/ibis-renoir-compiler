@@ -75,10 +75,10 @@ def execute_benchmark(pipe: con.Connection, failed_scenario: str = None, failed_
 
 
 class Scenario:
-    runs = 1
+    runs = 5
     warmup = 1
-    path_suffix = "_10"
-    dir = "scenario/banana"
+    path_suffix = "_10000000"
+    dir = "scenario/10M_s1-s3-s4_sola1"
     timeout = 60 * 5 # 5 minutes
 
     def __init__(self, pipe: con.Connection):

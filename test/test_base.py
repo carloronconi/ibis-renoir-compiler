@@ -157,7 +157,7 @@ class TestCompiler(unittest.TestCase):
         # preloading the tables in evcxr ensuring the env var is set
         # to avoid re-compiling all dependencies
         proc = await asyncio.subprocess.create_subprocess_exec(
-            "export EVCXR_TMPDIR=\"/home/$USER/evcxr_temp/\" && evcxr", 
+            "./benchmark/evcxr.sh", 
             stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE
         )
         # read the welcome message
