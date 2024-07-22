@@ -120,3 +120,24 @@ class TestScenarios(TestNullableOperators):
                       .aggregate(gr_i1_sum_dem=_.gr_i1_demean.sum())
                       .mutate(gr_i1_TSS=_.gr_i1_sum_dem * _.gr_i1_sum_dem))
         self.complete_test_tasks("ints_strings")
+
+    def test_scenarios_exploration_4_group_mean(self):
+        # simple group-by and aggregate mean with two accumulators
+        self.query = (self.tables["ints_strings"]
+                      .group_by("string1")
+                      .aggregate(int4_agg=_["int4"].mean())
+                      .select(["int4_agg"]))
+        self.complete_test_tasks("ints_strings")
+
+    def test_scenarios_exploration_5_inner_join(self):
+        # filter both tables for not null values and join
+        # with un-optimizable filter based on field from either table
+        table1 = self.tables["ints_strings"]
+        table2 = self.tables["many_ints"]
+        self.query = (table2
+                      .filter(_.int3.notnull())
+                      .join(table1
+                            .filter(_.int4.notnull()), "int1")
+                      .filter((_.int4 + _.int3) % 2 == 0)
+                      .select(["int4", "int3"]))
+        self.complete_test_tasks()
