@@ -29,37 +29,42 @@ def police_benchmark(proc: mp.Process, con: tuple[con.Connection, con.Connection
         if request == "done_all":
             return
         pipe.send("permission_granted")
-        if not pipe.poll(timeout):
+        
+        success, exception = False, "timeout"
+        if pipe.poll(timeout):
+            success, exception = pipe.recv()
+        if not success:
+            # we kill the process both in case of exception and timeout
+            # we also do that in case of exception because when flink fails, exceptions are handled 
+            # badly and the JVM overflows https://github.com/py4j/py4j/issues/325
             # kill all the children of the current process so memory_profiler doesn't complain
             # we killed the process it was monitoring
             parent = psutil.Process(os.getpid())
             for child in parent.children(recursive=True):
                 os.kill(child.pid, SIGKILL)
-
-            # writing to log as process handilng the log was killed
-            logger = bm.Benchmark(curr_test.rsplit(".", 1)[1], Scenario.dir)
-            logger.backend_name = curr_backend
-            logger.scenario = curr_scenario
-            logger.run_count = 0
-            logger.exception = "timeout"
-            logger.log()
-            print(f"timeout: killed process with backend {curr_backend} and scenario {curr_scenario}")
+            if exception == "timeout":
+                # writing to log as process handilng the log was killed
+                logger = bm.Benchmark(curr_test.rsplit(".", 1)[1], Scenario.dir)
+                logger.backend_name = curr_backend
+                logger.scenario = curr_scenario
+                logger.run_count = 0
+                logger.exception = "timeout"
+                logger.log()
+                trace = ""
+            else:
+                trace = exception
+                exception = "exception"
+            print(f"{exception}: {curr_test} with {curr_backend} in {curr_scenario} - trace: {trace[-50:]}")
             # restart the process from same scenario, skipping to the next backend
             proc = mp.Process(target=execute_benchmark, args=(other, curr_scenario, curr_test, curr_backend))
             proc.start()
-            continue
-        success, exception = pipe.recv()
-        
-        if success:
-            message = f"success: {curr_test} with {curr_backend} in {curr_scenario}"
         else:
-            message = f"exception: {curr_test} with {curr_backend} in {curr_scenario} - trace: {exception[-50:]}"
-        print(message)
-        # same behavior for success or failure: the process itself will skip to next backend
+            message = f"success: {curr_test} with {curr_backend} in {curr_scenario}"
+            print(message)
             
 
 def execute_benchmark(pipe: con.Connection, failed_scenario: str = None, failed_test: str = None, failed_backend: str = None):
-    scenarios = [s for s in Scenario.__subclasses__() if "4" in s.__name__]
+    scenarios = [s for s in Scenario.__subclasses__() if "" in s.__name__]
     if failed_scenario:
         # run the failed scenario with special parameters to make it skip already performed tests
         # and then run the rest of the scenarios anyway
@@ -75,10 +80,10 @@ def execute_benchmark(pipe: con.Connection, failed_scenario: str = None, failed_
 
 
 class Scenario:
-    runs = 5
+    runs = 1
     warmup = 1
-    path_suffix = "_10000000"
-    dir = "scenario/10M_s1-s3-s4_sola1"
+    path_suffix = "_10"
+    dir = "scenario/banana3"
     timeout = 60 * 5 # 5 minutes
 
     def __init__(self, pipe: con.Connection):
@@ -127,6 +132,9 @@ class Scenario:
                     self.test_instance.benchmark.exception = trace
                     self.test_instance.benchmark.log()
                     self.pipe.send((False, trace))
+                    # because of the issues with the JVM when using flink, the process and its children
+                    # will be killed so we can return here instead of continuing with the next backend
+                    return
         self.pipe.recv()
         self.pipe.send(("done_scenario", None, None, None))
 
