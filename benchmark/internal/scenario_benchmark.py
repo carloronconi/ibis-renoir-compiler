@@ -59,7 +59,7 @@ def police_benchmark(proc: mp.Process, con: tuple[con.Connection, con.Connection
             
 
 def execute_benchmark(pipe: con.Connection, failed_scenario: str = None, failed_test: str = None, failed_backend: str = None):
-    scenarios = [s for s in Scenario.__subclasses__() if "3" in s.__name__]
+    scenarios = [s for s in Scenario.__subclasses__() if "4" in s.__name__]
     if failed_scenario:
         # run the failed scenario with special parameters to make it skip already performed tests
         # and then run the rest of the scenarios anyway
@@ -163,8 +163,8 @@ class Scenario1(Scenario):
     
 
 class Scenario3(Scenario):
-    # Interactive data exploration
-    # Exploratory analytics, performing successive queries on the same data, simulated
+    # Analytics
+    # Interactive data exploration, performing successive queries on the same data, simulated
     # by preloading the data into the backend and performing a first un-timed query that
     # is stored in the backend, and then performing a second timed query over that
     # - table_origin: preload table and perform computationally intensive query
@@ -183,11 +183,13 @@ class Scenario3(Scenario):
     
 
 class Scenario4(Scenario):
-    # File data exploration
+    # Exploration
+    # Direct data exploration, performing one-shot queries directly on the data, 
+    # without having it pre-loaded into a structured format
     # - table_origin: read from file
     # - data_destination: none
     def __init__(self, pipe):
-        self.test_patterns = ["test_nexmark_query_2"]
+        self.test_patterns = ["test_scenarios_exploration"]
         # TODO: missing risingwave because no direct read from file
         self.backend_names = ["duckdb", "polars", "flink", "renoir"]
         super().__init__(pipe)

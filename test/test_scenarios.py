@@ -4,6 +4,8 @@ from ibis import _
 
 class TestScenarios(TestNullableOperators):
 
+    # preprocess
+
     def test_scenarios_preprocess_1_dropna(self):
         table = self.tables["ints_strings"]
         self.query = (table
@@ -38,6 +40,8 @@ class TestScenarios(TestNullableOperators):
                       .aggregate(int1_agg=_["int1"].mean())
                       .select(["int1_agg"]))
         self.complete_test_tasks("ints_strings")
+
+    # analytics
 
     def test_scenarios_analytics_1_filter(self):
         # ints_strings is already pre-aggregated: group_by string1, aggregate int4.sum(), int1.max()
@@ -89,3 +93,30 @@ class TestScenarios(TestNullableOperators):
                       .mutate(gr_i3_mean=_.int3.mean())
                       .select(["int1", "gr_i3_mean"]))
         self.complete_test_tasks()
+
+    # exploration
+
+    def test_scenarios_exploration_1_filter(self):
+        # filter with complex condition on two columns
+        self.query = (self.tables["ints_strings"]
+                      .filter(((_.int1 - _.int4) % 3 > 0) & _.int4.notnull())
+                      .select("int1", "int4"))
+        self.complete_test_tasks("ints_strings")
+
+    def test_scenarios_exploration_2_mutate(self):
+        # mutate and filter
+        self.query = (self.tables["ints_strings"]
+                      .mutate(res=(_.int1 - _.int4) * 3)
+                      .filter(_.res % 2 == 0)
+                      .select(["res"]))
+        self.complete_test_tasks("ints_strings")
+
+    def test_scenarios_exploration_3_window_group(self):
+        # compute group TSS (total sum of squares) for int1
+        self.query = (self.tables["ints_strings"]
+                      .group_by("string1")
+                      .mutate(gr_i1_demean=_.int1 - _.int1.mean())
+                      .group_by("string1")
+                      .aggregate(gr_i1_sum_dem=_.gr_i1_demean.sum())
+                      .mutate(gr_i1_TSS=_.gr_i1_sum_dem * _.gr_i1_sum_dem))
+        self.complete_test_tasks("ints_strings")
