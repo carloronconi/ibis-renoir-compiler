@@ -78,14 +78,14 @@ class TestScenarios(TestNullableOperators):
                       .select(["res"]))
         self.complete_test_tasks()
 
-    # TODO: evcxr compile error
-    # def test_scenarios_analytics_5_window(self):
-    #     # outer join followed by window function aggregating 
-    #     table1 = self.tables["ints_strings"]
-    #     table2 = self.tables["many_ints"]
-    #     self.query = (table2
-    #                   .outer_join(table1, "int1")
-    #                   .group_by("int1")
-    #                   .mutate(gr_i4_demean=_.int4 - _.int4.mean(), gr_i3_mean=_.int3.mean())
-    #                   .select(["gr_i4_demean", "gr_i3_mean"]))
-    #     self.complete_test_tasks()
+    def test_scenarios_analytics_5_window(self):
+        # outer join followed by window function computing mean
+        # within the groups 
+        table1 = self.tables["ints_strings"]
+        table2 = self.tables["many_ints"]
+        self.query = (table2
+                      .outer_join(table1, "int1")
+                      .group_by("int1")
+                      .mutate(gr_i3_mean=_.int3.mean())
+                      .select(["int1", "gr_i3_mean"]))
+        self.complete_test_tasks()

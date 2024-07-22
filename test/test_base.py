@@ -154,9 +154,11 @@ class TestCompiler(unittest.TestCase):
                 name, table.to_pandas(), overwrite=True)
             
     async def run_evcxr(self, test_method):
-        # preloading the tables in evcxr
+        # preloading the tables in evcxr ensuring the env var is set
+        # to avoid re-compiling all dependencies
         proc = await asyncio.subprocess.create_subprocess_exec(
-            "evcxr", stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE
+            "export EVCXR_TMPDIR=\"/home/$USER/evcxr_temp/\" && evcxr", 
+            stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE
         )
         # read the welcome message
         await proc.stdout.readline()

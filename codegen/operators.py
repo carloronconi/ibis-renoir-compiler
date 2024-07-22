@@ -605,6 +605,8 @@ class ImplicitWindowOperator(WindowOperator):
 
         # generate .group_by if needed
         if (group_by := frame.group_by):
+            if Struct.last().is_keyed_stream:
+                text += ".drop_key()"
             by = group_by[0]
             col = operator_arg_stringify(by)
             text += f".group_by(|x| x.{col}.clone())"
