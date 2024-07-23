@@ -1,3 +1,4 @@
+import subprocess
 import time
 
 import pandas as pd
@@ -149,8 +150,11 @@ class FlinkBenchmark(BackendBenchmark):
     def __init__(self, test_instance: test.TestCompiler, test_method) -> None:
         super().__init__(test_instance, test_method)
         # connecting to a standalone flink cluster instead of the built-in one
+        # re-starting flink instance because in case of failures it doesn't recover
+        subprocess.run("./benchmark/stop_flink.sh > /dev/null", shell=True)
+        subprocess.run("./benchmark/start_flink.sh > /dev/null", shell=True)
         gateway = get_gateway()
-        string_class = gateway.jvm.String
+        string_class = gateway.jvm.java.lang.String
         string_array = gateway.new_array(string_class, 0)
         stream_env = gateway.jvm.org.apache.flink.streaming.api.environment.StreamExecutionEnvironment
         j_stream_execution_environment = stream_env.createRemoteEnvironment(
