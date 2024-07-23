@@ -11,6 +11,7 @@ from . import internal_benchmark as ib
 from pyflink.java_gateway import get_gateway
 from pyflink.datastream import StreamExecutionEnvironment
 from pyflink.table import EnvironmentSettings, StreamTableEnvironment
+from pyspark.sql import SparkSession
 
 
 class BackendBenchmark():
@@ -216,4 +217,14 @@ class RisingwaveBenchmark(BackendBenchmark):
 
     def perform_measure_to_view():
         pass
+
+
+class SparkBenchmark(BackendBenchmark):
+    name = "spark"
+
+    def __init__(self, test_instance: test.TestCompiler, test_method) -> None:
+        super().__init__(test_instance, test_method)
+        session = SparkSession.builder.getOrCreate()
+        con = ibis.pyspark.connect(session)
+        ibis.set_backend(con)
 
