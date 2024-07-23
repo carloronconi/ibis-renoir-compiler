@@ -51,6 +51,25 @@ class TestCompiler(unittest.TestCase):
         except FileNotFoundError:
             pass
 
+    def complete_test_tasks(self, tab_name: str = None):
+        # if tab_name defaults to None, selecting all tables
+        if tab_name:
+            files_tabs = [(self.files[tab_name], self.tables[tab_name])]
+        else:
+            files_tabs = [(self.files[k], self.tables[k]) for k in self.files.keys()]
+
+        if self.perform_compilation:
+            compile_ibis_to_noir(files_tabs,
+                                 self.query, 
+                                 self.run_after_gen, 
+                                 self.print_output_to_file, 
+                                 self.render_query_graph, 
+                                 self.benchmark)
+
+        if self.perform_assertions:
+            self.assert_similarity_noir_output()
+            self.assert_equality_noir_source()
+
     def init_benchmark_settings(self, perform_compilation: bool = False):
         self.run_after_gen = True
         self.render_query_graph = False
@@ -135,12 +154,14 @@ class TestCompiler(unittest.TestCase):
                 name, table.to_pandas(), overwrite=True)
             
     async def run_evcxr(self, test_method):
-        # preloading the tables in evcxr
+        # preloading the tables in evcxr ensuring the env var is set
+        # to avoid re-compiling all dependencies
         proc = await asyncio.subprocess.create_subprocess_exec(
-            "evcxr", stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE
+            "./benchmark/evcxr.sh", 
+            stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE
         )
         # read the welcome message
-        print(await proc.stdout.readline())
+        await proc.stdout.readline()
         # load the imports and the table preloading function cache()
         with open(ROOT_DIR + "/noir_template/init.evcxr", 'r') as file:
             proc.stdin.write(file.read().encode())
@@ -150,9 +171,9 @@ class TestCompiler(unittest.TestCase):
         proc.stdin.write(b":vars\n")
         # wait for the output of :vars to ensure that the tables are loaded before continuing
         # there should be 2 tables in the cache plus an empty line
-        print((await proc.stdout.readline()).decode("utf-8"))
-        print((await proc.stdout.readline()).decode("utf-8"))
-        print((await proc.stdout.readline()).decode("utf-8"))
+        await proc.stdout.readline()
+        await proc.stdout.readline()
+        await proc.stdout.readline()
 
 
         # performing the actual timed query
@@ -162,20 +183,16 @@ class TestCompiler(unittest.TestCase):
         with open(ROOT_DIR + "/noir_template/src/main_evcxr.rs", 'r') as file:
             proc.stdin.write(file.read().encode())
 
-        # no output is shown for logic, even though it prints
-        # to ensure it ran, we write :version and wait for the output of 2 lines
-        proc.stdin.write(b":version\n")
-        print((await proc.stdout.readline()).decode("utf-8"))
-        print((await proc.stdout.readline()).decode("utf-8"))
-
+        # no output is visible, so we check for failures by detecting the new var "result"
+        # created if the process didn't panic, plus the additional newline
+        proc.stdin.write(b":vars\n")
+        success = "result: bool" in (await proc.stdout.readline()).decode("utf-8")
+        await proc.stdout.readline()
+        proc.stdin.write(b":quit\n")
         end_time = time.perf_counter()
 
-        proc.terminate()
-        # TODO: detect failure in evcxr and raise exception
-        # right now, because it's an interactive process, it doesn't simply terminate with error code, but instead
-        # when it fails it prints an error message and continues running
-        # could return Ok or Err from logic() and check what is printed to proc.stout
-
+        if not success:
+            raise Exception("Noir code panicked within evcxr!")
         return memo, end_time - start_time
 
     def create_files_no_headers(self) -> dict[str, str]:

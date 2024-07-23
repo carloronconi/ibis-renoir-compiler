@@ -29,26 +29,42 @@ def police_benchmark(proc: mp.Process, con: tuple[con.Connection, con.Connection
         if request == "done_all":
             return
         pipe.send("permission_granted")
-        if not pipe.poll(timeout):
-            
+        
+        success, exception = False, "timeout"
+        if pipe.poll(timeout):
+            success, exception = pipe.recv()
+        if not success:
+            # we kill the process both in case of exception and timeout
+            # we also do that in case of exception because when flink fails, exceptions are handled 
+            # badly and the JVM overflows https://github.com/py4j/py4j/issues/325
             # kill all the children of the current process so memory_profiler doesn't complain
             # we killed the process it was monitoring
             parent = psutil.Process(os.getpid())
             for child in parent.children(recursive=True):
                 os.kill(child.pid, SIGKILL)
-
-            print("timeout: killed process")
+            if exception == "timeout":
+                # writing to log as process handilng the log was killed
+                logger = bm.Benchmark(curr_test.rsplit(".", 1)[1], Scenario.dir)
+                logger.backend_name = curr_backend
+                logger.scenario = curr_scenario
+                logger.run_count = 0
+                logger.exception = "timeout"
+                logger.log()
+                trace = ""
+            else:
+                trace = exception
+                exception = "exception"
+            print(f"{exception}: {curr_test} with {curr_backend} in {curr_scenario} - trace: {trace[-50:]}")
             # restart the process from same scenario, skipping to the next backend
             proc = mp.Process(target=execute_benchmark, args=(other, curr_scenario, curr_test, curr_backend))
             proc.start()
-            continue
-        success, _ = pipe.recv()
-        print(success)
-        # same behavior for success or failure: the process itself will skip to next backend
+        else:
+            message = f"success: {curr_test} with {curr_backend} in {curr_scenario}"
+            print(message)
             
 
 def execute_benchmark(pipe: con.Connection, failed_scenario: str = None, failed_test: str = None, failed_backend: str = None):
-    scenarios = Scenario.__subclasses__()
+    scenarios = [s for s in Scenario.__subclasses__() if "" in s.__name__]
     if failed_scenario:
         # run the failed scenario with special parameters to make it skip already performed tests
         # and then run the rest of the scenarios anyway
@@ -66,8 +82,8 @@ def execute_benchmark(pipe: con.Connection, failed_scenario: str = None, failed_
 class Scenario:
     runs = 1
     warmup = 1
-    path_suffix = ""
-    dir = "scenario/banana"
+    path_suffix = "_10"
+    dir = "scenario/banana3"
     timeout = 60 * 5 # 5 minutes
 
     def __init__(self, pipe: con.Connection):
@@ -91,7 +107,6 @@ class Scenario:
                     continue
                 try:
                     for i in range(self.warmup + self.runs):
-                        print(f"Running {test_full} with {backend_name} at run {i}")
                         self.pipe.recv()
                         run_id = i - self.warmup if i >= self.warmup else -1
                         self.pipe.send(("permission_to_run", self.__class__.__name__, test_full, backend_name))
@@ -99,7 +114,7 @@ class Scenario:
                         
                         test_class, test_case = test_full.rsplit(".", 1)
                         self.test_instance: test.TestCompiler = eval(f"{test_class}(\"{test_case}\")")
-                        self.test_instance.benchmark = bm.Benchmark(test_case, dir)
+                        self.test_instance.benchmark = bm.Benchmark(test_case, self.dir)
                         self.test_instance.benchmark.run_count = run_id
                         test_method = getattr(self.test_instance, test_case)
 
@@ -111,12 +126,15 @@ class Scenario:
                         self.test_instance.benchmark.max_memory_MiB = memo
                         self.test_instance.benchmark.log()
                         
-                        self.pipe.send((True, ""))
+                        self.pipe.send((True, None))
                 except Exception as e:
                     trace = " ".join(traceback.format_exception(e)).replace(",", "COMMA_ESCAPE").replace("\n", "NEWLINE_ESCAPE")
                     self.test_instance.benchmark.exception = trace
                     self.test_instance.benchmark.log()
                     self.pipe.send((False, trace))
+                    # because of the issues with the JVM when using flink, the process and its children
+                    # will be killed so we can return here instead of continuing with the next backend
+                    return
         self.pipe.recv()
         self.pipe.send(("done_scenario", None, None, None))
 
@@ -132,10 +150,12 @@ class Scenario:
 
 class Scenario1(Scenario):
     # Preprocessing
+    # Unstructured data from external environment (e.g. MQTT, sensors) represented by files
+    # is cleaned and restructured, before being stored back in files
     # - table_origin: read from file
     # - data_destination: write to file
     def __init__(self, pipe):
-        self.test_patterns = ["test_nullable", "test_nexmark"]
+        self.test_patterns = ["test_scenarios_preprocess"]
         # TODO: missing postgres and risingwave because no direct read from file
         self.backend_names = ["duckdb", "flink", "renoir"]
         super().__init__(pipe)
@@ -149,7 +169,6 @@ class Scenario1(Scenario):
         # special to_file measure is used
         return backend.perform_measure_to_file()
     
-
 class Scenario2(Scenario):
     # Incremental view update
     # - table_origin: preload view and add data incrementally
@@ -171,11 +190,14 @@ class Scenario2(Scenario):
     
 
 class Scenario3(Scenario):
-    # Interactive data exploration
+    # Analytics
+    # Interactive data exploration, performing successive queries on the same data, simulated
+    # by preloading the data into the backend and performing a first un-timed query that
+    # is stored in the backend, and then performing a second timed query over that
     # - table_origin: preload table and perform computationally intensive query
     # - data_destination: none
     def __init__(self, pipe):
-        self.test_patterns = ["test_nullable"]
+        self.test_patterns = ["test_scenarios_analytics"]
         self.backend_names = ["duckdb", "polars", "risingwave", "renoir"]
         super().__init__(pipe)
 
@@ -188,12 +210,14 @@ class Scenario3(Scenario):
     
 
 class Scenario4(Scenario):
-    # File data exploration
+    # Exploration
+    # Direct data exploration, performing one-shot queries directly on the data, 
+    # without having it pre-loaded into a structured format
     # - table_origin: read from file
     # - data_destination: none
     def __init__(self, pipe):
-        self.test_patterns = ["test_nexmark_query_2"]
-        # TODO: missing postgres and risingwave because no direct read from file
+        self.test_patterns = ["test_scenarios_exploration"]
+        # TODO: missing risingwave because no direct read from file
         self.backend_names = ["duckdb", "polars", "flink", "renoir"]
         super().__init__(pipe)
 

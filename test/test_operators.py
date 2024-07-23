@@ -24,9 +24,32 @@ class TestNullableOperators(TestCompiler):
     def init_tables(self):
         backend = ibis.get_backend().name
         if backend == "flink":
+            # read_csv in ibis-flink actually calls _read_file which calls create_table, 
+            # which creates a regular table (not a view) representing the file
+            # using _read_file doesn't allow to specify tbl_properties, because it sets them
+            # internally:
+            # table_name = table_name or gen_name(f"read_{file_type}")
+            # tbl_properties = {
+            #     "connector": "filesystem",
+            #     "path": path,
+            #     "format": file_type, # set to ("csv")
+            # }
+            # 
+            # return self.create_table(
+            #     name=table_name,
+            #     schema=schema,
+            #     tbl_properties=tbl_properties,
+            # ) 
+            # but we want to be able to specify tbl_properties, to set 
+            # https://nightlies.apache.org/flink/flink-docs-release-1.14/docs/connectors/table/formats/csv/#how-to-create-a-table-with-csv-format
+            # 'csv.ignore-parse-errors' = 'true'
+            # otherwise, when passing csv with some missing values (schema is nullable!)
+            # flink throws an exception
+
             # flink requires to explicitly specify schema and doesn't support headers
             # we take care of headers when running benchmark, so that when we run the query
             # and it's loaded from file the same issue doesn't occur
+            con = ibis.get_backend()
             schemas = {"ints_strings":  ibis.schema({"int1": ibis.dtype("int64"),
                                                      "string1": ibis.dtype("string"),
                                                      "int4": ibis.dtype("int64")}),
@@ -34,8 +57,15 @@ class TestNullableOperators(TestCompiler):
                                                      "int2": ibis.dtype("int64"),
                                                      "int3": ibis.dtype("int64")})}
             no_header_files = self.create_files_no_headers()
-            self.tables = {n: ibis.read_csv(
-                f, schema=schemas[n]) for n, f in no_header_files.items()}
+            self.tables = {}
+            for name, path in no_header_files.items():
+                props = {"connector": "filesystem",
+                         "path": path,
+                         "format": "csv",
+                         "csv.ignore-parse-errors": "true"}
+                self.tables[name] = con.create_table(name=name, 
+                                                     schema=schemas[name], 
+                                                     tbl_properties=props)
         elif backend == "postgres" or backend == "risingwave":
             # these doesn't support reading from csv and requires preloading the tables instead
             # tables are created only if preload_tables is called (with the "cached" table_origin)

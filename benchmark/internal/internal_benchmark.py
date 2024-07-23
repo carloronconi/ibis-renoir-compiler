@@ -166,11 +166,12 @@ def run_once(test_case: str, test_instance: test.TestCompiler, run_count: int, b
 
 def run_async_from_sync(coro):
 # https://discuss.python.org/t/calling-coroutines-from-sync-code-2/24093
+# https://github.com/microsoft/playwright-python/pull/966/files
     try:
         loop = asyncio.get_running_loop()
     except RuntimeError:
-        return asyncio.run(coro)
-    else:
+        loop = asyncio.get_event_loop()
+    finally:
         return loop.run_until_complete(coro)
 
 

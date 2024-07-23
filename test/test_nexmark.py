@@ -135,7 +135,6 @@ class TestNexmark(TestCompiler):
         auction = self.tables["auction"]
         bid = self.tables["bid"]
         self.query = (auction
-                      # TODO: writing equality in opposite order breaks noir
                       .join(bid, bid["auction"] == auction["id"])
 
                       # careful for ibis: using initial tab name w/ square brackets breaks col resolution for bid.date_time if bid is on right
