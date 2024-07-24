@@ -9,8 +9,8 @@ con: RisingwaveBackend = RisingwaveBackend().connect(
                 port=4566,
                 database="dev")
 
-con.create_table(
-    name="table_kafka",
+table = con.create_source(
+    name="source_kafka",
     schema=ibis.schema(
         [
             ("orderId", "int64"),
@@ -18,7 +18,7 @@ con.create_table(
             ("merchantId", "int64"),
         ]
     ),
-    overwrite=True,
+    # overwrite=True,
     connector_properties={"connector": "kafka",
                           "topic": "order",
                           "properties.bootstrap.server": "localhost:9092",
@@ -27,7 +27,6 @@ con.create_table(
     data_format="PLAIN",
     encode_format="JSON"
 )
-
 # risingwave is running inside a docker container,
 # so localhost becomes host.docker.internal
 # the raw query is this, but con.create_table seems to create the same thing
@@ -47,5 +46,19 @@ con.create_table(
 #                 ) FORMAT PLAIN ENCODE JSON;
 #             """
 #             )
+
+print(table)
+
+con.create_materialized_view("view_kafka", 
+                             obj=table.mutate(value=_.category), 
+                             overwrite=True)
+con.create_sink("sink_kafka",
+                sink_from="view_kafka",
+                connector_properties={"connector": "kafka",
+                                      "topic": "sink",
+                                      "properties.bootstrap.server": "localhost:9092"},
+                data_format="PLAIN",
+                encode_format="JSON",
+                encode_properties={"force_append_only": "true"})
 print(con.list_tables())
 
