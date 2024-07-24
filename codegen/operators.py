@@ -61,7 +61,7 @@ class Operator:
 
 class SelectOperator(Operator):
 
-    def __init__(self, node: ops.Selection):
+    def __init__(self, node: ibis.selectors.Selection):
         self.node = node
         self.columns = [c for c in node.__children__ if isinstance(c, ops.TableColumn)]
         super().__init__()

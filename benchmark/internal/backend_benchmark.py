@@ -8,6 +8,7 @@ from memory_profiler import memory_usage
 from codegen import compile_preloaded_tables_evcxr
 from ibis import _
 from . import internal_benchmark as ib
+from .kafka_io import Producer, Consumer
 from pyflink.java_gateway import get_gateway
 from pyflink.datastream import StreamExecutionEnvironment
 from pyflink.table import EnvironmentSettings, StreamTableEnvironment
@@ -109,11 +110,13 @@ class BackendBenchmark():
         return self.perform_measure_latency_kafka_to_kafka()
     
     def perform_measure_latency_kafka_to_kafka(self) -> tuple[float, float]:
+        producer = Producer()
+        consumer = Consumer()
         start_time = time.perf_counter()
-        # TODO: instead of having the data generator within the docker compose in compose-kafka
-        # remove it to have just the other services run there
-        # and publish data onto the source topic from here
-        # then measure the time required for the data to appear in the sink topic
+        # the backend is already set up to update its internal view and
+        # write it to the sink topic
+        producer.write_datum()
+        consumer.read_datum()
         end_time = time.perf_counter()
         # TODO: how measure memory of external risingwave/kafka within docker?
         return end_time - start_time, None
