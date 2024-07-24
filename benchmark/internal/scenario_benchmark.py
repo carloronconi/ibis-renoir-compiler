@@ -160,33 +160,28 @@ class Scenario1(Scenario):
         self.backend_names = ["duckdb", "flink", "renoir"]
         super().__init__(pipe)
 
-    def perform_setup(self, backend: bb.BackendBenchmark):
-        super().perform_setup(backend)
-        # only default setup is required, as loading from file means we don't need to 
-        # preload the tables into the backend
-
     def perform_measure(self, backend: bb.BackendBenchmark) -> tuple[float, float]:
         # special to_file measure is used
         return backend.perform_measure_to_file()
     
 class Scenario2(Scenario):
-    # Incremental view update
-    # - table_origin: preload view and add data incrementally
-    # - data_destination: view is updated
+    # Views
+    # Instead of storing data and measuring the time required to perform a query
+    # on it, we store a query as a materialized view in the backend, with kafka topics
+    # as source and destination/sink. What we measure here is the latency between adding a
+    # datum in the source topic, and getting a result in the sink topic, to measure the
+    # time required for an incremental view update.
+    # - table_origin: kafka topic
+    # - data_destination: kafka topic
     def __init__(self, pipe):
-        self.test_patterns = ["test_nexmark"]
+        self.test_patterns = ["test_scenarios_views"]
         self.backend_names = ["risingwave", "spark"]
         super().__init__(pipe)
 
-    def perform_setup(self, backend: bb.BackendBenchmark):
-        super().perform_setup(backend)
-        # only default setup is required, as loading from file means we don't need to 
-        # preload the tables into the backend
-        backend.create_view()
-
     def perform_measure(self, backend: bb.BackendBenchmark) -> tuple[float, float]:
-        # special to_file measure is used
-        return backend.perform_measure_to_view()
+        # view and sink depend on the test_instance.query, 
+        # so create them after calling the test_method within perform_measure
+        return backend.perform_measure_to_kafka()
     
 
 class Scenario3(Scenario):
@@ -220,9 +215,6 @@ class Scenario4(Scenario):
         # TODO: missing risingwave because no direct read from file
         self.backend_names = ["duckdb", "polars", "flink", "renoir"]
         super().__init__(pipe)
-
-    def perform_setup(self, backend: bb.BackendBenchmark):
-        super().perform_setup(backend)
 
     def perform_measure(self, backend: bb.BackendBenchmark) -> tuple[float, float]:
         return backend.perform_measure_to_none()

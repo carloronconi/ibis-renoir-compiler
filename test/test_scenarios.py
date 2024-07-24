@@ -1,5 +1,7 @@
 from test.test_operators import TestNullableOperators
+from test.test_base import TestCompiler
 from ibis import _
+import ibis
 
 
 class TestScenarios(TestNullableOperators):
@@ -141,3 +143,58 @@ class TestScenarios(TestNullableOperators):
                       .filter((_.int4 + _.int3) % 2 == 0)
                       .select(["int4", "int3"]))
         self.complete_test_tasks()
+
+
+class TestScenariosViews(TestCompiler):
+    def setUp(self):
+        self.init_files()
+        self.init_tables()
+        super().setUp()
+
+    def init_files(self, file_suffix=""):
+        # no files are required for this test, so we only initialize the name
+        # of the single source
+        self.files = {"source_kafka": None,}
+        return
+    
+    def init_tables(self):
+        # create the sources reading from the kafka topic
+        source_schema = ibis.schema({"createTime": ibis.dtype("string"),
+                                     "orderId": ibis.dtype("int64"),
+                                     "category": ibis.dtype("string"),
+                                     "merchantId": ibis.dtype("int64")})
+        source_name = self.files.keys()[0]
+        con = ibis.get_backend()
+
+        if con.name == "spark":
+            table: ibis.Table = con.read_kafka(
+                       table_name=source_name,
+                       auto_parse=True,
+                       schema=source_schema,
+                       options={"kafka.bootstrap.servers": "localhost:9092", 
+                                "subscribe": "order",
+                                "startingOffsets": "latest",
+                                "failOnDataLoss": "false"})
+        elif con.name == "risingwave":
+            table: ibis.Table = con.create_source(
+                name=source_name,
+                schema=source_schema,
+                connector_properties={"connector": "kafka",
+                                      "topic": "order",
+                                      "properties.bootstrap.server": "localhost:9092",
+                                      "scan.startup.mode": "latest",
+                                      "scan.startup.timestamp.millis": "140000000"},
+                data_format="PLAIN",
+                encode_format="JSON"
+            )
+        else:
+            raise NotImplementedError(f"Backend {con.name} not supported for views test")
+        self.tables = {source_name: table}
+
+    
+    def test_scenarios_views_1_filter(self):
+        self.query = (self.tables["source_kafka"]
+                      .filter(_.merchantId % 2 == 0)
+                      # TODO: `value` field always required, add it in the data generator and schema
+                      .mutate(value=_.category))
+        # no complete_test_tasks here, as renoir is not supported

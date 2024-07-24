@@ -12,6 +12,11 @@ from pyflink.java_gateway import get_gateway
 from pyflink.datastream import StreamExecutionEnvironment
 from pyflink.table import EnvironmentSettings, StreamTableEnvironment
 from pyspark.sql import SparkSession
+import ibis.backends
+import ibis.backends.pyspark
+from pyspark.sql import SparkSession
+from ibis.backends.risingwave import Backend as RisingwaveBackend
+from pyspark.sql.streaming import StreamingQuery
 
 
 class BackendBenchmark():
@@ -96,6 +101,22 @@ class BackendBenchmark():
             print(f"Creating table {name} in {con.name} from {file_path}. Could take a while: might need to increase timeout...")
             tables[name] = con.create_table(name, modified_table, overwrite=True)
         self.test_instance.tables = tables
+
+    def perform_measure_to_kafka(self) -> tuple[float, float]:
+        self.test_method()
+        self.create_view()
+        self.create_sink()
+        return self.perform_measure_latency_kafka_to_kafka()
+    
+    def perform_measure_latency_kafka_to_kafka(self) -> tuple[float, float]:
+        start_time = time.perf_counter()
+        # TODO: instead of having the data generator within the docker compose in compose-kafka
+        # remove it to have just the other services run there
+        # and publish data onto the source topic from here
+        # then measure the time required for the data to appear in the sink topic
+        end_time = time.perf_counter()
+        # TODO: how measure memory of external risingwave/kafka within docker?
+        return end_time - start_time, None
     
 
 class RenoirBenchmark(BackendBenchmark):
@@ -210,13 +231,20 @@ class RisingwaveBenchmark(BackendBenchmark):
         return super().preload_cached_query_without_csv()
     
     def create_view(self):
-        con = ibis.get_backend()
-        # create the query's AST already, to place it in the view
-        self.test_method()
-        con.create_materialized_view("mat_view", self.test_instance.query, overwrite=True)
+        con: RisingwaveBackend = ibis.get_backend()
+        con.create_materialized_view("view_kafka", 
+                             obj=self.test_instance.query, 
+                             overwrite=True)   
 
-    def perform_measure_to_view():
-        pass
+    def create_sink(self):
+        con: RisingwaveBackend = ibis.get_backend()
+        con.create_sink("sink_kafka",
+                sink_from="view_kafka",
+                connector_properties={"connector": "kafka",
+                                      "topic": "sink",
+                                      "properties.bootstrap.server": "localhost:9092"},
+                data_format="PLAIN",
+                encode_format="JSON")     
 
 
 class SparkBenchmark(BackendBenchmark):
@@ -224,7 +252,39 @@ class SparkBenchmark(BackendBenchmark):
 
     def __init__(self, test_instance: test.TestCompiler, test_method) -> None:
         super().__init__(test_instance, test_method)
-        session = SparkSession.builder.getOrCreate()
-        con = ibis.pyspark.connect(session)
+        # before running this, cd to ./benchmark/compose-kafka and do `docker-compose up`
+        # if there are any errors in the Dockerfile an you need to rebuild, clean the everything
+        # first with `docker system prune` (it prunes everything unused so careful on server) and 
+        # then `docker-compose build --no-cache` and again `docker-compose up`
+        scala_version = '2.12'
+        spark_version = '3.1.2'
+        # ensure match above values match the correct versions in pip
+        packages = [
+            f'org.apache.spark:spark-sql-kafka-0-10_{scala_version}:{spark_version}',
+            'org.apache.kafka:kafka-clients:3.2.1'
+        ]
+        session = SparkSession.builder\
+           .master("local")\
+           .appName("kafka-example")\
+           .config("spark.jars.packages", ",".join(packages))\
+           .getOrCreate()
+
+        con: ibis.backends.pyspark.Backend = ibis.pyspark.connect(session, mode="streaming")
         ibis.set_backend(con)
+
+    def create_view(self):
+        con = ibis.get_backend()
+        con.create_view("view_kafka", self.test_instance.query)
+    
+    def create_sink(self):
+        con: ibis.backends.pyspark.Backend = ibis.get_backend()
+        # notes:
+        # - create a checkpointLocation on the host of this script (not the kafka container!)
+        # - call .start() on .to_kafka(), docs are wrong and that actually returns a DataStreamWriter, 
+        #   to get a StreamingQuery you need to call .start()
+        stream_query: StreamingQuery = con.to_kafka("view_kafka", options={"kafka.bootstrap.servers": "localhost:9092", 
+                            "topic": "sink",
+                            "checkpointLocation": "/tmp/spark_checkpoint"}).start()
+        # query should be already running in the background, in case you need to await it call:
+        # stream_query.awaitTermination()
 
