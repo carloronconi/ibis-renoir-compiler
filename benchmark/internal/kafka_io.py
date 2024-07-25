@@ -5,7 +5,7 @@ from datetime import datetime
 from json import dumps, loads
 from random import randint
 from time import sleep
-from kafka import KafkaProducer, errors, KafkaConsumer
+from kafka import KafkaProducer, errors, KafkaConsumer, TopicPartition
 
 
 class Producer:
@@ -63,26 +63,36 @@ class Consumer:
         print("Connecting to Kafka brokers")
         for _i in range(6):
             try:
+                tp = TopicPartition("sink", 0)
                 self.consumer = KafkaConsumer(
-                    "sink",
+                    # "sink",
                     group_id="bench_consumer",
                     bootstrap_servers=["localhost:9092"],
                     auto_offset_reset="latest",
                     enable_auto_commit=True,
                     value_deserializer=lambda x: x.decode("utf-8"),
                 )
+                self.consumer.assign([tp])
                 print("Connected to Kafka")
+                self.read_old_data()
+                print("Read old data")
                 return
             except errors.NoBrokersAvailable:
                 print("Waiting for brokers to become available")
                 sleep(10)
         raise RuntimeError("Failed to connect to brokers within 60 seconds")
     
-    def read_datum(self):
+    def read_old_data(self):
+        self.consumer.seek_to_end()
+        self.consumer.commit()
+    
+    def read_datum(self, stoppable):
         print("waiting to receive in sink topic before returning")
         for message in self.consumer:
+            self.consumer.commit()
             message = message.value
             self.read_timestamp = time.perf_counter()
+            stoppable.do_stop = True
             print(f"Consumed message: {message}")
             break
 

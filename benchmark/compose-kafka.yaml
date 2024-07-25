@@ -29,8 +29,10 @@ services:
       kafka-topics --bootstrap-server kafka:29092 --list
 
       echo -e 'Creating kafka topics'
-      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic source --replication-factor 1 --partitions 1
-      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic sink --replication-factor 1 --partitions 1
+      kafka-topics --bootstrap-server kafka:29092 --delete --topic source
+      kafka-topics --bootstrap-server kafka:29092 --delete --topic sink
+      kafka-topics --bootstrap-server kafka:29092 --create --topic source --replication-factor 1 --partitions 1
+      kafka-topics --bootstrap-server kafka:29092 --create --topic sink --replication-factor 1 --partitions 1
 
       echo -e 'Successfully created the following topics:'
       kafka-topics --bootstrap-server kafka:29092 --list

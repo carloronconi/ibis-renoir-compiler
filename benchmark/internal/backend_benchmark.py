@@ -124,18 +124,19 @@ class BackendBenchmark():
         consumer = Consumer()
         # starting the consumer in a separate thread so it doesn't "miss" the message
         # produced by the view from source to sink between the call to write_datum and read_datum
-        consumer_proc = Thread(target=consumer.read_datum)
+        consumer_proc = Thread(target=consumer.read_datum, args=[self])
         consumer_proc.start()
         start_time = time.perf_counter()
         # the backend is already set up to update its internal view and
         # write it to the sink topic
         producer.write_datum()
         print("\n\n\nfinished in timer\n\n\n")
-        # TODO: here we're killink spark right after write_datum so it doesn't have the
+        # TODO: here we're killing spark right after write_datum so it doesn't have the
         # time to write to sink, we should kill it only once the consumer has received the message on sink
-        self.do_stop = True
-        self.subp.join()
+
+        # block until the consumer receives the result from sink
         consumer_proc.join()
+        self.subp.join()
         end_time = consumer.read_timestamp
         # TODO: how measure memory of external risingwave/kafka within docker?
         return end_time - start_time, None
