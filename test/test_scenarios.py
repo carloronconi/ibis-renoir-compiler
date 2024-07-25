@@ -195,6 +195,8 @@ class TestScenariosViews(TestCompiler):
     def test_scenarios_views_1_filter(self):
         self.query = (self.tables["source_kafka"]
                       #.filter(_.merchantId % 2 == 0)
+                      # filtering makes it so that sometimes no result is produced and the consumer
+                      # stays stuck waiting!
                       # TODO: `value` field always required, add it in the data generator and schema
                       .mutate(value=_.category)
                       .select(["merchantId", "value"]))
