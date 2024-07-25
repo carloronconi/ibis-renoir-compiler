@@ -13,10 +13,16 @@ import ibis
 from difflib import unified_diff
 from codegen import ROOT_DIR, Benchmark
 from ibis import _
-from pyflink.table import EnvironmentSettings, TableEnvironment
+try:
+    from pyflink.table import EnvironmentSettings, TableEnvironment
+except ModuleNotFoundError:
+    print("Skipped import of pyflink because of missing dependencies")
 import os
 import shutil
-from codegen import compile_ibis_to_noir, compile_preloaded_tables_evcxr
+try:
+    from codegen import compile_ibis_to_noir, compile_preloaded_tables_evcxr
+except ImportError:
+    print("Skipped import of ibis-renoir-compiler because of wrong version of ibis: it only supports ibis 8.0.0")
 from memory_profiler import memory_usage
 
 

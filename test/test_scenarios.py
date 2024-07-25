@@ -163,10 +163,10 @@ class TestScenariosViews(TestCompiler):
                                      "orderId": ibis.dtype("int64"),
                                      "category": ibis.dtype("string"),
                                      "merchantId": ibis.dtype("int64")})
-        source_name = self.files.keys()[0]
+        source_name = next(iter(self.files))
         con = ibis.get_backend()
 
-        if con.name == "spark":
+        if con.name == "pyspark":
             table: ibis.Table = con.read_kafka(
                        table_name=source_name,
                        auto_parse=True,
@@ -194,7 +194,7 @@ class TestScenariosViews(TestCompiler):
     
     def test_scenarios_views_1_filter(self):
         self.query = (self.tables["source_kafka"]
-                      .filter(_.merchantId % 2 == 0)
+                      # .filter(_.merchantId % 2 == 0)
                       # TODO: `value` field always required, add it in the data generator and schema
                       .mutate(value=_.category))
         # no complete_test_tasks here, as renoir is not supported

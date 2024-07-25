@@ -83,3 +83,14 @@ class Consumer:
             print(f"Consumed message: {message}")
             break
 
+
+def main():
+    producer = Producer()
+    print("Staring producer of infinite data...")
+    while True:
+        producer.write_datum()
+        sleep(1)
+
+
+if __name__ == "__main__":
+    main()
