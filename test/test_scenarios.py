@@ -172,7 +172,7 @@ class TestScenariosViews(TestCompiler):
                        auto_parse=True,
                        schema=source_schema,
                        options={"kafka.bootstrap.servers": "localhost:9092", 
-                                "subscribe": "order",
+                                "subscribe": "source",
                                 "startingOffsets": "latest",
                                 "failOnDataLoss": "false"})
         elif con.name == "risingwave":
@@ -180,7 +180,7 @@ class TestScenariosViews(TestCompiler):
                 name=source_name,
                 schema=source_schema,
                 connector_properties={"connector": "kafka",
-                                      "topic": "order",
+                                      "topic": "source",
                                       "properties.bootstrap.server": "localhost:9092",
                                       "scan.startup.mode": "latest",
                                       "scan.startup.timestamp.millis": "140000000"},

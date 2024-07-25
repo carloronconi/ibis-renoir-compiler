@@ -24,6 +24,7 @@ import ibis.backends.pyspark
 from pyspark.sql import SparkSession
 from ibis.backends.risingwave import Backend as RisingwaveBackend
 from pyspark.sql.streaming import StreamingQuery
+from threading import Thread
 
 
 class BackendBenchmark():
@@ -112,18 +113,24 @@ class BackendBenchmark():
     def perform_measure_to_kafka(self) -> tuple[float, float]:
         self.test_method()
         self.create_view()
-        self.create_sink()
+        # create sink needs to run in separate thread for pyflink otherwise it blocks
+        self.subp = Thread(target=self.create_sink)
+        self.subp.start()
         return self.perform_measure_latency_kafka_to_kafka()
     
     def perform_measure_latency_kafka_to_kafka(self) -> tuple[float, float]:
+        print("\n\n\narrived in timer\n\n\n")
         producer = Producer()
         consumer = Consumer()
         start_time = time.perf_counter()
         # the backend is already set up to update its internal view and
         # write it to the sink topic
-        # producer.write_datum()
-        # consumer.read_datum()
+        producer.write_datum()
+        consumer.read_datum()
         end_time = time.perf_counter()
+        print("\n\n\nfinished in timer\n\n\n")
+        self.do_stop = True
+        self.subp.join()
         # TODO: how measure memory of external risingwave/kafka within docker?
         return end_time - start_time, None
     
@@ -282,10 +289,11 @@ class SparkBenchmark(BackendBenchmark):
 
         con: ibis.backends.pyspark.Backend = ibis.pyspark.connect(session, mode="streaming")
         ibis.set_backend(con)
+        self.do_stop = False
 
     def create_view(self):
         con = ibis.get_backend()
-        con.create_view("view_kafka", self.test_instance.query, overwrite=True)
+        self.view = con.create_view("view_kafka", self.test_instance.query, overwrite=True)
     
     def create_sink(self):
         con: ibis.backends.pyspark.Backend = ibis.get_backend()
@@ -296,6 +304,8 @@ class SparkBenchmark(BackendBenchmark):
         stream_query: StreamingQuery = con.to_kafka(self.view, options={"kafka.bootstrap.servers": "localhost:9092", 
                             "topic": "sink",
                             "checkpointLocation": "/tmp/spark_checkpoint"}).start()
-        # query should be already running in the background, in case you need to await it call:
-        # stream_query.awaitTermination()
+        # the query doesn't run in the background! If we don't await it here, pyspark will exit immediately
+        while stream_query.isActive and not self.do_stop:
+            stream_query.awaitTermination(0.1)
+        stream_query.stop()
 
