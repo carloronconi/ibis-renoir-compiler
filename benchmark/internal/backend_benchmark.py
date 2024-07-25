@@ -124,6 +124,7 @@ class BackendBenchmark():
         consumer = Consumer()
         # starting the consumer in a separate thread so it doesn't "miss" the message
         # produced by the view from source to sink between the call to write_datum and read_datum
+        # and passing self so it can toggle self.do_stop and stop the spark instance
         consumer_proc = Thread(target=consumer.read_datum, args=[self])
         consumer_proc.start()
         start_time = time.perf_counter()
@@ -131,11 +132,10 @@ class BackendBenchmark():
         # write it to the sink topic
         producer.write_datum()
         print("\n\n\nfinished in timer\n\n\n")
-        # TODO: here we're killing spark right after write_datum so it doesn't have the
-        # time to write to sink, we should kill it only once the consumer has received the message on sink
-
         # block until the consumer receives the result from sink
         consumer_proc.join()
+        # once_consumer.proc returns, it must have toggled self.do_stop so
+        # this join doesn't block anything
         self.subp.join()
         end_time = consumer.read_timestamp
         # TODO: how measure memory of external risingwave/kafka within docker?
@@ -312,8 +312,7 @@ class SparkBenchmark(BackendBenchmark):
                             "topic": "sink",
                             "checkpointLocation": "/tmp/spark_checkpoint"}).start()
         # the query doesn't run in the background! If we don't await it here, pyspark will exit immediately
-        # TODO: actually we should only stop after we have processed a datum! should check with kafka_io consumer
-        # and stop when it gets something
+        # kafka_io.Consumer will toggle self.stop as soon as it receives a message, so we can stop awaiting
         while stream_query.isActive and not self.do_stop:
             stream_query.awaitTermination(1)
 

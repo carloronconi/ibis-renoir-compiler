@@ -90,7 +90,6 @@ class Consumer:
         print("waiting to receive in sink topic before returning")
         for message in self.consumer:
             self.consumer.commit()
-            message = message.value
             self.read_timestamp = time.perf_counter()
             stoppable.do_stop = True
             print(f"Consumed message: {message}")
