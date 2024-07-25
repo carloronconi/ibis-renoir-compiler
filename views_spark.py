@@ -3,6 +3,8 @@ import ibis.backends
 import ibis.backends.pyspark
 from pyspark.sql import SparkSession
 from ibis import _
+from ibis.expr.visualize import to_graph
+
 
 # before running this, cd to ./benchmark/compose-kafka and do `docker-compose up`
 # if there are any errors in the Dockerfile an you need to rebuild, clean the everything
@@ -37,6 +39,15 @@ table: ibis.Table = con.read_kafka(
                                 "startingOffsets": "latest",
                                 "failOnDataLoss": "false"})
 print(table)
+
+# in the new ibis 9.0, there are no more weird `Selection` nodes for filters,
+# there's a new `Filter` node instead! Changing would require re-writing the compiler
+# query = (table
+#          .filter(_.merchantId % 2 == 0)
+#          .select(["merchantId", "category"]))
+# to_graph(query).render("out/test_query")
+# node = query.op()
+
 # careful: 
 # - a "value" column is required
 # - create a checkpointLocation on the host of this script (not the kafka container!)
