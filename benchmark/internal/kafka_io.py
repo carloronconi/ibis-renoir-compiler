@@ -59,13 +59,15 @@ class Producer:
 
 class Consumer:
     def __init__(self):
+        self.read_timestamp = None
         print("Connecting to Kafka brokers")
         for _i in range(6):
             try:
                 self.consumer = KafkaConsumer(
                     "sink",
+                    group_id="bench_consumer",
                     bootstrap_servers=["localhost:9092"],
-                    auto_offset_reset="earliest",
+                    auto_offset_reset="latest",
                     enable_auto_commit=True,
                     value_deserializer=lambda x: x.decode("utf-8"),
                 )
@@ -77,9 +79,10 @@ class Consumer:
         raise RuntimeError("Failed to connect to brokers within 60 seconds")
     
     def read_datum(self):
-        print("consuming single datum from sink topic")
+        print("waiting to receive in sink topic before returning")
         for message in self.consumer:
             message = message.value
+            self.read_timestamp = time.perf_counter()
             print(f"Consumed message: {message}")
             break
 
