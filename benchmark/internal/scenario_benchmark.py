@@ -10,6 +10,10 @@ from . import backend_benchmark as bb
 from signal import SIGKILL
 
 
+SCENARIO_PATTERN = ""
+RAISE_EXCEPTIONS = False
+
+
 def main():
     con = mp.Pipe(duplex=True)
     _, other = con
@@ -54,6 +58,9 @@ def police_benchmark(proc: mp.Process, con: tuple[con.Connection, con.Connection
             else:
                 trace = exception
                 exception = "exception"
+                if RAISE_EXCEPTIONS:
+                    msg = trace.replace("NEWLINE_ESCAPE", "\n").replace("COMMA_ESCAPE", ",")
+                    raise Exception(f"Captured exception from worker:\n{msg}")
             print(f"{exception}: {curr_test} with {curr_backend} in {curr_scenario} - trace: {trace[-50:]}")
             # restart the process from same scenario, skipping to the next backend
             proc = mp.Process(target=execute_benchmark, args=(other, curr_scenario, curr_test, curr_backend))
@@ -64,7 +71,7 @@ def police_benchmark(proc: mp.Process, con: tuple[con.Connection, con.Connection
             
 
 def execute_benchmark(pipe: con.Connection, failed_scenario: str = None, failed_test: str = None, failed_backend: str = None):
-    scenarios = [s for s in Scenario.__subclasses__() if "" in s.__name__]
+    scenarios = [s for s in Scenario.__subclasses__() if SCENARIO_PATTERN in s.__name__]
     if failed_scenario:
         # run the failed scenario with special parameters to make it skip already performed tests
         # and then run the rest of the scenarios anyway

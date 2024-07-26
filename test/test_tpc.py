@@ -8,16 +8,20 @@ from ibis import _
 class TestTpcH(TestCompiler):
 
     def setUp(self):
-        self.init_table_files()
+        self.init_files()
+        self.init_tables()
         super().setUp()
 
-    def init_table_files(self, file_suffix=""):
+    def init_files(self, file_suffix=""):
         names = ["customer", "lineitem", "nation", "orders",
                  "part", "partsupp", "region", "supplier"]
         file_prefix = ROOT_DIR + "/data/tpch/"
-        file_suffix = file_suffix + ".csv"
-
+        # file_suffix parameter is actually ignored
+        file_suffix = ".csv"
         self.files = {n: f"{file_prefix}{n}{file_suffix}" for n in names}
+        self.tab_count = len(names)
+        
+    def init_tables(self):
         self.tables = {n: ibis.read_csv(f) for n, f in self.files.items()}
 
     def test_tpc_h_query_1(self):
@@ -46,8 +50,6 @@ class TestTpcH(TestCompiler):
         """
 
         lineitem = self.tables["lineitem"]
-        print(lineitem)
-
         self.query = (lineitem
                       # TODO: - interval ':1' day (3)
                       .filter(lineitem["shipdate"] <= "1998-12-01")
