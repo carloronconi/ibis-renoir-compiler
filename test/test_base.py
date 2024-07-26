@@ -42,6 +42,7 @@ class TestCompiler(unittest.TestCase):
         self.perform_compilation = True
         self.print_output_to_file = True
         self.renoir_cached = False
+        self.tab_count = 2
 
         super().__init__(methodName=methodName)
 
@@ -170,11 +171,9 @@ class TestCompiler(unittest.TestCase):
         # make sure that cache() has finished running by asking for :vars and waiting for the output
         proc.stdin.write(b":vars\n")
         # wait for the output of :vars to ensure that the tables are loaded before continuing
-        # there should be 2 tables in the cache plus an empty line
-        await proc.stdout.readline()
-        await proc.stdout.readline()
-        await proc.stdout.readline()
-
+        # there should be the tab_count tables in the cache plus an empty line
+        for _ in range(self.tab_count + 1):
+            await proc.stdout.readline()
 
         # performing the actual timed query
         start_time = time.perf_counter()

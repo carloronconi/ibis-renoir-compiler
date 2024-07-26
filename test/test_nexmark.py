@@ -18,6 +18,7 @@ class TestNexmark(TestCompiler):
         file_prefix = ROOT_DIR + "/data/nexmark/"
         file_suffix = file_suffix + ".csv"
         self.files = {n: f"{file_prefix}{n}{file_suffix}" for n in names}
+        self.tab_count = 3
 
     def init_tables(self):
         backend = ibis.get_backend().name
@@ -71,7 +72,7 @@ class TestNexmark(TestCompiler):
                       .select(["auction", "price", "dol_price", "bidder", "date_time"]))
 
         if self.perform_compilation:
-            compile_ibis_to_noir([(self.files["bid"], bid)],
+            compile_ibis_to_noir([(self.files["bid"], bid, "bid")],
                                  self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
@@ -91,7 +92,7 @@ class TestNexmark(TestCompiler):
                       .select(["auction", "price"]))
 
         if self.perform_compilation:
-            compile_ibis_to_noir([(self.files["bid"], bid)],
+            compile_ibis_to_noir([(self.files["bid"], bid, "bid")],
                                  self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
@@ -114,7 +115,7 @@ class TestNexmark(TestCompiler):
                       .select(["name", "city", "state", "id"]))
 
         if self.perform_compilation:
-            compile_ibis_to_noir([(self.files["auction"], auction), (self.files["person"], person)],
+            compile_ibis_to_noir([(self.files["auction"], auction, "auction"), (self.files["person"], person, "person")],
                                  self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
@@ -158,7 +159,7 @@ class TestNexmark(TestCompiler):
         # print(ibis.to_sql(query))
 
         if self.perform_compilation:
-            compile_ibis_to_noir([(self.files["auction"], auction), (self.files["bid"], bid)],
+            compile_ibis_to_noir([(self.files["auction"], auction, "auction"), (self.files["bid"], bid, "bid")],
                                  self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
@@ -186,7 +187,7 @@ class TestNexmark(TestCompiler):
                       .mutate(avg_final_p=_.final_p.mean().over(w)))
 
         if self.perform_compilation:
-            compile_ibis_to_noir([(self.files["auction"], auction), (self.files["bid"], bid)],
+            compile_ibis_to_noir([(self.files["auction"], auction, "auction"), (self.files["bid"], bid, "bid")],
                                  self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
 
         # subset option is not enough in this case: testing excluding the last .mutate confirms that outputs

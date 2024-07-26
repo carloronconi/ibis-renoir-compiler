@@ -155,7 +155,7 @@ class Scenario1(Scenario):
     # - table_origin: read from file
     # - data_destination: write to file
     def __init__(self, pipe):
-        self.test_patterns = ["test_scenarios_preprocess"]
+        self.test_patterns = ["test_scenarios_preprocess", "test_nexmark"]
         self.backend_names = ["duckdb", "flink", "renoir"]
         super().__init__(pipe)
 
@@ -177,7 +177,7 @@ class Scenario3(Scenario):
     # - table_origin: preload table and perform computationally intensive query
     # - data_destination: none
     def __init__(self, pipe):
-        self.test_patterns = ["test_scenarios_analytics"]
+        self.test_patterns = ["test_scenarios_analytics", "test_nexmark"]
         self.backend_names = ["duckdb", "polars", "risingwave", "renoir"]
         super().__init__(pipe)
 
@@ -196,7 +196,7 @@ class Scenario4(Scenario):
     # - table_origin: read from file
     # - data_destination: none
     def __init__(self, pipe):
-        self.test_patterns = ["test_scenarios_exploration"]
+        self.test_patterns = ["test_scenarios_exploration", "test_nexmark"]
         self.backend_names = ["duckdb", "polars", "flink", "renoir"]
         super().__init__(pipe)
 

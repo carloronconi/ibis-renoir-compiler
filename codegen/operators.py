@@ -355,8 +355,8 @@ class JoinOperator(Operator):
         left_struct = Struct.last()
 
         equals = self.join.predicates[0]
-        left: ops.TableColumn = equals.left
-        right: ops.TableColumn = equals.right
+        left: ops.TableColumn = equals.right
+        right: ops.TableColumn = equals.left
         left_col = operator_arg_stringify(left)
         right_col = operator_arg_stringify(right)
         join_t = self.noir_types[type(self.join).__name__]
@@ -765,8 +765,18 @@ class DatabaseOperator(Operator):
         else:
             db_count = [db for db in Operator.operators if isinstance(db, DatabaseOperator)].index(self)
             cache = Struct.cached_tables_structs[db_count].name_short
+            
+            curr_cache = cache
+            if bool(utl.TAB_NAMES): 
+                # case with multiple tables and no relation between order of tables and order of tables in query
+                name = utl.TAB_NAMES[self.table.name]
+                try:
+                    curr_cache = [k for k in [n.name_short for n in Struct.cached_tables_structs] if name in k].pop(0)
+                except IndexError:
+                    curr_cache = cache
+
             ctx = "" if db_count != 0 else f"let ctx = StreamContext::new({cache}.config());"
-            return (f";{ctx}\nlet {struct.name_short} = {cache}.stream_in(&ctx);\nlet var_{struct.id_counter + count_structs} = {struct.name_short}")
+            return (f";{ctx}\nlet {struct.name_short} = {curr_cache}.stream_in(&ctx);\nlet var_{struct.id_counter + count_structs} = {struct.name_short}")
 
     def does_add_struct(self) -> bool:
         return True
