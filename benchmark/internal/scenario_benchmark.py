@@ -156,7 +156,6 @@ class Scenario1(Scenario):
     # - data_destination: write to file
     def __init__(self, pipe):
         self.test_patterns = ["test_scenarios_preprocess"]
-        # TODO: missing postgres and risingwave because no direct read from file
         self.backend_names = ["duckdb", "flink", "renoir"]
         super().__init__(pipe)
 
@@ -198,7 +197,6 @@ class Scenario4(Scenario):
     # - data_destination: none
     def __init__(self, pipe):
         self.test_patterns = ["test_scenarios_exploration"]
-        # TODO: missing risingwave because no direct read from file
         self.backend_names = ["duckdb", "polars", "flink", "renoir"]
         super().__init__(pipe)
 

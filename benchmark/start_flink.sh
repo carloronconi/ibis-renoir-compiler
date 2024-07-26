@@ -10,5 +10,7 @@ if [ ! -d $dir ]; then
     tar -xzf $file
 fi
 
+cp benchmark/flink_config.yaml flink-1.19.0/conf/config.yaml
+
 cd flink-1.19.0
 ./bin/start-cluster.sh
