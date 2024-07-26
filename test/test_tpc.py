@@ -51,8 +51,8 @@ class TestTpcH(TestCompiler):
 
         lineitem = self.tables["lineitem"]
         self.query = (lineitem
-                      # TODO: - interval ':1' day (3)
-                      .filter(lineitem["shipdate"] <= "1998-12-01")
+                      # note: interval ':1' day translated by manually changing the date
+                      .filter(lineitem["shipdate"] <= "1998-11-01")
                       .group_by(["returnflag", "linestatus"])
                       .aggregate(
                           sum_qty=lineitem["quantity"].sum(),
