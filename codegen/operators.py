@@ -242,24 +242,30 @@ class LoneReduceOperator(Operator):
 
 
 class GroupReduceOperator(Operator):
+    # these store the ops performed on the main accumulator for the reducer
+    # there are also auxiliary accumulators, for now a count, to be used in the final map
     aggr_ops = {"Max": "max(x, y)", "Min": "min(x, y)", "Sum": "x + y",
-                "First": "x", "Mean": "x + y"}
+                "First": "x", "Mean": "x + y", "CountStar": "x + y"}
     aggr_ops_form = {"Max": "a.{0} = max(a.{0}, b.{0})", "Min": "a.{0} = min(a.{0}, b.{0})",
                      "Sum": "a.{0} = a.{0} + b.{0}",
-                     "First": "a.{0} = a.{0}", "Mean": "a.{0} = a.{0} + b.{0}"}
+                     "First": "a.{0} = a.{0}", "Mean": "a.{0} = a.{0} + b.{0}", "CountStar": "a.{0} = a.{0} + b.{0}"}
 
     class AliasInfo:
         def __init__(self, alias: ops.Alias):
             self.alias = alias
             self.reducer = alias.__children__[0]
             self.reduced_name = alias.name
+            self.reduced_type = alias.dtype
             self.aggregator_name = type(self.reducer).__name__
             if self.aggregator_name == "CountStar":
                 self.parsed_col = "reduce_count"
                 self.is_reduced_col_nullable = False
             else:
-                self.parsed_col = ArgumentParser().parse(self.reducer.__children__[0])
-                self.is_reduced_col_nullable = Struct.last().is_col_nullable(self.parsed_col)
+                parser = ArgumentParser(struct_name="x")
+                self.parsed_col = parser.parse(self.reducer.__children__[0])
+                self.parsed_type = parser.last_tab_col_type
+                self.parsed_name = parser.last_tab_col_name
+                self.is_reduced_col_nullable = Struct.last().is_col_nullable(self.parsed_name)
 
     def __init__(self, node: ops.Aggregation):
         self.aliases = [
@@ -278,13 +284,27 @@ class GroupReduceOperator(Operator):
         if last_struct.is_keyed_stream:
             mid += ".drop_key()"
 
-        # map to a struct with additional count field useful for mean
-        count_struct = Struct.from_args(last_struct.columns + ["reduce_count"],
-                                        last_struct.types + [ibis.dtype("!int64")])
+        # map to a struct with the final alias fields plus the helper fields plus the old fields needed for .group_by
+        # fields here contain the row parsed operations (e.g. y = x.a * x.b) which will then be reduced 
+        # to compute aggregation (y = sum(x.a * x.b), this way we just do y = y.sum())
+        count_struct = Struct.from_args([a.reduced_name for a in self.aliases] + ["reduce_count"] + last_struct.columns,
+                                        [a.reduced_type for a in self.aliases] + [ibis.dtype("!int64")] + last_struct.types)
         mid += f".map(|x| {count_struct.name_struct}{{"
+        for alias in self.aliases:
+            if alias.aggregator_name == "CountStar":
+                mid += f"{alias.reduced_name}: Some(1), "
+                continue
+            # always cast as it does nothing for already matching types
+            t = Struct.ibis_to_noir_type[alias.reduced_type.name]
+            if alias.is_reduced_col_nullable:
+                cast = f".map(|v| v as {t})"
+            else:
+                cast = f" as {t}"
+            mid += f"{alias.reduced_name}: {alias.parsed_col}{cast}, "
+        mid += "reduce_count: 1,"
         for col in last_struct.columns:
-            mid += f"{col}: x.{col}, "
-        mid += "reduce_count: 1})"
+            mid += f"{col}: x.{col},"
+        mid += "})"
 
         # group by
         mid += ".group_by(|x| ("
@@ -297,20 +317,18 @@ class GroupReduceOperator(Operator):
         # reduce for each reducer
         mid += ".reduce(|a, b| {"
         for alias in self.aliases:
-            if alias.aggregator_name == "CountStar":
-                continue
-            elif alias.is_reduced_col_nullable:
+            if alias.reduced_type.nullable:
                 op = self.aggr_ops[alias.aggregator_name]
-                mid += f"a.{alias.parsed_col} = a.{alias.parsed_col}.zip(b.{alias.parsed_col}).map(|(x, y)| {op});"
+                mid += f"a.{alias.reduced_name} = a.{alias.reduced_name}.zip(b.{alias.reduced_name}).map(|(x, y)| {op});"
             else:
-                op = self.aggr_ops_form[alias.aggregator_name].format(alias.parsed_col)
+                op = self.aggr_ops_form[alias.aggregator_name].format(alias.reduced_name)
                 mid += f"{op};"
         mid += "a.reduce_count = a.reduce_count + b.reduce_count;})"
 
         # final map copying the keys of the keyed stream to the struct and the aggregated fields
         bys_n_t = {b.name: b.dtype for b in self.bys}
-        aggr_col_names = self.node.schema.names
-        aggr_col_types = self.node.schema.types
+        aggr_col_names = [a.reduced_name for a in self.aliases]
+        aggr_col_types = [a.reduced_type for a in self.aliases]
         Struct.with_keyed_stream = bys_n_t
         # new struct will contain the aggregated field plus the "by" fields also preserved by
         # the key of the keyed stream, kept in both to be able to drop_key if other group_by follows
@@ -318,7 +336,6 @@ class GroupReduceOperator(Operator):
             list(bys_n_t.keys()) + list(aggr_col_names), list(bys_n_t.values()) + list(aggr_col_types))
 
         mid += f".map(|(k, x)| {new_struct.name_struct}{{"
-
         for i, column in enumerate(new_struct.columns):
             if (i < len(bys_n_t)):
                 if (len(bys_n_t) == 1):
@@ -326,14 +343,12 @@ class GroupReduceOperator(Operator):
                 else:
                     mid += f"{column}: k.{i}.clone(), "
             else:
-                alias = self.aliases[i - len(bys_n_t)]
-                val = f"x.{alias.parsed_col}"
-                if alias.aggregator_name == "Mean":
-                    val = f"x.{alias.parsed_col}.map(|a| a as f64 / x.reduce_count as f64), "
-                elif alias.is_reduced_col_nullable:
-                    mid += f"{column}: {val}, "
-                else:
-                    mid += f"{column}: Some({val}), "
+                break
+        for alias in self.aliases:
+            val = f"x.{alias.reduced_name}"
+            if alias.aggregator_name == "Mean":
+                val = f"x.{alias.reduced_name}.map(|a| a as f64 / x.reduce_count as f64)"
+            mid += f"{alias.reduced_name}: {val}, "
         mid += "})"
 
         return mid
@@ -836,7 +851,7 @@ class BotOperator(Operator):
         super().__init__()
 
     def generate(self) -> str:
-        last_struct = Struct.last()
+        last_struct = Struct.last_materialized()
 
         if not self.print_output_to_file:
             # to verify that it's actually doing something, add this before the .for_each:

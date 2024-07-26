@@ -22,6 +22,8 @@ class ArgumentParser:
                     "GreaterEqual": ">=", "Less": "<", "LessEqual": "<="}
         log_ops = {"And": "&", "Or": "|"}
         if isinstance(operand, ibis.expr.operations.generic.TableColumn):
+            self.last_tab_col_type = operand.dtype
+            self.last_tab_col_name = operand.name
             if self.struct_name:
                 return f"{self.struct_name}.{operand.name}"
             return operand.name
