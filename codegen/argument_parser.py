@@ -41,9 +41,15 @@ class ArgumentParser:
                 operand.right, ops.Literal)
             op = comp_ops[type(operand).__name__]
             if is_left_nullable and not is_right_nullable:
-                return f"{left}.clone().is_some_and(|v| v {op} {right})"
+                r = right
+                if operand.left.dtype.name == "Date":
+                    r = f"NaiveDate::parse_from_str({r}, \"%Y-%m-%d\").unwrap()"
+                return f"{left}.clone().is_some_and(|v| v {op} {r})"
             if not is_left_nullable and is_right_nullable:
-                return f"{right}.clone().is_some_and(|v| {left} {op} v)"
+                l = left
+                if operand.right.dtype.name == "Date":
+                    l = f"NaiveDate::parse_from_str({l}, \"%Y-%m-%d\").unwrap()"
+                return f"{right}.clone().is_some_and(|v| {l} {op} v)"
             if is_left_nullable and is_right_nullable:
                 return f"{left}.clone().zip({right}.clone()).map_or(false, |(a, b)| a {op} b)"
             return f"{left} {op} {right}"

@@ -69,7 +69,7 @@ class TestTpcH(TestCompiler):
 
         if self.perform_compilation:
             compile_ibis_to_noir([(self.files["lineitem"], lineitem)],
-                                 self.query, self.run_after_gen, self.print_output_to_file, True, self.benchmark)
+                                 self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
 
         if self.perform_assertions:
             self.assert_similarity_noir_output()
