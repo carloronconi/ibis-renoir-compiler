@@ -6,6 +6,7 @@ from ibis.common.graph import Node
 import codegen.utils as utl
 from codegen.struct import Struct
 from ibis.expr.datatypes.core import DataType
+from codegen.argument_parser import ArgumentParser
 
 
 class Operator:
@@ -17,6 +18,7 @@ class Operator:
     renoir_cached = False
 
     def __init__(self):
+        self.arg_parser = ArgumentParser()
         Operator.operators.append(self)
 
     @classmethod
@@ -63,7 +65,8 @@ class SelectOperator(Operator):
 
     def __init__(self, node: ops.Selection):
         self.node = node
-        self.columns = [c for c in node.__children__ if isinstance(c, ops.TableColumn)]
+        self.columns = [
+            c for c in node.__children__ if isinstance(c, ops.TableColumn)]
         super().__init__()
 
     def generate(self) -> str:
@@ -101,7 +104,8 @@ class FilterOperator(Operator):
         super().__init__()
 
     def generate(self) -> str:
-        filter_expr = operator_arg_stringify(self.comparator, struct_name="x")
+        self.arg_parser.struct_name = "x"
+        filter_expr = self.arg_parser.parse(self.comparator)
         if Struct.last().is_keyed_stream:
             return f".filter(|(_, x)| {filter_expr})"
         return f".filter(|x| {filter_expr})"
@@ -154,7 +158,7 @@ class MapOperator(Operator):
         typs = prev_struct.types.copy()
         typs.append(self.node.dtype)
 
-        new_struct = Struct.from_args(str(id(self.node)), cols, typs)
+        new_struct = Struct.from_args(cols, typs)
 
         mid = ""
         if new_struct.is_keyed_stream:
@@ -175,8 +179,10 @@ class MapOperator(Operator):
 
         # override WindowFunction node resolution, so in case WindowFunction is below mapper, it will be resolved
         # to prev struct's last col name for reason above
-        num_ops = operator_arg_stringify(
-            self.mapper, "x", window_resolve=prev_struct.columns[-1])
+        self.arg_parser.window_resolve = prev_struct.columns[-1]
+        self.arg_parser.struct_name = "x"
+        num_ops = self.arg_parser.parse(
+            self.mapper)
         mid += f"{self.node.name}: {num_ops},}})"
 
         return mid
@@ -204,7 +210,7 @@ class LoneReduceOperator(Operator):
         super().__init__()
 
     def generate(self) -> str:
-        col = operator_arg_stringify(self.reducer.__children__[0])
+        col = self.arg_parser.parse(self.reducer.__children__[0])
         op = self.aggr_ops[type(self.reducer).__name__]
 
         is_reduced_col_nullable = Struct.last().is_col_nullable(col)
@@ -237,89 +243,98 @@ class LoneReduceOperator(Operator):
 
 class GroupReduceOperator(Operator):
     aggr_ops = {"Max": "max(x, y)", "Min": "min(x, y)", "Sum": "x + y",
-                "First": "x"}
+                "First": "x", "Mean": "x + y"}
     aggr_ops_form = {"Max": "a.{0} = max(a.{0}, b.{0})", "Min": "a.{0} = min(a.{0}, b.{0})",
                      "Sum": "a.{0} = a.{0} + b.{0}",
-                     "First": "a.{0} = a.{0}"}
+                     "First": "a.{0} = a.{0}", "Mean": "a.{0} = a.{0} + b.{0}"}
+
+    class AliasInfo:
+        def __init__(self, alias: ops.Alias):
+            self.alias = alias
+            self.reducer = alias.__children__[0]
+            self.reduced_name = alias.name
+            self.aggregator_name = type(self.reducer).__name__
+            if self.aggregator_name == "CountStar":
+                self.parsed_col = "reduce_count"
+                self.is_reduced_col_nullable = False
+            else:
+                self.parsed_col = ArgumentParser().parse(self.reducer.__children__[0])
+                self.is_reduced_col_nullable = Struct.last().is_col_nullable(self.parsed_col)
 
     def __init__(self, node: ops.Aggregation):
-        self.alias = next(
-            filter(lambda c: isinstance(c, ops.Alias), node.__children__))
-        self.reducer = self.alias.__children__[0]
+        self.aliases = [
+            c for c in node.__children__ if isinstance(c, ops.Alias)]
         self.bys = node.by
         self.node = node
         super().__init__()
 
     def generate(self) -> str:
         mid = ""
-        aggr_name = type(self.reducer).__name__
-        bys = [operator_arg_stringify(by) for by in self.bys]
-        col = operator_arg_stringify(self.reducer.__children__[0])
-        is_reduced_col_nullable = Struct.last().is_col_nullable(col)
+        self.aliases = [self.AliasInfo(alias) for alias in self.aliases]
+        bys = [self.arg_parser.parse(by) for by in self.bys]
 
+        last_struct = Struct.last()
         # this group_by follows another, so drop_key is required
-        if Struct.last().is_keyed_stream:
+        if last_struct.is_keyed_stream:
             mid += ".drop_key()"
 
-        # for Mean we use specific `.group_by_avg` method, to avoid needing to keep sum and count and
-        # then divide them in the end and map to new struct
-        if aggr_name == "Mean":
-            mid += ".group_by_avg(|x| ("
-            for by in bys:
-                mid += f"x.{by}.clone(), "
-            # remove last comma and space
-            mid = mid[:-2]
-            mid += "), |x| "
-            if is_reduced_col_nullable:
-                mid += f"x.{col}.unwrap_or(0) as f64)"
+        # map to a struct with additional count field useful for mean
+        count_struct = Struct.from_args(last_struct.columns + ["reduce_count"],
+                                        last_struct.types + [ibis.dtype("!int64")])
+        mid += f".map(|x| {count_struct.name_struct}{{"
+        for col in last_struct.columns:
+            mid += f"{col}: x.{col}, "
+        mid += "reduce_count: 1})"
+
+        # group by
+        mid += ".group_by(|x| ("
+        for by in bys:
+            mid += f"x.{by}.clone(), "
+        # remove last comma and space
+        mid = mid[:-2]
+        mid += "))"
+
+        # reduce for each reducer
+        mid += ".reduce(|a, b| {"
+        for alias in self.aliases:
+            if alias.aggregator_name == "CountStar":
+                continue
+            elif alias.is_reduced_col_nullable:
+                op = self.aggr_ops[alias.aggregator_name]
+                mid += f"a.{alias.parsed_col} = a.{alias.parsed_col}.zip(b.{alias.parsed_col}).map(|(x, y)| {op});"
             else:
-                mid += f"x.{col} as f64)"
+                op = self.aggr_ops_form[alias.aggregator_name].format(alias.parsed_col)
+                mid += f"{op};"
+        mid += "a.reduce_count = a.reduce_count + b.reduce_count;})"
 
-        # simple cases with only one accumulator required
-        else:
-            mid += ".group_by(|x| ("
-            for by in bys:
-                mid += f"x.{by}.clone(), "
-            # remove last comma and space
-            mid = mid[:-2]
-            mid += "))"
-
-            if is_reduced_col_nullable:
-                op = self.aggr_ops[aggr_name]
-                mid += f".reduce(|a, b| {{a.{col} = a.{col}.zip(b.{col}).map(|(x, y)| {op});}})"
-            else:
-                op = self.aggr_ops_form[aggr_name].format(col)
-                mid += f".reduce(|a, b| {op})"
-
+        # final map copying the keys of the keyed stream to the struct and the aggregated fields
         bys_n_t = {b.name: b.dtype for b in self.bys}
-        aggr_col_name = self.node.schema.names[-1]
-        aggr_col_type = self.node.schema.types[-1]
-
+        aggr_col_names = self.node.schema.names
+        aggr_col_types = self.node.schema.types
         Struct.with_keyed_stream = bys_n_t
         # new struct will contain the aggregated field plus the "by" fields also preserved by
         # the key of the keyed stream, kept in both to be able to drop_key if other group_by follows
         new_struct = Struct.from_args(
-            str(id(self.alias)), list(bys_n_t.keys()) + [aggr_col_name], list(bys_n_t.values()) + [aggr_col_type])
+            list(bys_n_t.keys()) + list(aggr_col_names), list(bys_n_t.values()) + list(aggr_col_types))
 
         mid += f".map(|(k, x)| {new_struct.name_struct}{{"
-        if len(bys_n_t) == 1:
-            mid += f"{new_struct.columns[0]}: k.clone(),"
-        else: 
-            for i, column in enumerate(new_struct.columns):
-                # skip last
-                if i == len(new_struct.columns) - 1:
-                    break
-                mid += f"{column}: k.{i}, "
-        # when reducing, ibis turns results of non-nullable types to nullable! So new_struct will always have nullable
-        # field while reduced col could have been either nullable or non-nullable
-        if aggr_name == "Mean":
-            # in this case aggregation produces single result, not struct
-            # and x is always an f64 (not nullable)
-            mid += f"{new_struct.columns[-1]}: Some(x)}})"
-        elif is_reduced_col_nullable:
-            mid += f"{new_struct.columns[-1]}: x.{col}}})"
-        else:
-            mid += f"{new_struct.columns[-1]}: Some(x.{col})}})"
+
+        for i, column in enumerate(new_struct.columns):
+            if (i < len(bys_n_t)):
+                if (len(bys_n_t) == 1):
+                    mid += f"{column}: k.clone(), "
+                else:
+                    mid += f"{column}: k.{i}.clone(), "
+            else:
+                alias = self.aliases[i - len(bys_n_t)]
+                val = f"x.{alias.parsed_col}"
+                if alias.aggregator_name == "Mean":
+                    val = f"x.{alias.parsed_col}.map(|a| a as f64 / x.reduce_count as f64), "
+                elif alias.is_reduced_col_nullable:
+                    mid += f"{column}: {val}, "
+                else:
+                    mid += f"{column}: Some({val}), "
+        mid += "})"
 
         return mid
 
@@ -357,8 +372,8 @@ class JoinOperator(Operator):
         equals = self.join.predicates[0]
         left: ops.TableColumn = equals.right
         right: ops.TableColumn = equals.left
-        left_col = operator_arg_stringify(left)
-        right_col = operator_arg_stringify(right)
+        left_col = self.arg_parser.parse(left)
+        right_col = self.arg_parser.parse(right)
         join_t = self.noir_types[type(self.join).__name__]
 
         Struct.with_keyed_stream = {equals.left.name: equals.left.dtype}
@@ -489,7 +504,7 @@ class ExplicitWindowOperator(WindowOperator):
                 text += ".drop_key()"
 
             text += ".group_by(|x| ("
-            for by in [operator_arg_stringify(b) for b in bys]:
+            for by in [self.arg_parser.parse(b) for b in bys]:
                 text += f"x.{by}.clone(), "
             # remove last comma and space
             text = text[:-2]
@@ -528,13 +543,14 @@ class ExplicitWindowOperator(WindowOperator):
             op = WindowFuncGen(
                 [WindowFuncGen.Func(self.alias.name, self.alias.dtype, fold_action="acc.{0} = acc.{0}.zip(x.{1}).map(|(a, b)| max(a, b));")])
         else:
-            raise Exception(f"Window function {type(window.func).__name__} not supported!")
+            raise Exception(
+                f"Window function {type(window.func).__name__} not supported!")
 
         # create the new struct by adding struct_fields to previous struct's columns
         new_cols_types = dict(prev_struct.cols_types)
         for n, t in op.fields():
             new_cols_types[n] = t
-        new_struct = Struct.from_args_dict(str(id(window)), new_cols_types)
+        new_struct = Struct.from_args_dict(new_cols_types)
 
         # generate .fold to apply the reduction function while maintaining other row fields
         text += f".fold({new_struct.name_struct}{{"
@@ -608,7 +624,7 @@ class ImplicitWindowOperator(WindowOperator):
             if Struct.last().is_keyed_stream:
                 text += ".drop_key()"
             by = group_by[0]
-            col = operator_arg_stringify(by)
+            col = self.arg_parser.parse(by)
             text += f".group_by(|x| x.{col}.clone())"
             # if we have group_by, .fold will generate a KeyedStream so
             # we set Struct.with_keyed_stream with key's name/type so following
@@ -637,7 +653,7 @@ class ImplicitWindowOperator(WindowOperator):
         new_cols_types = dict(prev_struct.cols_types)
         for n, t in op.fields():
             new_cols_types[n] = t
-        new_struct = Struct.from_args_dict(str(id(window)), new_cols_types)
+        new_struct = Struct.from_args_dict(new_cols_types)
 
         # generate initialization (aka first_map) within .reduce_scan
         text += f"|x| (" if not Struct.with_keyed_stream else f"|_, x| ("
@@ -821,7 +837,7 @@ class BotOperator(Operator):
 
     def generate(self) -> str:
         last_struct = Struct.last()
-        
+
         if not self.print_output_to_file:
             # to verify that it's actually doing something, add this before the .for_each:
             # .inspect(|e| eprintln!(\"{{e:?}}\"))
@@ -845,7 +861,7 @@ class BotOperator(Operator):
             bot = f";\n{last_struct.name_short}.write_csv_one(\"{out_path}\", true);"
         else:
             names_types = Struct.last().with_keyed_stream
-            new_struct = Struct.from_args(str(id(self)), list(names_types.keys()), list(
+            new_struct = Struct.from_args(list(names_types.keys()), list(
                 names_types.values()), with_name_short="collect")
             bot = f";\n{last_struct.name_short}.map(|(k, v)| ({new_struct.name_struct}{{"
             if len(names_types) == 1:
@@ -890,98 +906,3 @@ class WindowFuncGen:
 
     def type_init(self, type: DataType):
         return self.func_type_init[type]
-
-
-# if operand is literal, return its value
-# if operand is table column, return its index in the original table
-# if resolve_optionals_to_some we're recursively resolving a binary operation and also need struct_name
-def operator_arg_stringify(operand: Node, struct_name=None, window_resolve=None) -> str:
-    math_ops = {"Multiply": "*", "Add": "+", "Subtract": "-", "Divide": "/", "Modulus": "%"}
-    comp_ops = {"Equals": "==", "Greater": ">",
-                "GreaterEqual": ">=", "Less": "<", "LessEqual": "<="}
-    log_ops = {"And": "&", "Or": "|"}
-    if isinstance(operand, ibis.expr.operations.generic.TableColumn):
-        if struct_name:
-            return f"{struct_name}.{operand.name}"
-        return operand.name
-    elif isinstance(operand, ibis.expr.operations.generic.Literal):
-        if operand.dtype.name == "String":
-            return f"\"{operand.value}\""
-        return operand.name
-    elif isinstance(operand, ops.logical.Comparison):
-        left = operator_arg_stringify(
-            operand.left, struct_name, window_resolve)
-        right = operator_arg_stringify(
-            operand.right, struct_name, window_resolve)
-        # careful: ibis considers literals as optionals, while in noir a numeric literal is not an Option<T>
-        is_left_nullable = operand.left.dtype.nullable and not isinstance(
-            operand.left, ops.Literal)
-        is_right_nullable = operand.right.dtype.nullable and not isinstance(
-            operand.right, ops.Literal)
-        op = comp_ops[type(operand).__name__]
-        if is_left_nullable and not is_right_nullable:
-            return f"{left}.clone().is_some_and(|v| v {op} {right})"
-        if not is_left_nullable and is_right_nullable:
-            return f"{right}.clone().is_some_and(|v| {left} {op} v)"
-        if is_left_nullable and is_right_nullable:
-            return f"{left}.clone().zip({right}.clone()).map_or(false, |(a, b)| a {op} b)"
-        return f"{left} {op} {right}"
-    elif isinstance(operand, ops.LogicalBinary):
-        left = operator_arg_stringify(
-            operand.left, struct_name, window_resolve)
-        right = operator_arg_stringify(
-            operand.right, struct_name, window_resolve)
-        return f"{left} {log_ops[type(operand).__name__]} {right}"
-    elif isinstance(operand, ops.NumericBinary):
-        # resolve recursively
-
-        # for ibis, dividing two int64 results in a float64, but for noir it's still int64
-        # so we need to cast the operands
-        cast = ""
-        if type(operand).__name__ == "Divide":
-            cast = "as f64"
-        # for ibis, any operation including a float64 (e.g. a int64 with a float64) produces a float64
-        # so any time the result is a float64, we cast all its operands (casting f64 to f64 has no effect)
-        if operand.dtype.name == "Float64":
-            cast = "as f64"
-
-        # careful: ibis considers literals as optionals, while in noir a numeric literal is not an Option<T>
-        is_left_nullable = operand.left.dtype.nullable and not isinstance(
-            operand.left, ops.Literal)
-        is_right_nullable = operand.right.dtype.nullable and not isinstance(
-            operand.right, ops.Literal)
-        if is_left_nullable and is_right_nullable:
-            result = f"{operator_arg_stringify(operand.left, struct_name, window_resolve)}\
-                    .zip({operator_arg_stringify(operand.right, struct_name, window_resolve)})\
-                    .map(|(a, b)| a {cast} {math_ops[type(operand).__name__]} b {cast})"
-        elif is_left_nullable and not is_right_nullable:
-            result = f"{operator_arg_stringify(operand.left, struct_name, window_resolve)}\
-                    .map(|v| v {cast} {math_ops[type(operand).__name__]} {operator_arg_stringify(operand.right, struct_name, window_resolve)} {cast})"
-        elif not is_left_nullable and is_right_nullable:
-            result = f"{operator_arg_stringify(operand.right, struct_name, window_resolve)}\
-                    .map(|v| {operator_arg_stringify(operand.left, struct_name, window_resolve)} {cast} {math_ops[type(operand).__name__]} v {cast})"
-        else:
-            result = f"{operator_arg_stringify(operand.left, struct_name, window_resolve)} {cast} {math_ops[type(operand).__name__]} {operator_arg_stringify(operand.right, struct_name, window_resolve)} {cast}"
-
-        return result
-    elif isinstance(operand, ops.WindowFunction):
-        # window resolve case: map is preceded by WindowFunction which used same name as map's result for its result
-        if window_resolve:
-            return f"{struct_name}.{window_resolve}"
-        # alias is above WindowFunction and not dependency, but because .map follows .fold
-        # in this case, we can get the column added by the DatabaseOperator in the struct
-        # it just created, which is second to last (last is new col added by MapOperator)
-        # since python 3.7, dict maintains insertion order
-        return f"{struct_name}.{Struct.last().columns[-2]}"
-    elif isinstance(operand, ops.NotNull):
-        return f"{operator_arg_stringify(operand.__children__[0], struct_name, window_resolve)}.is_some()"
-    elif isinstance(operand, ops.StringContains):
-        haystack = operator_arg_stringify(
-            operand.haystack, struct_name, window_resolve)
-        needle = operator_arg_stringify(
-            operand.needle, struct_name, window_resolve)
-        if not operand.haystack.dtype.nullable: 
-            return f"{haystack}.contains({needle})"
-        else:
-            return f"{haystack}.clone().is_some_and(|x| x.contains({needle}))"
-    raise Exception(f"Unsupported operand type: {operand}")
