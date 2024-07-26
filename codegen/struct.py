@@ -8,6 +8,7 @@ class Struct(object):
     ibis_to_noir_type = {"Int64": "i64", "String": "String", "Float64": "f64", "Date": "NaiveDate"}
     last_complete_transform: "Struct"
     structs: list["Struct"] = []
+    last_materialized_name: str = None
     # copied when generating new structs: toggle if operator turns to keyed/un-keyed
     with_keyed_stream: dict[str, DataType] = None
     cached_tables_structs: list["Struct"] = []

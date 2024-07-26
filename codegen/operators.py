@@ -791,8 +791,10 @@ class DatabaseOperator(Operator):
         full_path = utl.TAB_FILES[self.table.name]
         rel_path = ".." + full_path.split(utl.ROOT_DIR)[1]
         if not self.renoir_cached:
+            name = Struct.id_counter_to_name_short(struct.id_counter + count_structs)
+            Struct.last_materialized_name = name
             return (f";\nlet {struct.name_short} = ctx.stream_csv::<{struct.name_struct}>(\"{rel_path}\").batch_mode(BatchMode::fixed(16000));\n" +
-                    f"let var_{struct.id_counter + count_structs} = {struct.name_short}")
+                    f"let {name} = {struct.name_short}")
         else:
             db_count = [db for db in Operator.operators if isinstance(db, DatabaseOperator)].index(self)
             cache = Struct.cached_tables_structs[db_count].name_short
@@ -851,12 +853,16 @@ class BotOperator(Operator):
         super().__init__()
 
     def generate(self) -> str:
-        last_struct = Struct.last_materialized()
+        last_struct = Struct.last()
 
         if not self.print_output_to_file:
             # to verify that it's actually doing something, add this before the .for_each:
             # .inspect(|e| eprintln!(\"{{e:?}}\"))
-            bot = f"; {last_struct.name_short}.for_each(|x| {{std::hint::black_box(x);}});"
+            if Struct.last_materialized_name:
+                name = Struct.last_materialized_name
+            else:
+                name = last_struct.name_short
+            bot = f"; {name}.for_each(|x| {{std::hint::black_box(x);}});"
             bot_file = utl.ROOT_DIR + "/noir_template/main_bot_no_print.rs"
             if self.renoir_cached:
                 bot_file = utl.ROOT_DIR + "/noir_template/main_bot_evcxr.rs"
