@@ -29,3 +29,6 @@ flink-*
 *summary_plot.png
 /noir_template/preload_evcxr.rs
 /noir_template/src/main_evcxr.rs
+/libs
+/libssl*
+/risingwave
