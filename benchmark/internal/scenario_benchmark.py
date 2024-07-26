@@ -203,7 +203,7 @@ class Scenario4(Scenario):
     # - table_origin: read from file
     # - data_destination: none
     def __init__(self, pipe):
-        self.test_patterns = ["test_scenarios_exploration", "test_nexmark"]
+        self.test_patterns = ["test_scenarios_exploration", "test_nexmark", "test_tpc"]
         self.backend_names = ["duckdb", "polars", "flink", "renoir"]
         super().__init__(pipe)
 

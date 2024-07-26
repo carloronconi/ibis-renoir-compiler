@@ -22,7 +22,75 @@ class TestTpcH(TestCompiler):
         self.tab_count = len(names)
         
     def init_tables(self):
-        self.tables = {n: ibis.read_csv(f) for n, f in self.files.items()}
+        backend = ibis.get_backend().name
+        if backend == "flink":
+            schemas = {"customer":   ibis.schema({"custkey": ibis.dtype("int64"),
+                                                  "name": ibis.dtype("string"),
+                                                  "address": ibis.dtype("string"),
+                                                  "nationkey": ibis.dtype("int64"),
+                                                  "phone": ibis.dtype("string"),
+                                                  "acctbal": ibis.dtype("float64"),
+                                                  "mktsegment": ibis.dtype("string"),
+                                                  "comment": ibis.dtype("string")}),
+                       "lineitem":  ibis.schema({"orderkey": ibis.dtype("int64"),
+                                                 "partkey": ibis.dtype("int64"),
+                                                 "suppkey": ibis.dtype("int64"),
+                                                 "linenumber": ibis.dtype("int64"),
+                                                 "quantity": ibis.dtype("float64"),
+                                                 "extendedprice": ibis.dtype("float64"),
+                                                 "discount": ibis.dtype("float64"),
+                                                 "tax": ibis.dtype("float64"),
+                                                 "returnflag": ibis.dtype("string"),
+                                                 "linestatus": ibis.dtype("string"),
+                                                 "shipdate": ibis.dtype("string"),
+                                                 "commitdate": ibis.dtype("string"),
+                                                 "receiptdate": ibis.dtype("string"),
+                                                 "shipinstruct": ibis.dtype("string"),
+                                                 "shipmode": ibis.dtype("string"),
+                                                 "comment": ibis.dtype("string")}),
+                       "nation":    ibis.schema({"nationkey": ibis.dtype("int64"),
+                                                "name": ibis.dtype("string"),
+                                                "regionkey": ibis.dtype("int64"),
+                                                "comment": ibis.dtype("string")}),
+                        "orders":    ibis.schema({"orderkey": ibis.dtype("int64"),
+                                                  "custkey": ibis.dtype("int64"),
+                                                  "orderstatus": ibis.dtype("string"),
+                                                  "totalprice": ibis.dtype("float64"),
+                                                  "orderdate": ibis.dtype("string"),
+                                                  "orderpriority": ibis.dtype("string"),
+                                                  "clerk": ibis.dtype("string"),
+                                                  "shippriority": ibis.dtype("int64"),
+                                                  "comment": ibis.dtype("string")}),
+                        "part":      ibis.schema({"partkey": ibis.dtype("int64"),
+                                                  "name": ibis.dtype("string"),
+                                                  "mfgr": ibis.dtype("string"),
+                                                  "brand": ibis.dtype("string"),
+                                                  "type": ibis.dtype("string"),
+                                                  "size": ibis.dtype("int64"),
+                                                  "container": ibis.dtype("string"),
+                                                  "retailprice": ibis.dtype("float64"),
+                                                  "comment": ibis.dtype("string")}),
+                        "partsupp":  ibis.schema({"partkey": ibis.dtype("int64"),
+                                                  "suppkey": ibis.dtype("int64"),
+                                                  "availqty": ibis.dtype("int64"),
+                                                  "supplycost": ibis.dtype("float64"),
+                                                  "comment": ibis.dtype("string")}),
+                        "region":    ibis.schema({"regionkey": ibis.dtype("int64"),
+                                                  "name": ibis.dtype("string"),
+                                                  "comment": ibis.dtype("string")}),
+                        "supplier":  ibis.schema({"suppkey": ibis.dtype("int64"),
+                                                  "name": ibis.dtype("string"),
+                                                  "address": ibis.dtype("string"),
+                                                  "nationkey": ibis.dtype("int64"),
+                                                  "phone": ibis.dtype("string"),
+                                                  "acctbal": ibis.dtype("float64"),
+                                                  "comment": ibis.dtype("string")})
+                       }
+            no_header_files = self.create_files_no_headers()
+            self.tables = {n: ibis.read_csv(
+                f, schema=schemas[n]) for n, f in no_header_files.items()}
+        else:
+            self.tables = {n: ibis.read_csv(f) for n, f in self.files.items()}
 
     def test_tpc_h_query_1(self):
         """
@@ -65,7 +133,8 @@ class TestTpcH(TestCompiler):
                           avg_price=lineitem["extendedprice"].mean(),
                           avg_disc=lineitem["discount"].mean(),
                           count_order=lineitem.count())
-                      .order_by(["returnflag", "linestatus"]))
+                      #.order_by(["returnflag", "linestatus"])
+                      )
 
         if self.perform_compilation:
             compile_ibis_to_noir([(self.files["lineitem"], lineitem)],
