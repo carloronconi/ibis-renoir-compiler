@@ -152,3 +152,90 @@ class TestTpcH(TestCompiler):
         if self.perform_assertions:
             self.assert_similarity_noir_output()
             self.assert_equality_noir_source()
+
+
+#    def test_tpc_h_query_3(self):
+#        """
+#        select
+#        	l_orderkey,
+#        	sum(l_extendedprice * (1 - l_discount)) as revenue,
+#        	o_orderdate,
+#        	o_shippriority
+#        from
+#        	customer,
+#        	orders,
+#        	lineitem
+#        where
+#        	c_mktsegment = ':1'
+#        	and c_custkey = o_custkey
+#        	and l_orderkey = o_orderkey
+#        	and o_orderdate < date ':2'
+#        	and l_shipdate > date ':2'
+#        group by
+#        	l_orderkey,
+#        	o_orderdate,
+#        	o_shippriority
+#        order by
+#        	revenue desc,
+#        	o_orderdate;
+#        """
+#
+#        customer = self.tables["customer"]
+#        orders = self.tables["orders"]
+#        lineitem = self.tables["lineitem"]
+#
+#        print(lineitem.shipdate.typeof())
+#        print(lineitem.schema())
+#        print(orders)
+#        self.query = (customer
+#                      .join(orders, "custkey")
+#                      .join(lineitem, "orderkey", rname="{name}_right_right")
+#                      .filter((_.mktsegment == "BUILDING") &
+#                              (_.orderdate < ibis.date("1995-05-13")) &
+#                              (_.shipdate > ibis.date("1995-05-13")))
+#                      .group_by(["orderkey", "orderdate", "shippriority"])
+#                      .aggregate(revenue=(_.extendedprice * (1 - _.discount)).sum())
+#                      # .order_by(["revenue", "orderdate"])
+#                      )
+#
+#        if self.perform_compilation:
+#            compile_ibis_to_noir([(self.files["customer"], customer),
+#                                  (self.files["orders"], orders),
+#                                  (self.files["lineitem"], lineitem)],
+#                                 self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
+#
+#        if self.perform_assertions:
+#            self.assert_similarity_noir_output()
+#            self.assert_equality_noir_source()
+
+
+    def test_tpc_h_query_6(self):
+        """
+        select
+        	sum(l_extendedprice * l_discount) as revenue
+        from
+        	lineitem
+        where
+        	l_shipdate >= date ':1'
+        	and l_shipdate < date ':1' + interval '1' year
+        	and l_discount between :2 - 0.01 and :2 + 0.01
+        	and l_quantity < :3;
+        """
+
+        lineitem = self.tables["lineitem"]
+        self.query = (lineitem
+                      .filter((lineitem["shipdate"] >= "1994-01-01") &
+                              (lineitem["shipdate"] < "1995-01-01") &
+                              (lineitem["discount"] >= 0.05) &
+                              (lineitem["discount"] <= 0.07) &
+                              (lineitem["quantity"] < 24))
+                      .aggregate(revenue=(_.extendedprice * _.discount).sum())
+                      )
+
+        if self.perform_compilation:
+            compile_ibis_to_noir([(self.files["lineitem"], lineitem)],
+                                 self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)
+
+        if self.perform_assertions:
+            self.assert_similarity_noir_output()
+            self.assert_equality_noir_source()

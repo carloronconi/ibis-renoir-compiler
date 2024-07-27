@@ -197,51 +197,9 @@ class MapOperator(Operator):
                     # and not any(isinstance(cc, ops.WindowFunction) for cc in c.__children__)
                     for c in node.__children__)):
             return cls(node)
+        
 
-
-class LoneReduceOperator(Operator):
-    aggr_ops = {"Sum": "+"}
-
-    def __init__(self, node: ops.Aggregation):
-        alias = next(filter(lambda c: isinstance(
-            c, ops.Alias), node.__children__))
-        self.reducer = alias.__children__[0]
-        self.node = node
-        super().__init__()
-
-    def generate(self) -> str:
-        col = self.arg_parser.parse(self.reducer.__children__[0])
-        op = self.aggr_ops[type(self.reducer).__name__]
-
-        is_reduced_col_nullable = Struct.last().is_col_nullable(col)
-        if is_reduced_col_nullable:
-            mid = (f".reduce(|a, b| {Struct.last().name_struct}{{"
-                   f"{col}: a.{col}.zip(b.{col}).map(|(x, y)| x {op} y), ..a }} )")
-        else:
-            mid = f".reduce(|a, b| {Struct.last().name_struct}{{{col}: a.{col} {op} b.{col}, ..a }} )"
-
-        # map after the reduce to conform to ibis renaming reduced column!
-        new_struct = Struct.from_relation(self.node)
-
-        if is_reduced_col_nullable:
-            mid += f".map(|x| {new_struct.name_struct}{{{new_struct.columns[0]}: x.{col}}})"
-        else:
-            mid += f".map(|x| {new_struct.name_struct}{{{new_struct.columns[0]}: Some(x.{col})}})"
-
-        return mid
-
-    def does_add_struct(self) -> bool:
-        return True
-
-    @classmethod
-    def recognize(cls, node: Node):
-        if (isinstance(node, ops.relations.Aggregation) and
-                any(isinstance(x, ops.core.Alias) for x in node.__children__) and
-                not any(isinstance(x, ops.TableColumn) for x in node.__children__)):
-            return cls(node)
-
-
-class GroupReduceOperator(Operator):
+class ReduceOperator(Operator):
     # these store the ops performed on the main accumulator for the reducer
     # there are also auxiliary accumulators, for now a count, to be used in the final map
     aggr_ops = {"Max": "max(x, y)", "Min": "min(x, y)", "Sum": "x + y",
@@ -267,9 +225,83 @@ class GroupReduceOperator(Operator):
                 self.parsed_name = parser.last_tab_col_name
                 self.is_reduced_col_nullable = Struct.last().is_col_nullable(self.parsed_name)
 
+
+class LoneReduceOperator(ReduceOperator):
+    aggr_ops_form = {"Max": "{0}: max(a.{0}, b.{0})", 
+                     "Min": "{0}: min(a.{0}, b.{0})",
+                     "Sum": "{0}: a.{0} + b.{0}",
+                     "First": "{0}: a.{0}", 
+                     "Mean": "{0}: a.{0} + b.{0}", 
+                     "CountStar": "{0}: a.{0} + b.{0}"}
+
     def __init__(self, node: ops.Aggregation):
-        self.aliases = [
-            c for c in node.__children__ if isinstance(c, ops.Alias)]
+        self.aliases = [c for c in node.__children__ if isinstance(c, ops.Alias)]
+        self.node = node
+        super().__init__()
+
+    def generate(self) -> str:
+        self.aliases = [self.AliasInfo(alias) for alias in self.aliases]
+        mid = ""
+
+        # map to a struct with the final alias fields plus the helper fields
+        # fields here contain the row parsed operations (e.g. y = x.a * x.b) which will then be reduced 
+        # to compute aggregation (y = sum(x.a * x.b), this way we just do y = y.sum())
+        count_struct = Struct.from_args([a.reduced_name for a in self.aliases] + ["reduce_count"],
+                                        [a.reduced_type for a in self.aliases] + [ibis.dtype("!int64")])
+        mid += f".map(|x| {count_struct.name_struct}{{"
+        for alias in self.aliases:
+            if alias.aggregator_name == "CountStar":
+                mid += f"{alias.reduced_name}: Some(1), "
+                continue
+            # always cast as it does nothing for already matching types
+            t = Struct.ibis_to_noir_type[alias.reduced_type.name]
+            if alias.is_reduced_col_nullable:
+                cast = f".map(|v| v as {t})"
+            else:
+                cast = f" as {t}"
+            mid += f"{alias.reduced_name}: {alias.parsed_col}{cast}, "
+        mid += "reduce_count: 1 })"
+
+        # reduce for each reducer
+        mid += f".reduce(|a, b| {count_struct.name_struct}{{"
+        for alias in self.aliases:
+            if alias.reduced_type.nullable:
+                op = self.aggr_ops[alias.aggregator_name]
+                mid += f"{alias.reduced_name}: a.{alias.reduced_name}.zip(b.{alias.reduced_name}).map(|(x, y)| {op}),"
+            else:
+                op = self.aggr_ops_form[alias.aggregator_name].format(alias.reduced_name)
+                mid += f"{op},"
+        mid += "reduce_count: a.reduce_count + b.reduce_count,})"
+
+        # final map for aggregated fields
+        aggr_col_names = [a.reduced_name for a in self.aliases]
+        aggr_col_types = [a.reduced_type for a in self.aliases]
+        # new struct will contain the aggregated field plus the "by" fields also preserved by
+        # the key of the keyed stream, kept in both to be able to drop_key if other group_by follows
+        new_struct = Struct.from_args(list(aggr_col_names), list(aggr_col_types))
+        mid += f".map(|x| {new_struct.name_struct}{{"
+        for alias in self.aliases:
+            val = f"x.{alias.reduced_name}"
+            if alias.aggregator_name == "Mean":
+                val = f"x.{alias.reduced_name}.map(|a| a as f64 / x.reduce_count as f64)"
+            mid += f"{alias.reduced_name}: {val}, "
+        mid += "})"
+        return mid
+
+    def does_add_struct(self) -> bool:
+        return True
+
+    @classmethod
+    def recognize(cls, node: Node):
+        if (isinstance(node, ops.relations.Aggregation) and
+                any(isinstance(x, ops.core.Alias) for x in node.__children__) and
+                not any(isinstance(x, ops.TableColumn) for x in node.__children__)):
+            return cls(node)
+
+
+class GroupReduceOperator(ReduceOperator):
+    def __init__(self, node: ops.Aggregation):
+        self.aliases = [c for c in node.__children__ if isinstance(c, ops.Alias)]
         self.bys = node.by
         self.node = node
         super().__init__()
@@ -334,7 +366,6 @@ class GroupReduceOperator(Operator):
         # the key of the keyed stream, kept in both to be able to drop_key if other group_by follows
         new_struct = Struct.from_args(
             list(bys_n_t.keys()) + list(aggr_col_names), list(bys_n_t.values()) + list(aggr_col_types))
-
         mid += f".map(|(k, x)| {new_struct.name_struct}{{"
         for i, column in enumerate(new_struct.columns):
             if (i < len(bys_n_t)):
