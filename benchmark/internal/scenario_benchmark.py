@@ -10,13 +10,13 @@ from . import backend_benchmark as bb
 from signal import SIGKILL
 
 
-SCENARIO_PATTERN = ""
+SCENARIO_PATTERNS = ["1", "4"]
 RAISE_EXCEPTIONS = False
 
-RUNS = 1
-WARMUP = 0
-PATH_SUFFIX = "_10"
-DIR = "scenario/banana5"
+RUNS = 5
+WARMUP = 1
+PATH_SUFFIX = "_1000000"
+DIR = "scenario/10M_s1-s4_sola1_v3"
 TIMEOUT = 60 * 5 # 5 minutes
 
 
@@ -77,7 +77,7 @@ def police_benchmark(proc: mp.Process, con: tuple[con.Connection, con.Connection
             
 
 def execute_benchmark(pipe: con.Connection, failed_scenario: str = None, failed_test: str = None, failed_backend: str = None):
-    scenarios = [s for s in Scenario.__subclasses__() if SCENARIO_PATTERN in s.__name__]
+    scenarios = [s for s in Scenario.__subclasses__() if any (pat in s.__name__ for pat in SCENARIO_PATTERNS)]
     if failed_scenario:
         # run the failed scenario with special parameters to make it skip already performed tests
         # and then run the rest of the scenarios anyway
