@@ -10,8 +10,14 @@ from . import backend_benchmark as bb
 from signal import SIGKILL
 
 
-SCENARIO_PATTERN = ""
-RAISE_EXCEPTIONS = False
+SCENARIO_PATTERN = "1"
+RAISE_EXCEPTIONS = True
+
+RUNS = 1
+WARMUP = 0
+PATH_SUFFIX = "_10"
+DIR = "scenario/banana3"
+TIMEOUT = 60 * 5 # 5 minutes
 
 
 def main():
@@ -87,11 +93,11 @@ def execute_benchmark(pipe: con.Connection, failed_scenario: str = None, failed_
 
 
 class Scenario:
-    runs = 1
-    warmup = 1
-    path_suffix = "_10"
-    dir = "scenario/banana3"
-    timeout = 60 * 5 # 5 minutes
+    runs = RUNS
+    warmup = WARMUP
+    path_suffix = PATH_SUFFIX
+    dir = DIR
+    timeout = TIMEOUT
 
     def __init__(self, pipe: con.Connection):
         # start from the next backend of the same test
@@ -162,7 +168,7 @@ class Scenario1(Scenario):
     # - table_origin: read from file
     # - data_destination: write to file
     def __init__(self, pipe):
-        self.test_patterns = ["test_scenarios_preprocess", "test_nexmark"]
+        self.test_patterns = ["test_scenarios_preprocess", "test_nexmark", "test_tpc"]
         self.backend_names = ["duckdb", "flink", "renoir"]
         super().__init__(pipe)
 

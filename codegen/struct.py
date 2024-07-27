@@ -8,7 +8,7 @@ class Struct(object):
     ibis_to_noir_type = {"Int64": "i64", "String": "String", "Float64": "f64", "Date": "NaiveDate"}
     last_complete_transform: "Struct"
     structs: list["Struct"] = []
-    last_materialized_name: str = None
+    last_materialized_id: int = None
     # copied when generating new structs: toggle if operator turns to keyed/un-keyed
     with_keyed_stream: dict[str, DataType] = None
     cached_tables_structs: list["Struct"] = []
@@ -26,6 +26,15 @@ class Struct(object):
         if ibis_nullable:
             return f"Option<{cls.ibis_to_noir_type[ibis_name]}>"
         return cls.ibis_to_noir_type[ibis_name]
+    
+    @classmethod
+    def last_materialized(cls) -> "Struct":
+        if cls.last_materialized_id is None:
+            return None
+        matches = [s for s in cls.structs if s.id_counter == cls.last_materialized_id]
+        if not matches:
+            return None
+        return matches[0]
 
     def __init__(self, cols_types: dict[str, ibis.expr.datatypes.core.DataType], with_name_short=None):
         self.id_counter = Struct.name_counter

@@ -145,8 +145,6 @@ class TestTpcH(TestCompiler):
                         #     }
                       )
         
-        self.render_query_graph = True
-
         if self.perform_compilation:
             compile_ibis_to_noir([(self.files["lineitem"], lineitem)],
                                  self.query, self.run_after_gen, self.print_output_to_file, self.render_query_graph, self.benchmark)

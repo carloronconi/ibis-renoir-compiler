@@ -792,7 +792,7 @@ class DatabaseOperator(Operator):
         rel_path = ".." + full_path.split(utl.ROOT_DIR)[1]
         if not self.renoir_cached:
             name = Struct.id_counter_to_name_short(struct.id_counter + count_structs)
-            Struct.last_materialized_name = name
+            Struct.last_materialized_id = struct.id_counter + count_structs
             return (f";\nlet {struct.name_short} = ctx.stream_csv::<{struct.name_struct}>(\"{rel_path}\").batch_mode(BatchMode::fixed(16000));\n" +
                     f"let {name} = {struct.name_short}")
         else:
@@ -854,15 +854,16 @@ class BotOperator(Operator):
 
     def generate(self) -> str:
         last_struct = Struct.last()
+        last_mat = Struct.last_materialized()
+        if last_mat:
+            last_mat_name = last_mat.name_short
+        else:
+            last_mat_name = last_struct.name_short
 
         if not self.print_output_to_file:
             # to verify that it's actually doing something, add this before the .for_each:
             # .inspect(|e| eprintln!(\"{{e:?}}\"))
-            if Struct.last_materialized_name:
-                name = Struct.last_materialized_name
-            else:
-                name = last_struct.name_short
-            bot = f"; {name}.for_each(|x| {{std::hint::black_box(x);}});"
+            bot = f"; {last_mat_name}.for_each(|x| {{std::hint::black_box(x);}});"
             bot_file = utl.ROOT_DIR + "/noir_template/main_bot_no_print.rs"
             if self.renoir_cached:
                 bot_file = utl.ROOT_DIR + "/noir_template/main_bot_evcxr.rs"
@@ -879,12 +880,12 @@ class BotOperator(Operator):
         if self.renoir_cached:
             out_path = utl.ROOT_DIR + "/out/noir-result.csv"
         if not last_struct.is_keyed_stream:
-            bot = f";\n{last_struct.name_short}.write_csv_one(\"{out_path}\", true);"
+            bot = f";\n{last_mat_name}.write_csv_one(\"{out_path}\", true);"
         else:
-            names_types = Struct.last().with_keyed_stream
+            names_types = last_struct.with_keyed_stream
             new_struct = Struct.from_args(list(names_types.keys()), list(
                 names_types.values()), with_name_short="collect")
-            bot = f";\n{last_struct.name_short}.map(|(k, v)| ({new_struct.name_struct}{{"
+            bot = f";\n{last_mat_name}.map(|(k, v)| ({new_struct.name_struct}{{"
             if len(names_types) == 1:
                 bot += f"{list(names_types.keys())[0]}: k.clone(),"
             else:
