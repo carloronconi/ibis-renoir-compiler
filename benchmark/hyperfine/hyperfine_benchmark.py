@@ -14,9 +14,9 @@ def main():
     # Example hyperfine usage comparing renoir and polars:
     # hyperfine --warmup 5 "python ../ibis-renoir-compiler test.test_operators.TestNullableOperators.test_nullable_filter_filter_select_select --paths /home/carlo/Projects/ibis-renoir-compiler/data/int-1-string-1.csv /home/carlo/Projects/ibis-renoir-compiler/data/int-3.csv --backend renoir" "python ../ibis-renoir-compiler test.test_operators.TestNullableOperators.test_nullable_filter_filter_select_select --paths /home/carlo/Projects/ibis-renoir-compiler/data/int-1-string-1.csv /home/carlo/Projects/ibis-renoir-compiler/data/int-3.csv --backend polars" --export-json result.json
     parser = argparse.ArgumentParser("ibis-renoir-compiler")
-    parser.add_argument("test_case",
+    parser.add_argument("--test-case",
                         help="Which testcase to run. Use `python -m benchmark.discover_tests` to see the current list of tests.", type=str)
-    parser.add_argument("--path_suffix",
+    parser.add_argument("--path-suffix",
                         help="Suffix for test files used by test_case. Useful for having same file with growing sizes.", default="", type=str)
     parser.add_argument("--backend",
                         help="Which backend to use.", type=str, choices=["renoir", "duckdb", "flink", "polars"], default="renoir")

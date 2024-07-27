@@ -104,12 +104,14 @@ psycopg2==2.9.9
 psycopg2-binary==2.9.9
 ptyprocess==0.7.0
 pure-eval==0.2.2
+py4j==0.10.9.7
 pyarrow==11.0.0
 pyarrow-hotfix==0.6
 pyasn1==0.6.0
 pyasn1_modules==0.4.0
 pycparser==2.22
 pydot==1.4.2
+pyflink==1.0
 Pygments==2.18.0
 pyjsparser==2.7.1
 PyJWT==2.8.0
@@ -138,7 +140,7 @@ sortedcontainers==2.4.0
 SQLAlchemy==2.0.0
 sqlalchemy-risingwave==1.1.0
 sqlalchemy-views==0.3.2
-sqlglot==23.6.3
+sqlglot==20.11.0
 stack-data==0.6.3
 tenacity==8.4.1
 threadpoolctl==3.5.0

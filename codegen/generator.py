@@ -26,8 +26,13 @@ def compile_ibis_to_noir(files_tables: list[tuple[str, PhysicalTable]],
     if benchmark:
         start_time = time.perf_counter()
 
-    for file, table in files_tables:
+    for tup in files_tables:
+        file = tup[0]
+        table = tup[1]
         utl.TAB_FILES[str(table._arg.name)] = file
+        if len(tup) > 2:
+            name = tup[2]
+            utl.TAB_NAMES[str(table._arg.name)] = name
 
     if render_query_graph:
         to_graph(query).render(utl.ROOT_DIR + "/out/query")

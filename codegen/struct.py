@@ -5,9 +5,10 @@ from ibis.expr.datatypes.core import DataType
 
 class Struct(object):
     name_counter = 0
-    ibis_to_noir_type = {"Int64": "i64", "String": "String", "Float64": "f64"}
+    ibis_to_noir_type = {"Int64": "i64", "String": "String", "Float64": "f64", "Date": "NaiveDate"}
     last_complete_transform: "Struct"
     structs: list["Struct"] = []
+    last_materialized_id: int = None
     # copied when generating new structs: toggle if operator turns to keyed/un-keyed
     with_keyed_stream: dict[str, DataType] = None
     cached_tables_structs: list["Struct"] = []
@@ -25,9 +26,17 @@ class Struct(object):
         if ibis_nullable:
             return f"Option<{cls.ibis_to_noir_type[ibis_name]}>"
         return cls.ibis_to_noir_type[ibis_name]
+    
+    @classmethod
+    def last_materialized(cls) -> "Struct":
+        if cls.last_materialized_id is None:
+            return None
+        matches = [s for s in cls.structs if s.id_counter == cls.last_materialized_id]
+        if not matches:
+            return None
+        return matches[0]
 
-    def __init__(self, name: str, cols_types: dict[str, ibis.expr.datatypes.core.DataType], with_name_short=None):
-        self.name_long = name
+    def __init__(self, cols_types: dict[str, ibis.expr.datatypes.core.DataType], with_name_short=None):
         self.id_counter = Struct.name_counter
         if with_name_short:
             self.name_short = with_name_short
@@ -43,17 +52,16 @@ class Struct(object):
     def from_relation(cls, node: Relation):
         names = list(node.schema.names)
         types = list(node.schema.types)
-        return cls(name=str(id(node)), cols_types=dict(zip(names, types)))
+        return cls(cols_types=dict(zip(names, types)))
     
     @classmethod
     def from_table(cls, table):
         names = list(table.schema().names)
         types = list(table.schema().types)
-        return cls(name=str(id(table)), cols_types=dict(zip(names, types)))
+        return cls(cols_types=dict(zip(names, types)))
 
     @classmethod
     def from_join(cls, left: "Struct", right: "Struct"):
-        n = left.name_long[len(left.name_long)//2:] + right.name_long[len(right.name_long)//2:]
         c_t = dict(left.cols_types)
         right_to_append = {}
         for c, t in right.cols_types.items():
@@ -71,15 +79,15 @@ class Struct(object):
                 c_t[c] = ibis.dtype(t.name)
                 cols_turned_nullable.add(c)
 
-        return cls(name=n, cols_types=c_t), cols_turned_nullable
+        return cls(cols_types=c_t), cols_turned_nullable
 
     @classmethod
-    def from_args(cls, name: str, columns: list, types: list, with_name_short=None):
-        return cls(name, dict(zip(columns, types)), with_name_short=with_name_short)
+    def from_args(cls, columns: list, types: list, with_name_short=None):
+        return cls(dict(zip(columns, types)), with_name_short=with_name_short)
     
     @classmethod
-    def from_args_dict(cls, name: str, cols_types: dict, with_name_short=None):
-        return cls(name, cols_types, with_name_short=with_name_short)
+    def from_args_dict(cls, cols_types: dict, with_name_short=None):
+        return cls(cols_types, with_name_short=with_name_short)
 
     @classmethod
     def last(cls) -> "Struct":

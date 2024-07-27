@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::path::Path;
 use clap::Parser;
 use std::fs::File;
@@ -12,6 +13,17 @@ struct Args {
 }
 
 fn main() -> eyre::Result<()> {
+    let header: HashMap<&str, &str> = HashMap::from([
+        ("customer", "custkey,name,address,nationkey,phone,acctbal,mktsegment,comment"),
+        ("lineitem", "orderkey,partkey,suppkey,linenumber,quantity,extendedprice,discount,tax,returnflag,linestatus,shipdate,commitdate,receiptdate,shipinstruct,shipmode,comment"),
+        ("nation", "nationkey,name,regionkey,comment"),
+        ("orders", "orderkey,custkey,orderstatus,totalprice,orderdate,orderpriority,clerk,shippriority,comment"),
+        ("part", "partkey,name,mfgr,brand,type,size,container,retailprice,comment"),
+        ("partsupp", "partkey,suppkey,availqty,supplycost,comment"),
+        ("region", "regionkey,name,comment"),
+        ("supplier", "suppkey,name,address,nationkey,phone,acctbal,comment"),
+    ]);
+
     let args = Args::parse();
     let dir = Path::new(&args.dir);
     
@@ -22,10 +34,13 @@ fn main() -> eyre::Result<()> {
 
     for f in &file_list {
         print!("Transforming file: {}\n", f);
-        let new_file = f.replace(&args.pattern, ".csv");
+        let new_file = f.replace(".tbl", ".csv");
         let original_file = File::open(f)?;
         let reader = BufReader::new(original_file);
         let mut new_file = File::create(new_file)?;
+        // write header line considering file names with included _100... size suffix
+        let tab_name = f.split("/").last().unwrap().split("_").next().unwrap();
+        writeln!(new_file, "{}", header.get(tab_name).unwrap())?;
 
         for line in reader.lines() {
             let line = line?;

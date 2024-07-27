@@ -10,6 +10,16 @@ from . import backend_benchmark as bb
 from signal import SIGKILL
 
 
+SCENARIO_PATTERNS = ["1", "4"]
+RAISE_EXCEPTIONS = False
+
+RUNS = 5
+WARMUP = 1
+PATH_SUFFIX = "_1000000"
+DIR = "scenario/10M_s1-s4_sola1_v3"
+TIMEOUT = 60 * 5 # 5 minutes
+
+
 def main():
     con = mp.Pipe(duplex=True)
     _, other = con
@@ -54,6 +64,9 @@ def police_benchmark(proc: mp.Process, con: tuple[con.Connection, con.Connection
             else:
                 trace = exception
                 exception = "exception"
+                if RAISE_EXCEPTIONS:
+                    msg = trace.replace("NEWLINE_ESCAPE", "\n").replace("COMMA_ESCAPE", ",")
+                    raise Exception(f"Captured exception from worker:\n{msg}")
             print(f"{exception}: {curr_test} with {curr_backend} in {curr_scenario} - trace: {trace[-50:]}")
             # restart the process from same scenario, skipping to the next backend
             proc = mp.Process(target=execute_benchmark, args=(other, curr_scenario, curr_test, curr_backend))
@@ -64,7 +77,7 @@ def police_benchmark(proc: mp.Process, con: tuple[con.Connection, con.Connection
             
 
 def execute_benchmark(pipe: con.Connection, failed_scenario: str = None, failed_test: str = None, failed_backend: str = None):
-    scenarios = [s for s in Scenario.__subclasses__() if "2" in s.__name__]
+    scenarios = [s for s in Scenario.__subclasses__() if any (pat in s.__name__ for pat in SCENARIO_PATTERNS)]
     if failed_scenario:
         # run the failed scenario with special parameters to make it skip already performed tests
         # and then run the rest of the scenarios anyway
@@ -80,11 +93,11 @@ def execute_benchmark(pipe: con.Connection, failed_scenario: str = None, failed_
 
 
 class Scenario:
-    runs = 1
-    warmup = 1
-    path_suffix = "_10"
-    dir = "scenario/banana3"
-    timeout = 60 * 5 # 5 minutes
+    runs = RUNS
+    warmup = WARMUP
+    path_suffix = PATH_SUFFIX
+    dir = DIR
+    timeout = TIMEOUT
 
     def __init__(self, pipe: con.Connection):
         # start from the next backend of the same test
@@ -155,8 +168,7 @@ class Scenario1(Scenario):
     # - table_origin: read from file
     # - data_destination: write to file
     def __init__(self, pipe):
-        self.test_patterns = ["test_scenarios_preprocess"]
-        # TODO: missing postgres and risingwave because no direct read from file
+        self.test_patterns = ["test_scenarios_preprocess", "test_nexmark", "test_tpc"]
         self.backend_names = ["duckdb", "flink", "renoir"]
         super().__init__(pipe)
 
@@ -192,6 +204,8 @@ class Scenario3(Scenario):
     # - table_origin: preload table and perform computationally intensive query
     # - data_destination: none
     def __init__(self, pipe):
+        # TODO: also measure: time of the first query + overall time doing as one-shot
+        # TODO: no support for nexmark & tpc because requires successive queries, don't exist in specification
         self.test_patterns = ["test_scenarios_analytics"]
         self.backend_names = ["duckdb", "polars", "risingwave", "renoir"]
         super().__init__(pipe)
@@ -211,8 +225,7 @@ class Scenario4(Scenario):
     # - table_origin: read from file
     # - data_destination: none
     def __init__(self, pipe):
-        self.test_patterns = ["test_scenarios_exploration"]
-        # TODO: missing risingwave because no direct read from file
+        self.test_patterns = ["test_scenarios_exploration", "test_nexmark", "test_tpc"]
         self.backend_names = ["duckdb", "polars", "flink", "renoir"]
         super().__init__(pipe)
 
