@@ -134,7 +134,19 @@ class TestTpcH(TestCompiler):
                           avg_disc=lineitem["discount"].mean(),
                           count_order=lineitem.count())
                       #.order_by(["returnflag", "linestatus"])
+                        # TODO: order_by operator
+                        # using  collect_to_vec and then sorting by multiple columns the same way `ORDER BY` does,
+                        # sorting with the second column only when the first one is equal for some rows. Idea:
+                        #     dummies.sort_by(|d1, d2| {
+                        #       let cmp_x = d1.x.cmp(&d2.x);
+                        #       if cmp_x == std::cmp::Ordering::Equal {
+                        #            d1.z.cmp(&d2.z)
+                        #     } else {
+                        #       cmp_x
+                        #     }
                       )
+        
+        self.render_query_graph = True
 
         if self.perform_compilation:
             compile_ibis_to_noir([(self.files["lineitem"], lineitem)],
