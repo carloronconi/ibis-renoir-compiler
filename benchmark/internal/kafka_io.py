@@ -23,16 +23,20 @@ class Producer:
                 print("Waiting for brokers to become available")
                 sleep(10)
         raise RuntimeError("Failed to connect to brokers within 60 seconds")
+
+    def write_data(self, items=1000000):
+        print(f"producing {items} items for source topic")
+        for _ in range(items):
+            self.write_datum()
     
     def write_datum(self):
         order_id = calendar.timegm(time.gmtime())
         order_topic = "source"
 
-        print("producing single datum for source topic")
         # produce payment info to payment topic
         ts = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
         order_id += 1
-        
+
         # produce order info to order topic
         order_data = {
             "createTime": ts,
@@ -81,26 +85,30 @@ class Consumer:
                 print("Waiting for brokers to become available")
                 sleep(10)
         raise RuntimeError("Failed to connect to brokers within 60 seconds")
-    
+
     def read_old_data(self):
         self.consumer.seek_to_end()
         self.consumer.commit()
-    
-    def read_datum(self, stoppable):
-        print("waiting to receive in sink topic before returning")
-        for message in self.consumer:
-            self.consumer.commit()
-            self.read_timestamp = time.perf_counter()
+
+    def read_data(self, stoppable, poll_interval=10):
+        print("polling sink topic every {poll_interval} seconds, returning at first empty poll")
+        self.read_timestamp = time.perf_counter()
+        data = self.consumer.poll(timeout_ms=poll_interval * 1000)
+        self.consumer.commit()
+        if not data:
             stoppable.do_stop = True
-            print(f"Consumed message: {message}")
-            break
+            raise Exception("No data in sink topic: either there's a failure or the query filters out everything")
+        while data:
+            self.read_timestamp = time.perf_counter()
+            data = self.consumer.poll(timeout_ms=poll_interval * 1000)
+        stoppable.do_stop = True
 
 
 def main():
     producer = Producer()
     print("Staring producer of infinite data...")
     while True:
-        producer.write_datum()
+        producer.write_data()
         sleep(1)
 
 

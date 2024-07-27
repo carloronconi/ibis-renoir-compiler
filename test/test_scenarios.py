@@ -176,17 +176,21 @@ class TestScenariosViews(TestCompiler):
                                 "startingOffsets": "latest",
                                 "failOnDataLoss": "false"})
         elif con.name == "risingwave":
-            table: ibis.Table = con.create_source(
-                name=source_name,
-                schema=source_schema,
-                connector_properties={"connector": "kafka",
-                                      "topic": "source",
-                                      "properties.bootstrap.server": "localhost:9092",
-                                      "scan.startup.mode": "latest",
-                                      "scan.startup.timestamp.millis": "140000000"},
-                data_format="PLAIN",
-                encode_format="JSON"
-            )
+            try:
+                table: ibis.Table = con.create_source(
+                    name=source_name,
+                    schema=source_schema,
+                    connector_properties={"connector": "kafka",
+                                          "topic": "source",
+                                          "properties.bootstrap.server": "localhost:9092",
+                                          "scan.startup.mode": "latest",
+                                          "scan.startup.timestamp.millis": "140000000"},
+                    data_format="PLAIN",
+                    encode_format="JSON"
+                )
+            except:
+                print("Source already exists")
+                table = con.table(source_name)
         else:
             raise NotImplementedError(f"Backend {con.name} not supported for views test")
         self.tables = {source_name: table}
@@ -194,10 +198,14 @@ class TestScenariosViews(TestCompiler):
     
     def test_scenarios_views_1_filter(self):
         self.query = (self.tables["source_kafka"]
-                      #.filter(_.merchantId % 2 == 0)
-                      # filtering makes it so that sometimes no result is produced and the consumer
-                      # stays stuck waiting!
-                      # TODO: `value` field always required, add it in the data generator and schema
+                      .filter(_.category == "entertainment")
                       .mutate(value=_.category)
                       .select(["merchantId", "value"]))
         # no complete_test_tasks here, as renoir is not supported
+
+    def test_scenarios_views_2_aggregate(self):
+        self.query = (self.tables["source_kafka"]
+                      .group_by("category")
+                      .aggregate(mean=_["orderId"].mean())
+                      .mutate(value=_.category)
+                      .select(["mean", "value"]))

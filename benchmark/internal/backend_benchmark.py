@@ -60,7 +60,7 @@ class BackendBenchmark():
         end_time = time.perf_counter()
         return end_time - start_time, max(memo)
 
-    def perform_measure_to_file(self)-> tuple[float, float]:
+    def perform_measure_to_file(self) -> tuple[float, float]:
         def run(test_method, test_instance):
             test_method()
             result = test_instance.query.execute()
@@ -117,21 +117,19 @@ class BackendBenchmark():
         self.subp = Thread(target=self.create_sink)
         self.subp.start()
         return self.perform_measure_latency_kafka_to_kafka()
-    
+
     def perform_measure_latency_kafka_to_kafka(self) -> tuple[float, float]:
-        print("\n\n\narrived in timer\n\n\n")
         producer = Producer()
         consumer = Consumer()
         # starting the consumer in a separate thread so it doesn't "miss" the message
         # produced by the view from source to sink between the call to write_datum and read_datum
         # and passing self so it can toggle self.do_stop and stop the spark instance
-        consumer_proc = Thread(target=consumer.read_datum, args=[self])
+        consumer_proc = Thread(target=consumer.read_data, args=[self])
         consumer_proc.start()
         start_time = time.perf_counter()
         # the backend is already set up to update its internal view and
         # write it to the sink topic
-        producer.write_datum()
-        print("\n\n\nfinished in timer\n\n\n")
+        producer.write_data()
         # block until the consumer receives the result from sink
         consumer_proc.join()
         # once_consumer.proc returns, it must have toggled self.do_stop so
@@ -140,7 +138,7 @@ class BackendBenchmark():
         end_time = consumer.read_timestamp
         # TODO: how measure memory of external risingwave/kafka within docker?
         return end_time - start_time, None
-    
+
 
 class RenoirBenchmark(BackendBenchmark):
     name = "renoir"
@@ -255,19 +253,19 @@ class RisingwaveBenchmark(BackendBenchmark):
     
     def create_view(self):
         con: RisingwaveBackend = ibis.get_backend()
-        con.create_materialized_view("view_kafka", 
-                             obj=self.test_instance.query, 
-                             overwrite=True)   
+        con.create_materialized_view("view_kafka",
+                                     obj=self.test_instance.query,
+                                     overwrite=True)
 
     def create_sink(self):
         con: RisingwaveBackend = ibis.get_backend()
         con.create_sink("sink_kafka",
-                sink_from="view_kafka",
-                connector_properties={"connector": "kafka",
-                                      "topic": "sink",
-                                      "properties.bootstrap.server": "localhost:9092"},
-                data_format="PLAIN",
-                encode_format="JSON")     
+                        sink_from="view_kafka",
+                        connector_properties={"connector": "kafka",
+                                              "topic": "sink",
+                                              "properties.bootstrap.server": "localhost:9092"},
+                        data_format="PLAIN",
+                        encode_format="JSON")
 
 
 class SparkBenchmark(BackendBenchmark):
@@ -287,12 +285,12 @@ class SparkBenchmark(BackendBenchmark):
             'org.apache.kafka:kafka-clients:3.2.1'
         ]
         session = SparkSession.builder\
-           .master("local[*]")\
-           .config("spark.executor.memory", "16g")\
-           .config("spark.driver.memory", "16g")\
-           .appName("kafka-example")\
-           .config("spark.jars.packages", ",".join(packages))\
-           .getOrCreate()
+            .master("local[*]")\
+            .config("spark.executor.memory", "16g")\
+            .config("spark.driver.memory", "16g")\
+            .appName("kafka-example")\
+            .config("spark.jars.packages", ",".join(packages))\
+            .getOrCreate()
 
         con: ibis.backends.pyspark.Backend = ibis.pyspark.connect(session, mode="streaming")
         ibis.set_backend(con)
@@ -300,19 +298,19 @@ class SparkBenchmark(BackendBenchmark):
 
     def create_view(self):
         con = ibis.get_backend()
-        self.view = con.create_view("view_kafka", self.test_instance.query, overwrite=True)
-    
+        self.view = con.create_view(
+            "view_kafka", self.test_instance.query, overwrite=True)
+
     def create_sink(self):
         con: ibis.backends.pyspark.Backend = ibis.get_backend()
         # notes:
         # - create a checkpointLocation on the host of this script (not the kafka container!)
-        # - call .start() on .to_kafka(), docs are wrong and that actually returns a DataStreamWriter, 
+        # - call .start() on .to_kafka(), docs are wrong and that actually returns a DataStreamWriter,
         #   to get a StreamingQuery you need to call .start()
-        stream_query: StreamingQuery = con.to_kafka(self.view, options={"kafka.bootstrap.servers": "localhost:9092", 
-                            "topic": "sink",
-                            "checkpointLocation": "/tmp/spark_checkpoint"}).start()
+        stream_query: StreamingQuery = con.to_kafka(self.view, options={"kafka.bootstrap.servers": "localhost:9092",
+                                                                        "topic": "sink",
+                                                                        "checkpointLocation": "/tmp/spark_checkpoint"}).start()
         # the query doesn't run in the background! If we don't await it here, pyspark will exit immediately
         # kafka_io.Consumer will toggle self.stop as soon as it receives a message, so we can stop awaiting
         while stream_query.isActive and not self.do_stop:
             stream_query.awaitTermination(1)
-
