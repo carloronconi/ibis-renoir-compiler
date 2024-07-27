@@ -34,12 +34,12 @@ fn main() -> eyre::Result<()> {
 
     for f in &file_list {
         print!("Transforming file: {}\n", f);
-        let new_file = f.replace(&args.pattern, ".csv");
+        let new_file = f.replace(".tbl", ".csv");
         let original_file = File::open(f)?;
         let reader = BufReader::new(original_file);
         let mut new_file = File::create(new_file)?;
-        // write header line
-        let tab_name = f.split("/").last().unwrap().split(".").next().unwrap();
+        // write header line considering file names with included _100... size suffix
+        let tab_name = f.split("/").last().unwrap().split("_").next().unwrap();
         writeln!(new_file, "{}", header.get(tab_name).unwrap())?;
 
         for line in reader.lines() {

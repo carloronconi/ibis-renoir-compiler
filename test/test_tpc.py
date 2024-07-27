@@ -16,8 +16,7 @@ class TestTpcH(TestCompiler):
         names = ["customer", "lineitem", "nation", "orders",
                  "part", "partsupp", "region", "supplier"]
         file_prefix = ROOT_DIR + "/data/tpch/"
-        # file_suffix parameter is actually ignored
-        file_suffix = ".csv"
+        file_suffix = file_suffix + ".csv"
         self.files = {n: f"{file_prefix}{n}{file_suffix}" for n in names}
         self.tab_count = len(names)
         
