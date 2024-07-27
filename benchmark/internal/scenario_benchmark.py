@@ -10,13 +10,13 @@ from . import backend_benchmark as bb
 from signal import SIGKILL
 
 
-SCENARIO_PATTERN = "1"
-RAISE_EXCEPTIONS = True
+SCENARIO_PATTERN = ""
+RAISE_EXCEPTIONS = False
 
 RUNS = 1
 WARMUP = 0
 PATH_SUFFIX = "_10"
-DIR = "scenario/banana3"
+DIR = "scenario/banana5"
 TIMEOUT = 60 * 5 # 5 minutes
 
 
@@ -190,7 +190,9 @@ class Scenario3(Scenario):
     # - table_origin: preload table and perform computationally intensive query
     # - data_destination: none
     def __init__(self, pipe):
-        self.test_patterns = ["test_scenarios_analytics", "test_nexmark"]
+        # TODO: also measure: time of the first query + overall time doing as one-shot
+        # TODO: no support for nexmark & tpc because requires successive queries, don't exist in specification
+        self.test_patterns = ["test_scenarios_analytics"]
         self.backend_names = ["duckdb", "polars", "risingwave", "renoir"]
         super().__init__(pipe)
 

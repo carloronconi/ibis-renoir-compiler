@@ -79,7 +79,7 @@ class Struct(object):
                 c_t[c] = ibis.dtype(t.name)
                 cols_turned_nullable.add(c)
 
-        return cls(name=n, cols_types=c_t), cols_turned_nullable
+        return cls(cols_types=c_t), cols_turned_nullable
 
     @classmethod
     def from_args(cls, columns: list, types: list, with_name_short=None):
