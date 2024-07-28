@@ -10,6 +10,7 @@ from kafka import KafkaProducer, errors, KafkaConsumer, TopicPartition
 
 class Producer:
     def __init__(self):
+        self.order_id = 1
         print("Connecting to Kafka brokers")
         for _i in range(6):
             try:
@@ -30,17 +31,15 @@ class Producer:
             self.write_datum()
     
     def write_datum(self):
-        order_id = calendar.timegm(time.gmtime())
         order_topic = "source"
 
         # produce payment info to payment topic
         ts = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
-        order_id += 1
 
         # produce order info to order topic
         order_data = {
             "createTime": ts,
-            "orderId": order_id,
+            "orderId": self.order_id,
             "category": random.choice(
                 [
                     "gas_transport",
@@ -58,12 +57,14 @@ class Producer:
             ),
             "merchantId": randint(0, 1000),
         }
+        self.order_id += 1
         self.producer.send(order_topic, value=order_data)
 
 
 class Consumer:
     def __init__(self):
         self.read_timestamp = None
+        self.did_read = False
         print("Connecting to Kafka brokers")
         for _i in range(6):
             try:
@@ -90,15 +91,13 @@ class Consumer:
         self.consumer.seek_to_end()
         self.consumer.commit()
 
-    def read_data(self, stoppable, poll_interval=10):
-        print("polling sink topic every {poll_interval} seconds, returning at first empty poll")
+    def read_data(self, stoppable, poll_interval=30):
+        print(f"polling sink topic every {poll_interval} seconds, returning at first empty poll")
         self.read_timestamp = time.perf_counter()
         data = self.consumer.poll(timeout_ms=poll_interval * 1000)
         self.consumer.commit()
-        if not data:
-            stoppable.do_stop = True
-            raise Exception("No data in sink topic: either there's a failure or the query filters out everything")
         while data:
+            self.did_read = True
             self.read_timestamp = time.perf_counter()
             data = self.consumer.poll(timeout_ms=poll_interval * 1000)
         stoppable.do_stop = True

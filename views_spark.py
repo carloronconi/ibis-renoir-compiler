@@ -9,7 +9,7 @@ from ibis.expr.visualize import to_graph
 # before running this, cd to ./benchmark/compose-kafka and do `docker-compose up`
 # if there are any errors in the Dockerfile an you need to rebuild, clean the everything
 # first with `docker system prune` (it prunes everything unused so careful on server) and 
-# then `docker-compose build --no-cache` and again `docker-compose up`
+# then `docker compose build --no-cache` and again `docker compose up`
 
 scala_version = '2.12'
 spark_version = '3.1.2'

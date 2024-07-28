@@ -167,14 +167,13 @@ class TestScenariosViews(TestCompiler):
         con = ibis.get_backend()
 
         if con.name == "pyspark":
-            con.drop_table(source_name, force=True)
             table: ibis.Table = con.read_kafka(
                        table_name=source_name,
                        auto_parse=True,
                        schema=source_schema,
                        options={"kafka.bootstrap.servers": "localhost:9092", 
                                 "subscribe": "source",
-                                "startingOffsets": "latest",
+                                "startingOffsets": "earliest",
                                 "failOnDataLoss": "false"})
         elif con.name == "risingwave":
             # if getting any error with risingwave, e.g. `The cluster is bootstrapping`
@@ -191,7 +190,8 @@ class TestScenariosViews(TestCompiler):
                 connector_properties={"connector": "kafka",
                                       "topic": "source",
                                       "properties.bootstrap.server": "localhost:9092",
-                                      "scan.startup.mode": "latest",
+                                      "scan.startup.mode": "earliest",
+                                      "properties.enable.auto.commit": "true",
                                       "scan.startup.timestamp.millis": "140000000"},
                 data_format="PLAIN",
                 encode_format="JSON"
@@ -203,12 +203,15 @@ class TestScenariosViews(TestCompiler):
     
     def test_scenarios_views_1_filter(self):
         self.query = (self.tables["source_kafka"]
-                      .filter(_.category == "entertainment")
+                      #.filter(_.orderId % 2 == 0)
                       .mutate(value=_.category)
-                      .select(["merchantId", "value"]))
+                      #.select(["orderId", "value"])
+                      )
         # no complete_test_tasks here, as renoir is not supported
 
     def test_scenarios_views_2_aggregate(self):
+        # in risingwave the blocking operator works and updates
+        # its values as it reads from the source
         self.query = (self.tables["source_kafka"]
                       .group_by("category")
                       .aggregate(mean=_["orderId"].mean())

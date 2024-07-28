@@ -28,9 +28,15 @@ services:
       # blocks until kafka is reachable
       kafka-topics --bootstrap-server kafka:29092 --list
 
-      echo -e 'Creating kafka topics'
+      echo -e 'Deleting kafka topics'
       kafka-topics --bootstrap-server kafka:29092 --delete --topic source
       kafka-topics --bootstrap-server kafka:29092 --delete --topic sink
+      kafka-topics --bootstrap-server kafka:29092 --delete --topic  __consumer_offsets
+      echo -e 'Remaining topics:'
+      kafka-topics --bootstrap-server kafka:29092 --list
+
+
+      echo -e 'Creating kafka topics'
       kafka-topics --bootstrap-server kafka:29092 --create --topic source --replication-factor 1 --partitions 1
       kafka-topics --bootstrap-server kafka:29092 --create --topic sink --replication-factor 1 --partitions 1
 

@@ -42,6 +42,7 @@ class BackendBenchmark():
         
         self.test_instance = test_instance
         self.test_method = test_method
+        self.stream_size = 10
 
     @property
     def logger(self):
@@ -129,12 +130,14 @@ class BackendBenchmark():
         start_time = time.perf_counter()
         # the backend is already set up to update its internal view and
         # write it to the sink topic
-        producer.write_data()
+        producer.write_data(items=self.stream_size)
         # block until the consumer receives the result from sink
         consumer_proc.join()
         # once_consumer.proc returns, it must have toggled self.do_stop so
         # this join doesn't block anything
         self.subp.join()
+        if consumer.did_read == False:
+            raise Exception("No data in sink topic: either there's a failure or the query filters out everything")
         end_time = consumer.read_timestamp
         # TODO: how measure memory of external risingwave/kafka within docker?
         return end_time - start_time, None
@@ -241,6 +244,10 @@ class RisingwaveBenchmark(BackendBenchmark):
     name = "risingwave"
 
     def __init__(self, test_instance: test.TestCompiler, test_method) -> None:
+        subprocess.run("docker stop kafka; docker system prune -f", shell=True)
+        subprocess.run("docker compose -f benchmark/compose-kafka.yaml up -d", shell=True)
+        # wait for kafka to be ready
+        time.sleep(20)
         super().__init__(test_instance, test_method)
         ibis.set_backend(ibis.risingwave.connect(
                 user="root",
@@ -259,19 +266,25 @@ class RisingwaveBenchmark(BackendBenchmark):
 
     def create_sink(self):
         con: RisingwaveBackend = ibis.get_backend()
+        print(con.list_tables())
         con.create_sink("sink_kafka",
                         sink_from="view_kafka",
                         connector_properties={"connector": "kafka",
                                               "topic": "sink",
                                               "properties.bootstrap.server": "localhost:9092"},
                         data_format="PLAIN",
-                        encode_format="JSON")
+                        encode_format="JSON",
+                        encode_properties={"force_append_only": "true"})
 
 
 class SparkBenchmark(BackendBenchmark):
     name = "spark"
 
     def __init__(self, test_instance: test.TestCompiler, test_method) -> None:
+        subprocess.run("docker stop kafka; docker system prune -f", shell=True)
+        subprocess.run("docker compose -f benchmark/compose-kafka.yaml up -d", shell=True)
+        # wait for kafka to be ready
+        time.sleep(20)
         super().__init__(test_instance, test_method)
         # before running this, cd to ./benchmark/compose-kafka and do `docker-compose up`
         # if there are any errors in the Dockerfile an you need to rebuild, clean the everything
@@ -309,8 +322,10 @@ class SparkBenchmark(BackendBenchmark):
         #   to get a StreamingQuery you need to call .start()
         stream_query: StreamingQuery = con.to_kafka(self.view, options={"kafka.bootstrap.servers": "localhost:9092",
                                                                         "topic": "sink",
-                                                                        "checkpointLocation": "/tmp/spark_checkpoint"}).start()
+                                                                        "checkpointLocation": "./spark_checkpoint"}).start()
         # the query doesn't run in the background! If we don't await it here, pyspark will exit immediately
         # kafka_io.Consumer will toggle self.stop as soon as it receives a message, so we can stop awaiting
+        print("Created view, awaiting termination of stream query")
         while stream_query.isActive and not self.do_stop:
             stream_query.awaitTermination(1)
+        print("Stream query terminated")

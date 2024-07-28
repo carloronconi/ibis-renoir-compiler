@@ -10,13 +10,13 @@ from . import backend_benchmark as bb
 from signal import SIGKILL
 
 
-SCENARIO_PATTERNS = ["1", "4"]
-RAISE_EXCEPTIONS = False
+SCENARIO_PATTERNS = ["2"]
+RAISE_EXCEPTIONS = True
 
-RUNS = 5
-WARMUP = 1
-PATH_SUFFIX = "_1000000"
-DIR = "scenario/10M_s1-s4_sola1_v3"
+RUNS = 1
+WARMUP = 0
+DATASET_SIZE = 1000
+DIR = "scenario/banana6"
 TIMEOUT = 60 * 5 # 5 minutes
 
 
@@ -95,7 +95,7 @@ def execute_benchmark(pipe: con.Connection, failed_scenario: str = None, failed_
 class Scenario:
     runs = RUNS
     warmup = WARMUP
-    path_suffix = PATH_SUFFIX
+    path_suffix = f"_{DATASET_SIZE}"
     dir = DIR
     timeout = TIMEOUT
 
@@ -187,12 +187,13 @@ class Scenario2(Scenario):
     # - data_destination: kafka topic
     def __init__(self, pipe):
         self.test_patterns = ["test_scenarios_views"]
-        self.backend_names = ["risingwave", "spark"]
+        self.backend_names = ["spark"]
         super().__init__(pipe)
 
     def perform_measure(self, backend: bb.BackendBenchmark) -> tuple[float, float]:
         # view and sink depend on the test_instance.query, 
         # so create them after calling the test_method within perform_measure
+        backend.stream_size = DATASET_SIZE
         return backend.perform_measure_to_kafka()
     
 
