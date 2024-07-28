@@ -167,6 +167,7 @@ class TestScenariosViews(TestCompiler):
         con = ibis.get_backend()
 
         if con.name == "pyspark":
+            con.drop_table(source_name, force=True)
             table: ibis.Table = con.read_kafka(
                        table_name=source_name,
                        auto_parse=True,
@@ -176,21 +177,25 @@ class TestScenariosViews(TestCompiler):
                                 "startingOffsets": "latest",
                                 "failOnDataLoss": "false"})
         elif con.name == "risingwave":
-            try:
-                table: ibis.Table = con.create_source(
-                    name=source_name,
-                    schema=source_schema,
-                    connector_properties={"connector": "kafka",
-                                          "topic": "source",
-                                          "properties.bootstrap.server": "localhost:9092",
-                                          "scan.startup.mode": "latest",
-                                          "scan.startup.timestamp.millis": "140000000"},
-                    data_format="PLAIN",
-                    encode_format="JSON"
-                )
-            except:
-                print("Source already exists")
-                table = con.table(source_name)
+            # if getting any error with risingwave, e.g. `The cluster is bootstrapping`
+            # connect to the db via psql and delete all tables, sources, viesw:
+            # `psql -h localhost -p 4566 -d dev -U root`
+            # `show tables; show sources; show views; show materialized views;`
+            # `drop table <table_name>; drop source <source_name>; drop view <view_name>; drop materialized view <view_name>;`
+            con.drop_sink("sink_kafka", force=True)
+            con.drop_materialized_view("view_kafka", force=True)
+            con.drop_source(source_name, force=True)
+            table: ibis.Table = con.create_source(
+                name=source_name,
+                schema=source_schema,
+                connector_properties={"connector": "kafka",
+                                      "topic": "source",
+                                      "properties.bootstrap.server": "localhost:9092",
+                                      "scan.startup.mode": "latest",
+                                      "scan.startup.timestamp.millis": "140000000"},
+                data_format="PLAIN",
+                encode_format="JSON"
+            )
         else:
             raise NotImplementedError(f"Backend {con.name} not supported for views test")
         self.tables = {source_name: table}
