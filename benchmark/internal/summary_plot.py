@@ -30,6 +30,9 @@ def main():
 
     agg_reset.loc[agg_reset['exception_first'].str.startswith('Traceback', na=False), 'exception_first'] = 'raise'
 
+    # rename test names adding the scenario as prefix so two scenarios running the same test result in different items plotted
+    agg_reset['test_name'] = agg_reset['scenario'] + ': ' + agg_reset['test_name']
+
     # Remove invalid times so that they're not shown in the plot
     agg_reset.loc[(agg_reset['exception_first'] == 'timeout'), 'total_time_s_mean'] = -20
     agg_reset.loc[(agg_reset['exception_first'] == 'raise'), 'total_time_s_mean'] = -10
