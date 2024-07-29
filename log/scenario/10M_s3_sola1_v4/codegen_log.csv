@@ -46,7 +46,6 @@ INFO,2024-07-29 13:52:40.091,test_scenarios_analytics_2_group_mean,renoir,0,6.55
 INFO,2024-07-29 13:53:10.207,test_scenarios_analytics_2_group_mean,renoir,1,6.296662067994475,1.617412931052968,0.7504638051614165,-1,13880.6328125,Scenario3,None
 INFO,2024-07-29 13:53:40.082,test_scenarios_analytics_2_group_mean,renoir,2,6.414284772006795,1.642985220067203,0.7656093600671738,-1,13896.30078125,Scenario3,None
 INFO,2024-07-29 13:54:09.639,test_scenarios_analytics_2_group_mean,renoir,3,6.312885119114071,1.6291223000735044,0.7391605461016297,-1,13828.40234375,Scenario3,None
-INFO,2024-07-29 13:59:09.747,test_scenarios_analytics_2_group_mean,renoir,0,-1,-1,-1,-1,-1,Scenario3,timeout
 INFO,2024-07-29 13:59:18.471,test_scenarios_analytics_3_inner_join,duckdb,-1,0.8390304029453546,-1,-1,-1,2931.203125,Scenario3,None
 INFO,2024-07-29 13:59:27.121,test_scenarios_analytics_3_inner_join,duckdb,0,0.8711344399489462,-1,-1,-1,4734.98828125,Scenario3,None
 INFO,2024-07-29 13:59:35.762,test_scenarios_analytics_3_inner_join,duckdb,1,0.9065936321858317,-1,-1,-1,6530.671875,Scenario3,None
