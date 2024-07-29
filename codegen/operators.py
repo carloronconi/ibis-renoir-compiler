@@ -839,6 +839,8 @@ class DatabaseOperator(Operator):
                 except IndexError:
                     curr_cache = cache
 
+            Struct.last_materialized_id = struct.id_counter + count_structs
+
             ctx = "" if db_count != 0 else f"let ctx = StreamContext::new({cache}.config());"
             return (f";{ctx}\nlet {struct.name_short} = {curr_cache}.stream_in(&ctx);\nlet var_{struct.id_counter + count_structs} = {struct.name_short}")
 
