@@ -121,7 +121,7 @@ def compile_preloaded_tables_evcxr(files_tables: list[tuple[str, PhysicalTable]]
     Struct.cached_tables_structs = Struct.structs.copy()
     Struct.cleanup()
 
-    with open(utl.ROOT_DIR + '/noir_template/preload_evcxr.rs', 'w+') as f:
+    with open(utl.ROOT_DIR + '/noir_template/evcxr_preload.rs', 'w+') as f:
         f.write(top)
         f.write(mid)
 

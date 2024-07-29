@@ -15,7 +15,7 @@ RAISE_EXCEPTIONS = False
 
 RUNS = 5
 WARMUP = 1
-PATH_SUFFIX = "_1000000"
+PATH_SUFFIX = "_10000000"
 DIR = "scenario/10M_s3_sola1_v3"
 TIMEOUT = 60 * 5 # 5 minutes
 
