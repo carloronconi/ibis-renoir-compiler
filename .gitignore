@@ -32,4 +32,5 @@ flink-*
 /libs
 /libssl*
 /risingwave
+/log/scenario/banana*
 /spark_checkpoint
