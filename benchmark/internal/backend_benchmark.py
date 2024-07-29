@@ -43,6 +43,7 @@ class BackendBenchmark():
         self.test_instance = test_instance
         self.test_method = test_method
         self.stream_size = 10
+        self.did_create_sink = False
 
     @property
     def logger(self):
@@ -117,10 +118,15 @@ class BackendBenchmark():
         # create sink needs to run in separate thread for pyflink otherwise it blocks
         self.subp = Thread(target=self.create_sink)
         self.subp.start()
+        # wait for sink to be created before starting producer, so backends don't miss any
+        # message, as they're set with latest read strategy,
+        # then subp will keep running in case of pyflink to keep streaming query alive
+        while not self.did_create_sink:
+            time.sleep(1)
         return self.perform_measure_latency_kafka_to_kafka()
 
     def perform_measure_latency_kafka_to_kafka(self) -> tuple[float, float]:
-        producer = Producer()
+        producer = Producer(self.test_instance.kafka_topic_name)
         consumer = Consumer()
         # starting the consumer in a separate thread so it doesn't "miss" the message
         # produced by the view from source to sink between the call to write_datum and read_datum
@@ -244,10 +250,6 @@ class RisingwaveBenchmark(BackendBenchmark):
     name = "risingwave"
 
     def __init__(self, test_instance: test.TestCompiler, test_method) -> None:
-        subprocess.run("docker stop kafka; docker system prune -f", shell=True)
-        subprocess.run("docker compose -f benchmark/compose-kafka.yaml up -d", shell=True)
-        # wait for kafka to be ready
-        time.sleep(20)
         super().__init__(test_instance, test_method)
         ibis.set_backend(ibis.risingwave.connect(
                 user="root",
@@ -275,16 +277,14 @@ class RisingwaveBenchmark(BackendBenchmark):
                         data_format="PLAIN",
                         encode_format="JSON",
                         encode_properties={"force_append_only": "true"})
+        self.did_create_sink = True
+        print("Created risingwave view and sink")
 
 
 class SparkBenchmark(BackendBenchmark):
     name = "spark"
 
     def __init__(self, test_instance: test.TestCompiler, test_method) -> None:
-        subprocess.run("docker stop kafka; docker system prune -f", shell=True)
-        subprocess.run("docker compose -f benchmark/compose-kafka.yaml up -d", shell=True)
-        # wait for kafka to be ready
-        time.sleep(20)
         super().__init__(test_instance, test_method)
         # before running this, cd to ./benchmark/compose-kafka and do `docker-compose up`
         # if there are any errors in the Dockerfile an you need to rebuild, clean the everything
@@ -320,12 +320,16 @@ class SparkBenchmark(BackendBenchmark):
         # - create a checkpointLocation on the host of this script (not the kafka container!)
         # - call .start() on .to_kafka(), docs are wrong and that actually returns a DataStreamWriter,
         #   to get a StreamingQuery you need to call .start()
-        stream_query: StreamingQuery = con.to_kafka(self.view, options={"kafka.bootstrap.servers": "localhost:9092",
+        stream_query: StreamingQuery = con.to_kafka(self.view, 
+                                                    options={"kafka.bootstrap.servers": "localhost:9092",
                                                                         "topic": "sink",
-                                                                        "checkpointLocation": "./spark_checkpoint"}).start()
+                                                                        "checkpointLocation": "./spark_checkpoint"},
+                                                    auto_format=True
+                                                    ).start()
+        self.did_create_sink = True
         # the query doesn't run in the background! If we don't await it here, pyspark will exit immediately
         # kafka_io.Consumer will toggle self.stop as soon as it receives a message, so we can stop awaiting
-        print("Created view, awaiting termination of stream query")
+        print("Created spark view and sink, awaiting termination of stream query")
         while stream_query.isActive and not self.do_stop:
             stream_query.awaitTermination(1)
         print("Stream query terminated")

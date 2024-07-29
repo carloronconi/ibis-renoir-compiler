@@ -15,7 +15,7 @@ RAISE_EXCEPTIONS = True
 
 RUNS = 1
 WARMUP = 0
-DATASET_SIZE = 1000
+DATASET_SIZE = 10
 DIR = "scenario/banana6"
 TIMEOUT = 60 * 5 # 5 minutes
 
@@ -187,7 +187,7 @@ class Scenario2(Scenario):
     # - data_destination: kafka topic
     def __init__(self, pipe):
         self.test_patterns = ["test_scenarios_views"]
-        self.backend_names = ["spark"]
+        self.backend_names = ["spark", "risingwave"]
         super().__init__(pipe)
 
     def perform_measure(self, backend: bb.BackendBenchmark) -> tuple[float, float]:

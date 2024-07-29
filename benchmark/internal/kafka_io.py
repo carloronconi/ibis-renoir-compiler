@@ -5,11 +5,12 @@ from datetime import datetime
 from json import dumps, loads
 from random import randint
 from time import sleep
-from kafka import KafkaProducer, errors, KafkaConsumer, TopicPartition
+from kafka import KafkaProducer, errors, KafkaConsumer
 
 
 class Producer:
-    def __init__(self):
+    def __init__(self, topic: str):
+        self.topic = topic
         self.order_id = 1
         print("Connecting to Kafka brokers")
         for _i in range(6):
@@ -26,13 +27,12 @@ class Producer:
         raise RuntimeError("Failed to connect to brokers within 60 seconds")
 
     def write_data(self, items=1000000):
-        print(f"producing {items} items for source topic")
+        print(f"producing {items} items for {self.topic} topic")
         for _ in range(items):
             self.write_datum()
+        print(f"finished producing data")
     
     def write_datum(self):
-        order_topic = "source"
-
         # produce payment info to payment topic
         ts = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
 
@@ -58,7 +58,7 @@ class Producer:
             "merchantId": randint(0, 1000),
         }
         self.order_id += 1
-        self.producer.send(order_topic, value=order_data)
+        self.producer.send(self.topic, value=order_data)
 
 
 class Consumer:
@@ -68,38 +68,39 @@ class Consumer:
         print("Connecting to Kafka brokers")
         for _i in range(6):
             try:
-                tp = TopicPartition("sink", 0)
                 self.consumer = KafkaConsumer(
-                    # "sink",
+                    "sink",
+                    # assign group_id so next test run can resume from committed offset
                     group_id="bench_consumer",
                     bootstrap_servers=["localhost:9092"],
-                    auto_offset_reset="latest",
+                    auto_offset_reset="earliest",
                     enable_auto_commit=True,
-                    value_deserializer=lambda x: x.decode("utf-8"),
+                    value_deserializer=lambda x: loads(x.decode("utf-8")),
                 )
-                self.consumer.assign([tp])
                 print("Connected to Kafka")
-                self.read_old_data()
-                print("Read old data")
                 return
             except errors.NoBrokersAvailable:
                 print("Waiting for brokers to become available")
                 sleep(10)
         raise RuntimeError("Failed to connect to brokers within 60 seconds")
 
-    def read_old_data(self):
-        self.consumer.seek_to_end()
-        self.consumer.commit()
-
-    def read_data(self, stoppable, poll_interval=30):
+    def read_data(self, stoppable, poll_interval=20):
         print(f"polling sink topic every {poll_interval} seconds, returning at first empty poll")
         self.read_timestamp = time.perf_counter()
-        data = self.consumer.poll(timeout_ms=poll_interval * 1000)
-        self.consumer.commit()
-        while data:
+        last_data = self.consumer.poll(timeout_ms=poll_interval * 1000)
+        messages = []
+        for v in last_data.values():
+            messages.extend(v)
+        while last_data:
             self.did_read = True
             self.read_timestamp = time.perf_counter()
-            data = self.consumer.poll(timeout_ms=poll_interval * 1000)
+            last_data = self.consumer.poll(timeout_ms=poll_interval * 1000)
+            for v in last_data.values():
+                messages.extend(v)
+        print("Consumer stopped polling, all data read:")
+        for message in messages:
+            print(message)
+        self.consumer.commit()
         stoppable.do_stop = True
 
 

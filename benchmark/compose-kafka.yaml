@@ -28,20 +28,13 @@ services:
       # blocks until kafka is reachable
       kafka-topics --bootstrap-server kafka:29092 --list
 
-      echo -e 'Deleting kafka topics'
-      kafka-topics --bootstrap-server kafka:29092 --delete --topic source
-      kafka-topics --bootstrap-server kafka:29092 --delete --topic sink
-      kafka-topics --bootstrap-server kafka:29092 --delete --topic  __consumer_offsets
+      echo -e 'Deleting all kafka topics'
+      kafka-topics --bootstrap-server kafka:29092 --delete --topic '.*'
       echo -e 'Remaining topics:'
       kafka-topics --bootstrap-server kafka:29092 --list
 
-
-      echo -e 'Creating kafka topics'
-      kafka-topics --bootstrap-server kafka:29092 --create --topic source --replication-factor 1 --partitions 1
+      echo -e 'Creating sink topic'
       kafka-topics --bootstrap-server kafka:29092 --create --topic sink --replication-factor 1 --partitions 1
-
-      echo -e 'Successfully created the following topics:'
-      kafka-topics --bootstrap-server kafka:29092 --list
       "
     networks:
       - flink
