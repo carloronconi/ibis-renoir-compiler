@@ -1,5 +1,8 @@
 import ibis
-from codegen.generator import compile_ibis_to_noir
+try:
+    from codegen.generator import compile_ibis_to_noir
+except AttributeError:
+    print("Skipped import of ibis-renoir-compiler because of wrong version of ibis: it only supports ibis 8.0.0")
 from test.test_base import TestCompiler
 from codegen import ROOT_DIR
 from ibis import _
