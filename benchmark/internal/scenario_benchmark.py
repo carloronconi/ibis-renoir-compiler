@@ -10,13 +10,13 @@ from . import backend_benchmark as bb
 from signal import SIGKILL
 
 
-SCENARIO_PATTERNS = ["1", "4"]
+SCENARIO_PATTERNS = ["3"]
 RAISE_EXCEPTIONS = False
 
 RUNS = 5
 WARMUP = 1
 PATH_SUFFIX = "_1000000"
-DIR = "scenario/10M_s1-s4_sola1_v3"
+DIR = "scenario/10M_s3_sola1_v3"
 TIMEOUT = 60 * 5 # 5 minutes
 
 

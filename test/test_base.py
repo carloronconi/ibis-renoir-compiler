@@ -163,10 +163,17 @@ class TestCompiler(unittest.TestCase):
         )
         # read the welcome message
         await proc.stdout.readline()
-        # load the imports and the table preloading function cache()
-        with open(ROOT_DIR + "/noir_template/init.evcxr", 'r') as file:
+        # load the flags before everything else: if ever compiled with different flags,
+        # it will re-compile all dependencies
+        with open(ROOT_DIR + "/noir_template/evcxr_flags.evcxr", 'r') as file:
             proc.stdin.write(file.read().encode())
-        with open(ROOT_DIR + "/noir_template/preload_evcxr.rs", 'r') as file:
+        # wait for flag registration messages plus newline for each
+        for _ in range(4):
+            await proc.stdout.readline()
+        # load the imports and the table preloading function cache()
+        with open(ROOT_DIR + "/noir_template/evcxr_deps.evcxr", 'r') as file:
+            proc.stdin.write(file.read().encode())
+        with open(ROOT_DIR + "/noir_template/evcxr_preload.rs", 'r') as file:
             proc.stdin.write(file.read().encode())
         # make sure that cache() has finished running by asking for :vars and waiting for the output
         proc.stdin.write(b":vars\n")

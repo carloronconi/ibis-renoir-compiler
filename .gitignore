@@ -32,3 +32,4 @@ flink-*
 /libs
 /libssl*
 /risingwave
+/spark_checkpoint
