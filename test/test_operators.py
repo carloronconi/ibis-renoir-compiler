@@ -4,7 +4,10 @@ import pandas as pd
 from ibis import _
 
 from codegen import ROOT_DIR
-from codegen import compile_ibis_to_noir
+try:
+    from codegen import compile_ibis_to_noir
+except ImportError:
+    print("Skipped import of ibis-renoir-compiler because of wrong version of ibis: it only supports ibis 8.0.0")
 from test.test_base import TestCompiler
 
 

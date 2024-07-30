@@ -5,12 +5,26 @@ import pandas as pd
 import test
 import ibis
 from memory_profiler import memory_usage
-from codegen import compile_preloaded_tables_evcxr
+try:
+    from codegen import compile_preloaded_tables_evcxr
+except ImportError:
+    print("Skipped import of ibis-renoir-compiler because of wrong version of ibis: it only supports ibis 8.0.0")
 from ibis import _
 from . import internal_benchmark as ib
-from pyflink.java_gateway import get_gateway
-from pyflink.datastream import StreamExecutionEnvironment
-from pyflink.table import EnvironmentSettings, StreamTableEnvironment
+from .kafka_io import Producer, Consumer
+try:
+    from pyflink.java_gateway import get_gateway
+    from pyflink.datastream import StreamExecutionEnvironment
+    from pyflink.table import EnvironmentSettings, StreamTableEnvironment
+except ModuleNotFoundError:
+    print("Skipped import of pyflink because of missing dependencies")
+from pyspark.sql import SparkSession
+import ibis.backends
+import ibis.backends.pyspark
+from pyspark.sql import SparkSession
+from ibis.backends.risingwave import Backend as RisingwaveBackend
+from pyspark.sql.streaming import StreamingQuery
+from threading import Thread
 
 
 class BackendBenchmark():
@@ -28,6 +42,8 @@ class BackendBenchmark():
         
         self.test_instance = test_instance
         self.test_method = test_method
+        self.stream_size = 10
+        self.did_create_sink = False
 
     @property
     def logger(self):
@@ -46,7 +62,7 @@ class BackendBenchmark():
         end_time = time.perf_counter()
         return end_time - start_time, max(memo)
 
-    def perform_measure_to_file(self)-> tuple[float, float]:
+    def perform_measure_to_file(self) -> tuple[float, float]:
         def run(test_method, test_instance):
             test_method()
             result = test_instance.query.execute()
@@ -95,7 +111,43 @@ class BackendBenchmark():
             print(f"Creating table {name} in {con.name} from {file_path}. Could take a while: might need to increase timeout...")
             tables[name] = con.create_table(name, modified_table, overwrite=True)
         self.test_instance.tables = tables
-    
+
+    def perform_measure_to_kafka(self) -> tuple[float, float]:
+        self.test_method()
+        self.create_view()
+        # create sink needs to run in separate thread for pyflink otherwise it blocks
+        self.subp = Thread(target=self.create_sink)
+        self.subp.start()
+        # wait for sink to be created before starting producer, so backends don't miss any
+        # message, as they're set with latest read strategy,
+        # then subp will keep running in case of pyflink to keep streaming query alive
+        while not self.did_create_sink:
+            time.sleep(1)
+        return self.perform_measure_latency_kafka_to_kafka()
+
+    def perform_measure_latency_kafka_to_kafka(self) -> tuple[float, float]:
+        producer = Producer(self.test_instance.kafka_topic_name)
+        consumer = Consumer()
+        # starting the consumer in a separate thread so it doesn't "miss" the message
+        # produced by the view from source to sink between the call to write_datum and read_datum
+        # and passing self so it can toggle self.do_stop and stop the spark instance
+        consumer_proc = Thread(target=consumer.read_data, args=[self])
+        consumer_proc.start()
+        start_time = time.perf_counter()
+        # the backend is already set up to update its internal view and
+        # write it to the sink topic
+        producer.write_data(items=self.stream_size)
+        # block until the consumer receives the result from sink
+        consumer_proc.join()
+        # once_consumer.proc returns, it must have toggled self.do_stop so
+        # this join doesn't block anything
+        self.subp.join()
+        if consumer.did_read == False:
+            raise Exception("No data in sink topic: either there's a failure or the query filters out everything")
+        end_time = consumer.read_timestamp
+        # TODO: how measure memory of external risingwave/kafka within docker?
+        return end_time - start_time, None
+
 
 class RenoirBenchmark(BackendBenchmark):
     name = "renoir"
@@ -207,3 +259,77 @@ class RisingwaveBenchmark(BackendBenchmark):
         
     def preload_cached_query(self):
         return super().preload_cached_query_without_csv()
+    
+    def create_view(self):
+        con: RisingwaveBackend = ibis.get_backend()
+        con.create_materialized_view("view_kafka",
+                                     obj=self.test_instance.query,
+                                     overwrite=True)
+
+    def create_sink(self):
+        con: RisingwaveBackend = ibis.get_backend()
+        print(con.list_tables())
+        con.create_sink("sink_kafka",
+                        sink_from="view_kafka",
+                        connector_properties={"connector": "kafka",
+                                              "topic": "sink",
+                                              "properties.bootstrap.server": "localhost:9092"},
+                        data_format="PLAIN",
+                        encode_format="JSON",
+                        encode_properties={"force_append_only": "true"})
+        self.did_create_sink = True
+        print("Created risingwave view and sink")
+
+
+class SparkBenchmark(BackendBenchmark):
+    name = "spark"
+
+    def __init__(self, test_instance: test.TestCompiler, test_method) -> None:
+        super().__init__(test_instance, test_method)
+        # before running this, cd to ./benchmark/compose-kafka and do `docker-compose up`
+        # if there are any errors in the Dockerfile an you need to rebuild, clean the everything
+        # first with `docker system prune` (it prunes everything unused so careful on server) and 
+        # then `docker-compose build --no-cache` and again `docker-compose up`
+        scala_version = '2.12'
+        spark_version = '3.1.2'
+        # ensure match above values match the correct versions in pip
+        packages = [
+            f'org.apache.spark:spark-sql-kafka-0-10_{scala_version}:{spark_version}',
+            'org.apache.kafka:kafka-clients:3.2.1'
+        ]
+        session = SparkSession.builder\
+            .master("local[*]")\
+            .config("spark.executor.memory", "16g")\
+            .config("spark.driver.memory", "16g")\
+            .appName("kafka-example")\
+            .config("spark.jars.packages", ",".join(packages))\
+            .getOrCreate()
+
+        con: ibis.backends.pyspark.Backend = ibis.pyspark.connect(session, mode="streaming")
+        ibis.set_backend(con)
+        self.do_stop = False
+
+    def create_view(self):
+        con = ibis.get_backend()
+        self.view = con.create_view(
+            "view_kafka", self.test_instance.query, overwrite=True)
+
+    def create_sink(self):
+        con: ibis.backends.pyspark.Backend = ibis.get_backend()
+        # notes:
+        # - create a checkpointLocation on the host of this script (not the kafka container!)
+        # - call .start() on .to_kafka(), docs are wrong and that actually returns a DataStreamWriter,
+        #   to get a StreamingQuery you need to call .start()
+        stream_query: StreamingQuery = con.to_kafka(self.view, 
+                                                    options={"kafka.bootstrap.servers": "localhost:9092",
+                                                                        "topic": "sink",
+                                                                        "checkpointLocation": "./spark_checkpoint"},
+                                                    auto_format=True
+                                                    ).start()
+        self.did_create_sink = True
+        # the query doesn't run in the background! If we don't await it here, pyspark will exit immediately
+        # kafka_io.Consumer will toggle self.stop as soon as it receives a message, so we can stop awaiting
+        print("Created spark view and sink, awaiting termination of stream query")
+        while stream_query.isActive and not self.do_stop:
+            stream_query.awaitTermination(1)
+        print("Stream query terminated")
