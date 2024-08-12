@@ -15,7 +15,8 @@ from .kafka_io import Producer, Consumer
 try:
     from pyflink.java_gateway import get_gateway
     from pyflink.datastream import StreamExecutionEnvironment
-    from pyflink.table import EnvironmentSettings, StreamTableEnvironment
+    from pyflink.table import EnvironmentSettings, StreamTableEnvironment #, TableEnvironment
+    # from pyflink.common import Configuration
 except ModuleNotFoundError:
     print("Skipped flink import because of missing dependencies")
 try:
@@ -67,11 +68,9 @@ class BackendBenchmark():
     def perform_measure_to_file(self) -> tuple[float, float]:
         def run(test_method, test_instance):
             test_method()
-            result = test_instance.query.execute()
+            con = ibis.get_backend()
             # create a string with the result and store it
-            result = result.to_csv()
-            with open("./out/ibis-backend-result.csv", "w") as file:
-                file.write(result)
+            con.to_csv(test_instance.query, "out/ibis-backend-result.csv")
         start_time = time.perf_counter()
         memo = memory_usage((run, [self.test_method, self.test_instance]), include_children=True)
         end_time = time.perf_counter()
@@ -216,14 +215,22 @@ class FlinkBenchmark(BackendBenchmark):
             string_array)
         
         exec_env = StreamExecutionEnvironment(j_stream_execution_environment).set_parallelism(12)
+        
+        # configuration = Configuration()
+        # configuration.set_string("table.exec.resource.default-parallelism", "4")
+        settings = (EnvironmentSettings.new_instance()
+                    .in_streaming_mode()
+                    # .with_configuration(configuration)
+                    .build())
 
         table_env = StreamTableEnvironment.create(
             exec_env,
-            EnvironmentSettings.in_streaming_mode())
+            settings)
 
         con = ibis.flink.connect(table_env)
         ibis.set_backend(con)
 
+        # table_env.get_config().get_configuration().set_string("table.exec.resource.default-parallelism", "4")
 
 class PolarsBenchmark(BackendBenchmark):
     name = "polars"
