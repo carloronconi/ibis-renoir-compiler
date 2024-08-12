@@ -14,3 +14,8 @@ cp benchmark/flink_config.yaml flink-1.19.0/conf/config.yaml
 
 cd flink-1.19.0
 ./bin/start-cluster.sh
+
+# manually start as many additional task managers as needed
+for ((i=0; i<($1-1); i++)); do
+    ./bin/taskmanager.sh start
+done

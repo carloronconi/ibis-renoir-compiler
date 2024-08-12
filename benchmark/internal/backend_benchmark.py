@@ -17,13 +17,15 @@ try:
     from pyflink.datastream import StreamExecutionEnvironment
     from pyflink.table import EnvironmentSettings, StreamTableEnvironment
 except ModuleNotFoundError:
-    print("Skipped import of pyflink because of missing dependencies")
-from pyspark.sql import SparkSession
+    print("Skipped flink import because of missing dependencies")
+try:
+    from pyspark.sql import SparkSession
+    from pyspark.sql.streaming import StreamingQuery
+    import ibis.backends.pyspark
+except ModuleNotFoundError:
+    print("Skipped spark import because of missing dependencies")
 import ibis.backends
-import ibis.backends.pyspark
-from pyspark.sql import SparkSession
 from ibis.backends.risingwave import Backend as RisingwaveBackend
-from pyspark.sql.streaming import StreamingQuery
 from threading import Thread
 
 
@@ -213,9 +215,11 @@ class FlinkBenchmark(BackendBenchmark):
             "localhost", 
             8081, 
             string_array)
+        
+        exec_env = StreamExecutionEnvironment(j_stream_execution_environment).set_parallelism(12)
 
         table_env = StreamTableEnvironment.create(
-            StreamExecutionEnvironment(j_stream_execution_environment),
+            exec_env,
             EnvironmentSettings.in_streaming_mode())
 
         con = ibis.flink.connect(table_env)

@@ -1,3 +1,6 @@
 #!/bin/bash
 cd flink-1.19.0
-./bin/stop-cluster.sh
+
+for ((i=0; i<$1; i++)); do
+    ./bin/stop-cluster.sh
+done
