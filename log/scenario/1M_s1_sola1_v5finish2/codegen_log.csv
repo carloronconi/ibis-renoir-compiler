@@ -1,0 +1,16 @@
+level,timestamp,test_name,backend_name,run_count,total_time_s,renoir_compile_time_s,renoir_execute_time_s,ibis_time_s,max_memory_MiB,scenario,exception
+INFO,2024-08-13 07:23:55.653,test_tpc_h_query_1,duckdb,-1,6.175249614287168,-1,-1,-1,580.578125,Scenario1,None
+INFO,2024-08-13 07:23:56.852,test_tpc_h_query_1,duckdb,0,0.6427392652258277,-1,-1,-1,561.06640625,Scenario1,None
+INFO,2024-08-13 07:23:58.047,test_tpc_h_query_1,duckdb,1,0.6437857029959559,-1,-1,-1,605.7109375,Scenario1,None
+INFO,2024-08-13 07:23:59.254,test_tpc_h_query_1,duckdb,2,0.6537055713124573,-1,-1,-1,616.1484375,Scenario1,None
+INFO,2024-08-13 07:24:00.454,test_tpc_h_query_1,duckdb,3,0.6499001029878855,-1,-1,-1,662.2421875,Scenario1,None
+INFO,2024-08-13 07:24:01.663,test_tpc_h_query_1,duckdb,4,0.6582652013748884,-1,-1,-1,697.53515625,Scenario1,None
+INFO,2024-08-13 07:24:02.777,test_tpc_h_query_1,polars,-1,1.050796288996935,-1,-1,-1,2028.4921875,Scenario1,None
+INFO,2024-08-13 07:24:03.563,test_tpc_h_query_1,polars,0,0.7693561571650207,-1,-1,-1,2597.22265625,Scenario1,None
+INFO,2024-08-13 07:24:04.304,test_tpc_h_query_1,polars,1,0.737278706394136,-1,-1,-1,2680.31640625,Scenario1,None
+INFO,2024-08-13 07:24:05.043,test_tpc_h_query_1,polars,2,0.7345965392887592,-1,-1,-1,2714.33203125,Scenario1,None
+INFO,2024-08-13 07:24:05.784,test_tpc_h_query_1,polars,3,0.737214214168489,-1,-1,-1,2708.20703125,Scenario1,None
+INFO,2024-08-13 07:24:06.539,test_tpc_h_query_1,polars,4,0.750947437249124,-1,-1,-1,2751.359375,Scenario1,None
+INFO,2024-08-13 07:28:40.383,test_tpc_h_query_1,flink,-1,270.2117937989533,-1,-1,-1,2583.328125,Scenario1,None
+INFO,2024-08-13 07:33:19.616,test_tpc_h_query_1,flink,0,247.8929329388775,-1,-1,-1,2586.46875,Scenario1,None
+INFO,2024-08-13 07:36:18.748,test_tpc_h_query_1,flink,1,172.84579748893157,-1,-1,-1,2606.88671875,Scenario1,None
