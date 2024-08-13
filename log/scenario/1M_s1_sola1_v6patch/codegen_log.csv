@@ -1,0 +1,7 @@
+level,timestamp,test_name,backend_name,run_count,total_time_s,renoir_compile_time_s,renoir_execute_time_s,ibis_time_s,max_memory_MiB,scenario,exception
+INFO,2024-08-13 10:10:06.940,test_scenarios_preprocess_1_dropna,flink,-1,75.00288515165448,-1,-1,-1,1217.19140625,Scenario1,None
+INFO,2024-08-13 10:11:20.422,test_scenarios_preprocess_1_dropna,flink,0,72.16437615267932,-1,-1,-1,1358.06640625,Scenario1,None
+INFO,2024-08-13 10:12:35.174,test_scenarios_preprocess_1_dropna,flink,1,72.89892683876678,-1,-1,-1,1426.921875,Scenario1,None
+INFO,2024-08-13 10:13:49.941,test_scenarios_preprocess_1_dropna,flink,2,73.14651293400675,-1,-1,-1,1433.734375,Scenario1,None
+INFO,2024-08-13 10:15:06.341,test_scenarios_preprocess_1_dropna,flink,3,72.73655850579962,-1,-1,-1,1446.734375,Scenario1,None
+INFO,2024-08-13 10:16:24.640,test_scenarios_preprocess_1_dropna,flink,4,71.75895440066233,-1,-1,-1,1484.27734375,Scenario1,None
