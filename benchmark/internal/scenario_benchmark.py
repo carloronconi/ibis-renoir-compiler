@@ -15,7 +15,7 @@ RAISE_EXCEPTIONS = False
 
 RUNS = 5
 WARMUP = 1
-DATASET_SIZE = 10000000
+DATASET_SIZE = 1000000
 DIR = "scenario/banana"
 TIMEOUT = 60 * 5 # 5 minutes
 
@@ -169,7 +169,7 @@ class Scenario1(Scenario):
     # - data_destination: write to file
     def __init__(self, pipe):
         self.test_patterns = ["test_scenarios_preprocess", "test_nexmark", "test_tpc"]
-        self.backend_names = ["duckdb", "flink", "renoir"]
+        self.backend_names = ["duckdb", "polars", "flink", "renoir"]
         super().__init__(pipe)
 
     def perform_measure(self, backend: bb.BackendBenchmark) -> tuple[float, float]:
