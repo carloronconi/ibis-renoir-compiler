@@ -59,7 +59,8 @@ class BackendBenchmark():
     def perform_measure_to_none(self) -> tuple[float, float]:
         def run(test_method, test_instance):
             test_method()
-            test_instance.query.execute()
+            con = ibis.get_backend()
+            con.execute(test_instance.query)
         start_time = time.perf_counter()
         memo = memory_usage((run, [self.test_method, self.test_instance]), include_children=True)
         end_time = time.perf_counter()
