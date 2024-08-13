@@ -16,6 +16,8 @@ class Benchmark:
         self.max_memory_MiB = -1
         self.scenario = "None"
         self.exception = "None"
+        self.pre_query_time_s = -1
+        self.pre_query_memo_MiB = -1
         self.logger = setup_logger(dir, self)
 
     def log(self):

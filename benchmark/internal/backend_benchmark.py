@@ -77,42 +77,53 @@ class BackendBenchmark():
         end_time = time.perf_counter()
         return end_time - start_time, max(memo)
     
-    def preload_cached_query(self):
-        # by default we preload tables using create_table
+    def cached_pre_query(self, table):
+        # This is the fixed pre-query for scenario 3
+        return (table
+                .group_by(_.string1)
+                .aggregate(int4=_.int4.sum(), int1=_.int1.max()))
+    
+    def preload_tables(self):
         con = ibis.get_backend()
         for name, table in self.test_instance.tables.items():
-            if name == "ints_strings":
-                modified_table = (table
-                                  .group_by(_.string1)
-                                  .aggregate(int4=_.int4.sum(), int1=_.int1.max())
-                                  .execute())
-            else:
-                modified_table = table.execute()
-            self.test_instance.tables[name] = con.create_table(
-                name, modified_table, overwrite=True)
-            
-    def preload_cached_query_without_csv(self):
+            self.test_instance.tables[name] = con.create_table(name, table, overwrite=True)
+
+    def preload_tables_without_csv(self):
         # These backends don't allow reading from csv so self.tables is empty and we create it from scratch here.
         # Because the create table for these backends is extremely slow, we first check if the tables are
         # already in place and of the right size: if so, we skip the creation.
-        cache_con = ibis.duckdb.connect()
         con = ibis.get_backend()
+        existing_tables = con.list_tables()
         tables = {}
         for name, file_path in self.test_instance.files.items():
-            if name == "ints_strings":
-                modified_table = (cache_con
-                                  .read_csv(file_path)
-                                  .group_by(_.string1)
-                                  .aggregate(int4=_.int4.sum(), int1=_.int1.max())
-                                  .to_pandas())
-            else:
-                modified_table = pd.read_csv(file_path)
-            if name in con.list_tables() and con.table(name).count().execute() == modified_table.shape[0]:
+            table = pd.read_csv(file_path)
+            if name in existing_tables and con.table(name).count().execute() == table.shape[0]:
                 tables[name] = con.table(name)
                 continue
             print(f"Creating table {name} in {con.name} from {file_path}. Could take a while: might need to increase timeout...")
-            tables[name] = con.create_table(name, modified_table, overwrite=True)
+            tables[name] = con.create_table(name, table, overwrite=True)
         self.test_instance.tables = tables
+    
+    def preload_cached_query_from_tables(self):
+        con = ibis.get_backend()
+        def run():
+            name = "ints_strings"
+            table = self.test_instance.tables[name]
+            # new modified table in place of previous one in tables (with old name) so transparent to next timed query
+            # but with new name in db so we preserve standard dataset for slow loading backends
+            self.test_instance.tables[name] = con.create_table(name + "_cached", self.cached_pre_query(table), overwrite=True)
+        start_time = time.perf_counter()
+        memo = memory_usage((run,), include_children=True)
+        end_time = time.perf_counter()
+        return end_time - start_time, max(memo)
+    
+    def preload_cached_query(self):
+        self.preload_tables()
+        return self.preload_cached_query_from_tables()
+    
+    def preload_cached_query_without_csv(self):
+        self.preload_tables_without_csv()
+        return self.preload_cached_query_from_tables()
 
     def perform_measure_to_kafka(self) -> tuple[float, float]:
         self.test_method()

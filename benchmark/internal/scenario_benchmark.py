@@ -132,7 +132,12 @@ class Scenario:
                         test_method = getattr(self.test_instance, test_case)
 
                         backend = bb.BackendBenchmark.by_name(backend_name, self.test_instance, test_method)
-                        self.perform_setup(backend)
+                        setup_info = self.perform_setup(backend)
+                        if setup_info:
+                            time, memo = setup_info
+                            self.test_instance.benchmark.pre_query_time_s = time
+                            self.test_instance.benchmark.pre_query_memo_MiB = memo
+
                         time, memo = self.perform_measure(backend)
 
                         self.test_instance.benchmark.total_time_s = time
@@ -213,7 +218,7 @@ class Scenario3(Scenario):
 
     def perform_setup(self, backend: bb.BackendBenchmark):
         super().perform_setup(backend)
-        backend.preload_cached_query()
+        return backend.preload_cached_query()
 
     def perform_measure(self, backend: bb.BackendBenchmark) -> tuple[float, float]:
         return backend.perform_measure_cached_to_none()
