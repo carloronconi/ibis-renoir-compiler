@@ -124,6 +124,27 @@ class BackendBenchmark():
     def preload_cached_query_without_csv(self):
         self.preload_tables_without_csv()
         return self.preload_cached_query_from_tables()
+    
+    def perform_measure_cached_one_shot_to_none_from_tables(self) -> tuple[float, float]:
+        def run():
+            # save lazy pre-query instead of base table
+            self.test_instance.tables["ints_strings"] = self.cached_pre_query(self.test_instance.tables["ints_strings"])
+            # test method will compose rest of the query on top of pre-query
+            self.test_method()
+            con = ibis.get_backend()
+            con.execute(self.test_instance.query)
+        start_time = time.perf_counter()
+        memo = memory_usage((run,), include_children=True)
+        end_time = time.perf_counter()
+        return end_time - start_time, max(memo)
+    
+    def perform_measure_cached_one_shot_to_none(self) -> tuple[float, float]:
+        self.preload_tables()
+        return self.perform_measure_cached_one_shot_to_none_from_tables()
+    
+    def perform_measure_cached_one_shot_to_none_without_csv(self) -> tuple[float, float]:
+        self.preload_tables_without_csv()
+        return self.perform_measure_cached_one_shot_to_none_from_tables()
 
     def perform_measure_to_kafka(self) -> tuple[float, float]:
         self.test_method()
@@ -266,7 +287,9 @@ class PostgresBenchmark(BackendBenchmark):
         
     def preload_cached_query(self):
         return super().preload_cached_query_without_csv()
-
+    
+    def perform_measure_cached_one_shot_to_none(self) -> tuple[float, float]:
+        return super().perform_measure_cached_one_shot_to_none_without_csv()
 
 class RisingwaveBenchmark(BackendBenchmark):
     name = "risingwave"
@@ -281,6 +304,9 @@ class RisingwaveBenchmark(BackendBenchmark):
         
     def preload_cached_query(self):
         return super().preload_cached_query_without_csv()
+    
+    def perform_measure_cached_one_shot_to_none(self) -> tuple[float, float]:
+        return super().perform_measure_cached_one_shot_to_none_without_csv()
     
     def create_view(self):
         con: RisingwaveBackend = ibis.get_backend()

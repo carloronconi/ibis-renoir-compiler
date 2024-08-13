@@ -222,6 +222,18 @@ class Scenario3(Scenario):
 
     def perform_measure(self, backend: bb.BackendBenchmark) -> tuple[float, float]:
         return backend.perform_measure_cached_to_none()
+
+
+class Scenario3baseline(Scenario):
+    # Performs baseline measurement for Scenario3:
+    # performs the two queries in one-shot, measuring time and memory
+    def __init__(self, pipe):
+        self.test_patterns = ["test_scenarios_analytics"]
+        self.backend_names = ["duckdb", "polars", "risingwave"]
+        super().__init__(pipe)
+
+    def perform_measure(self, backend: bb.BackendBenchmark) -> tuple[float, float]:
+        return backend.perform_measure_cached_one_shot_to_none()
     
 
 class Scenario4(Scenario):
