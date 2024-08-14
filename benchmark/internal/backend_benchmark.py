@@ -57,25 +57,18 @@ class BackendBenchmark():
         return self.perform_measure_to_none()
     
     def perform_measure_to_none(self) -> tuple[float, float]:
-        def run(test_method, test_instance):
-            test_method()
+        def run():
+            self.test_method()
             con = ibis.get_backend()
-            con.execute(test_instance.query)
-        start_time = time.perf_counter()
-        memo = memory_usage((run, [self.test_method, self.test_instance]), include_children=True)
-        end_time = time.perf_counter()
-        return end_time - start_time, max(memo)
+            con.execute(self.test_instance.query)
+        return measure_time_memo(run)
 
     def perform_measure_to_file(self) -> tuple[float, float]:
-        def run(test_method, test_instance):
-            test_method()
+        def run():
+            self.test_method()
             con = ibis.get_backend()
-            # create a string with the result and store it
-            con.to_csv(test_instance.query, "out/ibis-backend-result.csv")
-        start_time = time.perf_counter()
-        memo = memory_usage((run, [self.test_method, self.test_instance]), include_children=True)
-        end_time = time.perf_counter()
-        return end_time - start_time, max(memo)
+            con.to_csv(self.test_instance.query, "out/ibis-backend-result.csv")
+        return measure_time_memo(run)
     
     def cached_pre_query(self, table):
         # This is the fixed pre-query for scenario 3
@@ -112,10 +105,7 @@ class BackendBenchmark():
             # new modified table in place of previous one in tables (with old name) so transparent to next timed query
             # but with new name in db so we preserve standard dataset for slow loading backends
             self.test_instance.tables[name] = con.create_table(name + "_cached", self.cached_pre_query(table), overwrite=True)
-        start_time = time.perf_counter()
-        memo = memory_usage((run,), include_children=True)
-        end_time = time.perf_counter()
-        return end_time - start_time, max(memo)
+        return measure_time_memo(run)
     
     def preload_cached_query(self):
         self.preload_tables()
@@ -133,10 +123,7 @@ class BackendBenchmark():
             self.test_method()
             con = ibis.get_backend()
             con.execute(self.test_instance.query)
-        start_time = time.perf_counter()
-        memo = memory_usage((run,), include_children=True)
-        end_time = time.perf_counter()
-        return end_time - start_time, max(memo)
+        return measure_time_memo(run)
     
     def perform_measure_cached_one_shot_to_none(self) -> tuple[float, float]:
         self.preload_tables()
@@ -381,3 +368,10 @@ class SparkBenchmark(BackendBenchmark):
         while stream_query.isActive and not self.do_stop:
             stream_query.awaitTermination(1)
         print("Stream query terminated")
+
+
+def measure_time_memo(runnable, args=(), kwargs={}):
+    start_time = time.perf_counter()
+    memo = memory_usage((runnable, args, kwargs), include_children=True)
+    end_time = time.perf_counter()
+    return end_time - start_time, max(memo)
