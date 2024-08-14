@@ -105,6 +105,8 @@ class BackendBenchmark():
             # new modified table in place of previous one in tables (with old name) so transparent to next timed query
             # but with new name in db so we preserve standard dataset for slow loading backends
             self.test_instance.tables[name] = con.create_table(name + "_cached", self.cached_pre_query(table), overwrite=True)
+            # alternative version for s3: using ibis-provided cache, unsupported by risingwave
+            # self.test_instance.tables[name] = self.cached_pre_query(table).cache()
         return measure_time_memo(run)
     
     def preload_cached_query(self):
