@@ -34,3 +34,4 @@ flink-*
 /risingwave
 /log/scenario/banana*
 /spark_checkpoint
+/spark*
