@@ -5,6 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Debug proto",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "views_spark_proto.py",
+            "console": "integratedTerminal"
+        },
+        {
             "name": "Debug views",
             "type": "debugpy",
             "request": "launch",
