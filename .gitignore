@@ -35,3 +35,4 @@ flink-*
 /log/scenario/banana*
 /spark_checkpoint
 /spark*
+/kafka*
