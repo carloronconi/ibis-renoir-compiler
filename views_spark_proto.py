@@ -9,7 +9,7 @@ import string
 
 
 def rand_string(prefix="", len=16):
-    return prefix + "".join(random.choices(string.ascii_letters, k=len))
+    return prefix.lower() + "".join(random.choices(string.ascii_lowercase, k=len))
 
 
 # this breaks it! this way even when consuming the producer topic directly, kafka is stuck
@@ -41,9 +41,6 @@ def main():
     producer_topic = rand_string("prod_topic_")
     consumer_topic = rand_string("cons_topic_")
     
-    stream_query_proc = mp.Process(target=create_stream_query, args=(producer_topic, consumer_topic))
-    stream_query_proc.start()
-    
     producer = Prod()
     consumer = Cons()
 
@@ -51,7 +48,14 @@ def main():
     # and discard it from consumer
     producer.produce(consumer_topic, amount=1, no_cb=True)
     result = consumer.consume(consumer_topic, max_messages=1)
-    print(f"Created consumer topic and read message {result}")
+    print(f"Created consumer topic and consumed message {result}")
+    # flink connector still works even if defined before the topic producer topic is created, but risingwave doesn't
+    # so better be sure and put additional message in the producer topic
+    producer.produce(producer_topic, amount=1, no_cb=True)
+    print("Created producer topic without consuming messages")
+
+    stream_query_proc = mp.Process(target=create_stream_query, args=(producer_topic, consumer_topic))
+    stream_query_proc.start()
 
     start_time = time.perf_counter()
     producer.produce(producer_topic)
