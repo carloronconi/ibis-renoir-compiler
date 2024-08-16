@@ -1,9 +1,9 @@
 import time
 import multiprocessing as mp
-from benchmark.internal.producer import Prod
-from benchmark.internal.consumer import Cons
-from benchmark.internal.spark_connector import create_stream_query as spark_stream_query
-from benchmark.internal.risingwave_connector import create_stream_query as risingwave_stream_query
+from benchmark.internal.views_scenario.producer import Prod
+from benchmark.internal.views_scenario.consumer import Cons
+from benchmark.internal.views_scenario.spark_connector import create_stream_query as spark_stream_query
+from benchmark.internal.views_scenario.risingwave_connector import create_stream_query as risingwave_stream_query
 import random
 import string
 import sys
@@ -52,7 +52,7 @@ def main():
     else:
         print("Failed to consume any messages")  
     
-    # TODO: stream_query_proc.kill()
+    stream_query_proc.kill()
 
 if __name__ == "__main__":
     main()
