@@ -11,7 +11,7 @@ class Cons:
         }
         self.consumer = Consumer(config)
     
-    def consume(self, topic, start_attempts=6, timeout=10, max_messages=None):
+    def consume(self, topic, start_attempts=6, timeout=10, max_messages=None, do_close=True):
         print(f"Consuming messages from topic {topic}")
         self.consumer.subscribe([topic])
         messages = []
@@ -31,6 +31,7 @@ class Cons:
             if max_messages and len(messages) >= max_messages:
                 # commit so we won't re-read messages
                 self.consumer.commit(asynchronous=False)
-                return messages
-        self.consumer.close()
+                break
+        if do_close:
+            self.consumer.close()
         return messages

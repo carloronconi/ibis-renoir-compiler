@@ -32,7 +32,7 @@ def main():
     # consumer can't subscribe to non-existing topic, so produce single message to create it
     # and discard it from consumer
     producer.produce(consumer_topic, amount=1)
-    result = consumer.consume(consumer_topic, max_messages=1)
+    result = consumer.consume(consumer_topic, max_messages=1, do_close=False)
     print(f"Created consumer topic and consumed message {result}")
     # flink connector still works even if defined before the topic producer topic is created, but risingwave doesn't
     # so better be sure and put additional message in the producer topic
