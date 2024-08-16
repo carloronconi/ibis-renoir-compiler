@@ -36,3 +36,4 @@ flink-*
 /spark_checkpoint
 /spark*
 /kafka*
+/risingwave_state_dir
