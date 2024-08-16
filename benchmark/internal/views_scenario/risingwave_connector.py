@@ -16,14 +16,10 @@ class RisingwaveConnector(BackendConnector):
         self.source_topic = source_topic
         self.sink_topic = sink_topic
 
-    def create_table(self):
-        tab_schema = ibis.schema({
-            "order_id": ibis.dtype("string"),
-            "product": ibis.dtype("string"),
-            "quantity": ibis.dtype("int64")})
+    def create_table(self, schema):
         self.table = self.con.create_source(
             name=self.source_topic,
-            schema=tab_schema,
+            schema=schema,
             connector_properties={"connector": "kafka",
                                   "topic": self.source_topic,
                                   "properties.bootstrap.server": "localhost:9092",

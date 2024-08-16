@@ -25,15 +25,11 @@ class SparkConnector(BackendConnector):
         self.source_topic = source_topic
         self.sink_topic = sink_topic
 
-    def create_table(self):
-        tab_schema = ibis.schema({
-            "order_id": ibis.dtype("string"),
-            "product": ibis.dtype("string"),
-            "quantity": ibis.dtype("int64")})
+    def create_table(self, schema):
         self.table: ibis.Table = self.con.read_kafka(
             table_name=self.source_topic,
             auto_parse=True,
-            schema=tab_schema,
+            schema=schema,
             options={
                 "kafka.bootstrap.servers": "localhost:9092",
                 "subscribe": self.source_topic,

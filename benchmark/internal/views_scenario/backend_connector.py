@@ -1,10 +1,10 @@
 import abc
-from ibis import Table
+from ibis import Table, Schema
 from typing import Callable
 
 class BackendConnector(abc.ABC):
     @abc.abstractmethod
-    def create_table(self) -> None:
+    def create_table(self, schema: Schema) -> None:
         pass
 
     @abc.abstractmethod
