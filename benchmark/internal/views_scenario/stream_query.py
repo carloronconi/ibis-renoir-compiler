@@ -11,7 +11,7 @@ def create_stream_query(backend: str, source_topic: str, sink_topic: str, test_q
     else:
         raise ValueError("Unknown backend!")
     
-    test_query = next(method for name, method in TestViews.__dict__.items() if test_query_name in name)
+    test_query = next(method for name, method in TestViews.__dict__.items() if test_query_name == name)
 
     connector.create_table()
     connector.create_view(test_query)
