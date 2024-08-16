@@ -1,11 +1,12 @@
-from time import sleep
 from ibis import _
 import ibis
 from ibis.backends.risingwave import Backend as RisingwaveBackend
+from .backend_connector import BackendConnector
+from ibis import Table
+from typing import Callable
 
 
-
-class RisingwaveConnector:
+class RisingwaveConnector(BackendConnector):
     def __init__(self, source_topic, sink_topic):
         self.con: RisingwaveBackend = RisingwaveBackend().connect(
                     user="root",
@@ -32,15 +33,15 @@ class RisingwaveConnector:
             encode_format="JSON"
         )
         
-    def create_view(self):
+    def create_view(self, test_query: Callable[[Table], Table]):
         # this would fail because tables in risingwave are lowercase only and their name is turned
         # to all lowercase, and when the method returns it looks
         # for the table with the name of the source topic, that has uppercase letters, and doesn't find it
         # it's a bug in the ibis-risingwave backend!
-        self.view = self.con.create_materialized_view(self.source_topic + "_view", 
-                                     obj=self.table.mutate(price=_.quantity * 2)
-                                              .mutate(value=_.order_id), 
-                                     overwrite=True)
+        self.view = self.con.create_materialized_view(
+            self.source_topic + "_view", 
+            obj=test_query(self.table), 
+            overwrite=True)
         
     def await_stream_query(self):
         # doesn't actually await as in risingwave it runs in the background
@@ -52,9 +53,3 @@ class RisingwaveConnector:
                         data_format="PLAIN",
                         encode_format="JSON",
                         encode_properties={"force_append_only": "true"})
-
-def create_stream_query(source_topic, sink_topic):
-    connector = RisingwaveConnector(source_topic, sink_topic)
-    connector.create_table()
-    connector.create_view()
-    connector.await_stream_query()

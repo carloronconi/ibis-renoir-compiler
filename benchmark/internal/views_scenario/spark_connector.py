@@ -2,9 +2,12 @@ from pyspark.sql import SparkSession
 from ibis import _
 import ibis
 import ibis.backends.pyspark
+from .backend_connector import BackendConnector
+from ibis import Table
+from typing import Callable
 
 
-class SparkConnector:
+class SparkConnector(BackendConnector):
     def __init__(self, source_topic, sink_topic):
         scala_version = '2.12'
         spark_version = '3.1.2'
@@ -37,12 +40,10 @@ class SparkConnector:
                 "startingOffsets": "earliest",
                 "failOnDataLoss": "false"})
         
-    def create_view(self):
+    def create_view(self, test_query: Callable[[Table], Table]):
         self.view = self.con.create_view(
-            self.source_topic + "_view", 
-            self.table
-                .mutate(price=_.quantity * 2)
-                .mutate(value=_.order_id))
+            self.source_topic + "_view",
+            test_query(self.table))
         
     def await_stream_query(self):
         stream_query = self.con.to_kafka(
@@ -53,10 +54,3 @@ class SparkConnector:
         print("Starting and awaiting stream query")
         stream_query.awaitTermination()
         print("Stream query terminated")
-
-
-def create_stream_query(source_topic, sink_topic):
-    connector = SparkConnector(source_topic, sink_topic)
-    connector.create_table()
-    connector.create_view()
-    connector.await_stream_query()

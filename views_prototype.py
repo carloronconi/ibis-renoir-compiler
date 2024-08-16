@@ -2,8 +2,7 @@ import time
 import multiprocessing as mp
 from benchmark.internal.views_scenario.producer import Prod
 from benchmark.internal.views_scenario.consumer import Cons
-from benchmark.internal.views_scenario.spark_connector import create_stream_query as spark_stream_query
-from benchmark.internal.views_scenario.risingwave_connector import create_stream_query as risingwave_stream_query
+from benchmark.internal.views_scenario.stream_query import create_stream_query
 import random
 import string
 import sys
@@ -15,13 +14,6 @@ def rand_string(prefix="", len=16):
 
 def main():
     backend = sys.argv[1]
-    if backend == "spark":
-        create_stream_query = spark_stream_query
-    elif backend == "risingwave":
-        create_stream_query = risingwave_stream_query
-    else:
-        print("Unknown backend")
-        return
 
     producer_topic = rand_string("prod_topic_")
     consumer_topic = rand_string("cons_topic_")
@@ -39,7 +31,8 @@ def main():
     producer.produce(producer_topic, amount=1)
     print("Created producer topic without consuming messages")
 
-    stream_query_proc = mp.Process(target=create_stream_query, args=(producer_topic, consumer_topic))
+    stream_query_proc = mp.Process(target=create_stream_query, 
+                                   args=(backend, producer_topic, consumer_topic, "views_1_filter"))
     stream_query_proc.start()
 
     start_time = time.perf_counter()

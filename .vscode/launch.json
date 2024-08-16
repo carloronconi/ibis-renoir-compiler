@@ -8,8 +8,10 @@
             "name": "Debug proto",
             "type": "debugpy",
             "request": "launch",
-            "program": "views_spark_proto.py",
-            "console": "integratedTerminal"
+            "program": "views_prototype.py",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "subProcess": true
         },
         {
             "name": "Debug views",
