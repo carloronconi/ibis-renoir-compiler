@@ -5,16 +5,16 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug proto",
+            "name": "Debug views scenario",
             "type": "debugpy",
             "request": "launch",
-            "program": "views_prototype.py",
+            "program": "scenario_2_views.py",
             "console": "integratedTerminal",
             "justMyCode": false,
             "subProcess": true
         },
         {
-            "name": "Debug views",
+            "name": "Debug views spark",
             "type": "debugpy",
             "request": "launch",
             "program": "views_spark.py",

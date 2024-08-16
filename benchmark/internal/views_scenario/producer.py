@@ -6,7 +6,7 @@ from json import dumps
 
 
 class Prod:
-    def __init__(self):
+    def __init__(self, dict_generator):
         config = {
             # User-specific properties that you must set
             'bootstrap.servers': 'localhost:9092',
@@ -15,6 +15,7 @@ class Prod:
         }
         self.producer = Producer(config)
         self.deliver_count = 0 
+        self.dict_generator = dict_generator
     
     def produce(self, topic, amount=10, timeout_ms=10000):
         self.deliver_count = 0
@@ -24,16 +25,10 @@ class Prod:
             else:
                 self.deliver_count += 1 
         
-        products = ['book', 'alarm clock', 't-shirts', 'gift card', 'batteries']
         for i in range(amount):
-            order_id = f"order_{i}"
-            value = {
-                "order_id": order_id,
-                "product": choice(products),
-                "quantity": randint(1, 100),
-            }
+            value = next(self.dict_generator)
             value = dumps(value).encode('utf-8')
-            self.producer.produce(topic, value=value, key=order_id, callback=delivery_callback)
+            self.producer.produce(topic, value=value, key=f"ID_{i}", callback=delivery_callback)
         # Block until the messages are sent or the timeout expires
         self.producer.poll(timeout_ms)
         self.producer.flush()

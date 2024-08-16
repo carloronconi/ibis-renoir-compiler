@@ -13,11 +13,11 @@ def rand_string(prefix="", len=16):
         return prefix.lower() + "".join(random.choices(string.ascii_lowercase, k=len))
 
 class ViewsScenario:
-    def run_once(self, backend: str, test_class, test_query, run_count: int):
+    def run_once(self, backend: str, TestClass, test_query, run_count: int):
         producer_topic = rand_string("prod_topic_")
         consumer_topic = rand_string("cons_topic_")
 
-        producer = Prod()
+        producer = Prod(TestClass.dict_generator())
         consumer = Cons()
 
         # consumer can't subscribe to non-existing topic, so produce single message to create it
@@ -31,7 +31,7 @@ class ViewsScenario:
         print("Created producer topic without consuming messages")
 
         stream_query_proc = mp.Process(target=create_stream_query, 
-                                       args=(backend, producer_topic, consumer_topic, test_class.schema, test_query))
+                                       args=(backend, producer_topic, consumer_topic, TestClass.schema, test_query))
         stream_query_proc.start()
 
         start_time = time.perf_counter()
@@ -72,7 +72,7 @@ class ViewsScenario:
                 for backend in backends:
                     print(f"Running {query.__name__} on {backend}")
                     for _ in range(warmup):
-                        self.run_once(backend, TestClass,query, -1)
+                        self.run_once(backend, TestClass, query, -1)
                     for i in range(runs):
                         self.run_once(backend, TestClass, query, i)
 
