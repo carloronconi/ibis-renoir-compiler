@@ -29,7 +29,8 @@ class Cons:
             start_attempts = 0
             messages.append(msg.value().decode('utf-8'))
             if max_messages and len(messages) >= max_messages:
-                # don't close in this case
+                # commit so we won't re-read messages
+                self.consumer.commit(asynchronous=False)
                 return messages
         self.consumer.close()
         return messages
