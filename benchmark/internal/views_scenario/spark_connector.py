@@ -1,3 +1,5 @@
+import os
+import shutil
 from pyspark.sql import SparkSession
 from ibis import _
 import ibis
@@ -44,12 +46,14 @@ class SparkConnector(BackendConnector):
             test_query(self.tables))
         
     def await_stream_query(self):
+        shutil.rmtree("spark_checkpoint", ignore_errors=True)
+        os.makedirs("spark_checkpoint")
         stream_query = self.con.to_kafka(
             self.view, 
             auto_format=True,
             options={"kafka.bootstrap.servers": "localhost:9092", 
                      "topic": self.sink_topic,
-                     "checkpointLocation": "/tmp/spark_checkpoint"}).start()
+                     "checkpointLocation": "spark_checkpoint"}).start()
         print("Starting and awaiting stream query")
         stream_query.awaitTermination()
         print("Stream query terminated")

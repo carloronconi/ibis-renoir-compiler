@@ -78,15 +78,16 @@ class ViewsScenario:
 
     def main(self):
         backends = ["spark", "risingwave"]
-        test_classes = [TestViewsNexmark, TestViewsCustom]
-        runs = 1
-        warmup = 0
-        self.dataset_size = 100
-        dir = "scenario/banana_100"
+        test_classes = [TestViewsNexmark]
+        test_pattern = ""
+        runs = 5
+        warmup = 1
+        self.dataset_size = 10000000
+        dir = "scenario/banana"
 
         self.logger = Logger("", dir)
         for TestClass in test_classes:
-            queries = [method for name, method in TestClass.__dict__.items() if "test_" in name]
+            queries = [method for name, method in TestClass.__dict__.items() if "test_" in name and test_pattern in name]
             for query in queries:
                 for backend in backends:
                     print(f"Running {query.__name__} on {backend}")

@@ -113,7 +113,8 @@ class TestNexmark(TestCompiler):
         person = self.tables["person"]
         self.query = (auction
                       .join(person, auction["seller"] == person["id"])
-                      .filter((person["state"] == "OR") | (person["state"] == "ID") | (person["state"] == "CA"))
+                      # note: uppercase state values don't exist in the queries!
+                      .filter((person["state"] == "or") | (person["state"] == "id") | (person["state"] == "ca"))
                       .filter(auction["category"] == 10)
                       .select(["name", "city", "state", "id"]))
 

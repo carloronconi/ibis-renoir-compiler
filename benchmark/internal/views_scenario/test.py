@@ -110,3 +110,46 @@ class TestViewsNexmark:
         return (tables[1]
                 .mutate(dol_price=_.price * 0.85)
                 .select(["auction", "price", "dol_price", "bidder", "date_time"]))
+
+    @staticmethod
+    def test_nexmark_query_2(tables: list[Table]) -> Table:
+        return (tables[1]
+                .filter((_.auction == 1007) | (_.auction == 1020) | (_.auction == 2001) | (_.auction == 2019) | (_.auction == 2087))
+                .select(["auction", "price"]))
+
+    @staticmethod
+    def test_nexmark_query_3(tables: list[Table]) -> Table:
+        auction, person = tables[0], tables[2]
+        return (auction
+                .join(person, auction["seller"] == person["id"])
+                .filter((person["state"] == "or") | (person["state"] == "id") | (person["state"] == "ca"))
+                .filter(auction["category"] == 10)
+                .select(["name", "city", "state", "id"]))
+
+    # TODO: q4 and q6 don't work in spark for expressivity: either change how they're expressed or spark setup or leave like this
+    # q4: pyspark.sql.utils.AnalysisException: Multiple streaming aggregations are not supported with streaming DataFrames/Datasets;
+    # q6: pyspark.sql.utils.AnalysisException: Append output mode not supported when there are streaming aggregations on streaming DataFrames/DataSets without watermark;
+    # TODO: implement exception-capture for s2 like other harness
+    @staticmethod
+    def test_nexmark_query_4(tables: list[Table]) -> Table:
+        auction, bid = tables[0], tables[1]
+        CURRENT_TIME = 2330277279926
+        return (auction
+                .join(bid, bid["auction"] == auction["id"])
+                .filter((_.date_time_right < _.expires) & (_.expires < CURRENT_TIME))
+                .group_by([_.id, _.category])
+                .aggregate(final_p=_.price.max())
+                .group_by(_.category)
+                .aggregate(avg_final_p=_.final_p.mean()))
+
+    @staticmethod
+    def test_nexmark_query_6(tables: list[Table]) -> Table:
+        auction, bid = tables[0], tables[1]
+        CURRENT_TIME = 2330277279926
+        w = ibis.window(group_by=[_.seller], preceding=9, following=0)
+        return (auction
+                .join(bid, bid["auction"] == auction["id"])
+                .filter((_.date_time_right < _.expires) & (_.expires < CURRENT_TIME))
+                .group_by([_.id, _.seller])
+                .aggregate(final_p=_.price.max())
+                .mutate(avg_final_p=_.final_p.mean().over(w)))
