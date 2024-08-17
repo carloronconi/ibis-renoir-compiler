@@ -33,7 +33,6 @@ class TestViews:
 
     @staticmethod
     def test_scenarios_views_1_filter(tables: list[Table]) -> Table:
-        print(tables[0])
         return (tables[0]
                 .filter(_.quantity % 2 == 0)
                 .mutate(value=_.order_id))

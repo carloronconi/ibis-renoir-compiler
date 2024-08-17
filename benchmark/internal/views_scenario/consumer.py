@@ -1,3 +1,4 @@
+import time
 from confluent_kafka import Consumer
 
 class Cons:
@@ -15,17 +16,19 @@ class Cons:
         print(f"Consuming messages from topic {topic}")
         self.consumer.subscribe([topic])
         messages = []
+        last_recv_time = None
         while True:
             msg = self.consumer.poll(timeout)
             if msg is None:
-                print(f"No messages in consumer after {timeout} seconds at attempt {start_attempts}")
                 if start_attempts == 0:
                     break
+                print(f"No messages in consumer after {timeout} seconds at attempt {start_attempts}")
                 start_attempts -= 1
                 continue
             if msg.error():
                 print(f"Consumer error: {msg.error()}")
                 break
+            last_recv_time = time.perf_counter()
             start_attempts = 0
             value = msg.value()
             messages.append(value.decode('utf-8') if value else "")
@@ -35,4 +38,4 @@ class Cons:
                 break
         if do_close:
             self.consumer.close()
-        return messages
+        return messages, last_recv_time

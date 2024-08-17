@@ -33,7 +33,7 @@ class ViewsScenario:
 
         # create consumer topic and consume message
         help_producer.produce(consumer_topic, amount=1)
-        result = consumer.consume(consumer_topic, max_messages=1, do_close=False)
+        result, _ = consumer.consume(consumer_topic, max_messages=1, do_close=False)
         print(f"Created consumer topic and consumed message {result}")
         # create all producer topics without consuming messages 
         # (can't have more consumers for same topic partition)
@@ -56,11 +56,10 @@ class ViewsScenario:
                                          self.dataset_size) 
                                          for topic, stream in producer_topics.items()])
         result.wait()
-        result = consumer.consume(consumer_topic)
-        end_time = time.perf_counter()
+        result, end_time = consumer.consume(consumer_topic)
 
         if result:
-            print(f"Successfully consumed {result} messages in {end_time - start_time} seconds")
+            print(f"Successfully consumed {len(result)} messages in {end_time - start_time} seconds. Messages:\n{result}")
             exception = None
         else:
             print("Failed to consume any messages")
