@@ -1,3 +1,4 @@
+import csv
 from dataclasses import dataclass
 from typing import Callable, Generator, Any, NoReturn
 from ibis import Table
@@ -13,7 +14,7 @@ class StreamTable:
     generator: Callable[[], Generator[dict[str, Any], Any, NoReturn]]
 
 
-class TestViews:
+class TestViewsCustom:
     streams = [
         StreamTable(
             "orders",
@@ -21,7 +22,7 @@ class TestViews:
                 "order_id": ibis.dtype("string"),
                 "product": ibis.dtype("string"),
                 "quantity": ibis.dtype("int64")}),
-            lambda: TestViews.orders_generator()
+            lambda: TestViewsCustom.orders_generator()
         )]
 
     @staticmethod
@@ -35,16 +36,12 @@ class TestViews:
     @staticmethod
     def test_scenarios_views_1_filter(tables: list[Table]) -> Table:
         return (tables[0]
-                .filter(_.quantity % 2 == 0)
-                .mutate(value=_.order_id))
+                .filter(_.quantity % 2 == 0))
 
     @staticmethod
     def test_scenarios_views_2_mutate(tables: list[Table]) -> Table:
         return (tables[0]
-                .mutate(price=_.quantity * 2)
-                .mutate(value=_.order_id))
-
-    # TODO: define nexmark queries + schema and generator!
+                .mutate(price=_.quantity * 2))
 
 
 class TestViewsNexmark:
@@ -94,8 +91,19 @@ class TestViewsNexmark:
         # no need to specify file size here as if bigger than the file
         # below, it will just restart
         while True:
-            for row in open(f"data/nexmark/{name}_10000000.csv", "r"):
-                yield row
+            with open(f"data/nexmark/{name}_10000000.csv", "r") as csvfile:
+                reader = csv.DictReader(csvfile, quoting=csv.QUOTE_NONE)
+                for row in reader:
+                    for k, v in row.items():
+                        try:
+                            cast = int(v)
+                        except ValueError:
+                            try:
+                                cast = float(v)
+                            except ValueError:
+                                cast = v
+                        row[k] = cast
+                    yield row
 
     @staticmethod
     def test_nexmark_query_1(tables: list[Table]) -> Table:

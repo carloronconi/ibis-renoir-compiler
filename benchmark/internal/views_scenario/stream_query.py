@@ -1,6 +1,6 @@
 from .spark_connector import SparkConnector
 from .risingwave_connector import RisingwaveConnector
-from .test import TestViews
+from .test import TestViewsCustom
 from typing import Callable
 from ibis import Table, Schema
 

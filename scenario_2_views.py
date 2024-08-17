@@ -5,7 +5,7 @@ import string
 from benchmark.internal.views_scenario.producer import Prod
 from benchmark.internal.views_scenario.consumer import Cons
 from benchmark.internal.views_scenario.stream_query import create_stream_query
-from benchmark.internal.views_scenario.test import TestViews
+from benchmark.internal.views_scenario.test import TestViewsCustom, TestViewsNexmark
 from codegen import Benchmark as Logger
 
 
@@ -78,7 +78,7 @@ class ViewsScenario:
 
     def main(self):
         backends = ["spark", "risingwave"]
-        test_classes = [TestViews]
+        test_classes = [TestViewsNexmark, TestViewsCustom]
         runs = 1
         warmup = 0
         self.dataset_size = 100
