@@ -27,7 +27,8 @@ class Cons:
                 print(f"Consumer error: {msg.error()}")
                 break
             start_attempts = 0
-            messages.append(msg.value().decode('utf-8'))
+            value = msg.value()
+            messages.append(value.decode('utf-8') if value else "")
             if max_messages and len(messages) >= max_messages:
                 # commit so we won't re-read messages
                 self.consumer.commit(asynchronous=False)

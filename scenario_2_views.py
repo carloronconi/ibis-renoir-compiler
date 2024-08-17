@@ -12,30 +12,50 @@ from codegen import Benchmark as Logger
 def rand_string(prefix="", len=16):
         return prefix.lower() + "".join(random.choices(string.ascii_lowercase, k=len))
 
+
+def produce(TestClass, stream_name, topic: str, amount: int):
+    print(f"Started worker producer process for {stream_name} to {topic}")
+    generator = next(s for s in TestClass.streams if s.name == stream_name).generator()
+    producer = Prod(generator)
+    producer.produce(topic, amount=amount)
+
+
 class ViewsScenario:
     def run_once(self, backend: str, TestClass, test_query, run_count: int):
-        producer_topic = rand_string("prod_topic_")
+        producer_topics = {rand_string(f"prod_topic_{s.name}_"): s for s in TestClass.streams}
         consumer_topic = rand_string("cons_topic_")
-
-        producer = Prod(TestClass.dict_generator())
+        
         consumer = Cons()
+        def p():
+            while True:
+                yield {"INIT": "MESSAGE"}
+        help_producer = Prod(p())
 
-        # consumer can't subscribe to non-existing topic, so produce single message to create it
-        # and discard it from consumer
-        producer.produce(consumer_topic, amount=1)
+        # create consumer topic and consume message
+        help_producer.produce(consumer_topic, amount=1)
         result = consumer.consume(consumer_topic, max_messages=1, do_close=False)
         print(f"Created consumer topic and consumed message {result}")
-        # flink connector still works even if defined before the topic producer topic is created, but risingwave doesn't
-        # so better be sure and put additional message in the producer topic
-        producer.produce(producer_topic, amount=1)
-        print("Created producer topic without consuming messages")
+        # create all producer topics without consuming messages 
+        # (can't have more consumers for same topic partition)
+        for topic in producer_topics.keys():
+            help_producer.produce(topic, amount=1)
+        print("Created producer topics without consuming messages")
 
         stream_query_proc = mp.Process(target=create_stream_query, 
-                                       args=(backend, producer_topic, consumer_topic, TestClass.schema, test_query))
+                                       args=(backend, 
+                                             {t: stream.schema for t, stream in producer_topics.items()}, 
+                                             consumer_topic, 
+                                             test_query))
         stream_query_proc.start()
+        producer_pool = mp.Pool(len(producer_topics))
 
         start_time = time.perf_counter()
-        producer.produce(producer_topic, amount=self.dataset_size)
+        result = producer_pool.starmap_async(produce, [(TestClass, 
+                                         stream.name, 
+                                         topic, 
+                                         self.dataset_size) 
+                                         for topic, stream in producer_topics.items()])
+        result.wait()
         result = consumer.consume(consumer_topic)
         end_time = time.perf_counter()
 
@@ -60,8 +80,8 @@ class ViewsScenario:
     def main(self):
         backends = ["spark", "risingwave"]
         test_classes = [TestViews]
-        runs = 5
-        warmup = 1
+        runs = 1
+        warmup = 0
         self.dataset_size = 100
         dir = "scenario/banana_100"
 

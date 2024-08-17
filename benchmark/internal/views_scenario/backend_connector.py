@@ -4,11 +4,15 @@ from typing import Callable
 
 class BackendConnector(abc.ABC):
     @abc.abstractmethod
-    def create_table(self, schema: Schema) -> None:
+    def __init__(self, source_topic_schemas: dict[str, Schema], sink_topic: str) -> None:
+        pass    
+
+    @abc.abstractmethod
+    def create_tables(self) -> None:
         pass
 
     @abc.abstractmethod
-    def create_view(self, test_query: Callable[[Table], Table]) -> None:
+    def create_view(self, test_query: Callable[[list[Table]], Table]) -> None:
         pass
 
     @abc.abstractmethod

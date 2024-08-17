@@ -3,12 +3,12 @@ from ibis import _
 import ibis
 import ibis.backends.pyspark
 from .backend_connector import BackendConnector
-from ibis import Table
+from ibis import Table, Schema
 from typing import Callable
 
 
 class SparkConnector(BackendConnector):
-    def __init__(self, source_topic, sink_topic):
+    def __init__(self, source_topic_schemas: dict[str, Schema], sink_topic: str) -> None:
         scala_version = '2.12'
         spark_version = '3.1.2'
         # ensure match above values match the correct versions in pip
@@ -22,24 +22,26 @@ class SparkConnector(BackendConnector):
             .config("spark.jars.packages", ",".join(packages))\
             .getOrCreate()
         self.con: ibis.backends.pyspark.Backend = ibis.pyspark.connect(session, mode="streaming")
-        self.source_topic = source_topic
+        self.source_topic_schemas = source_topic_schemas
         self.sink_topic = sink_topic
+        self.tables = []
 
-    def create_table(self, schema):
-        self.table: ibis.Table = self.con.read_kafka(
-            table_name=self.source_topic,
-            auto_parse=True,
-            schema=schema,
-            options={
-                "kafka.bootstrap.servers": "localhost:9092",
-                "subscribe": self.source_topic,
-                "startingOffsets": "earliest",
-                "failOnDataLoss": "false"})
+    def create_tables(self):
+        for topic, schema in self.source_topic_schemas.items():
+            self.tables.append(self.con.read_kafka(
+                table_name=topic,
+                auto_parse=True,
+                schema=schema,
+                options={
+                    "kafka.bootstrap.servers": "localhost:9092",
+                    "subscribe": topic,
+                    "startingOffsets": "earliest",
+                    "failOnDataLoss": "false"}))
         
-    def create_view(self, test_query: Callable[[Table], Table]):
+    def create_view(self, test_query: Callable[[list[Table]], Table]):
         self.view = self.con.create_view(
-            self.source_topic + "_view",
-            test_query(self.table))
+            self.sink_topic + "_view",
+            test_query(self.tables))
         
     def await_stream_query(self):
         stream_query = self.con.to_kafka(
