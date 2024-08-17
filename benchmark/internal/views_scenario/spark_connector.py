@@ -46,6 +46,7 @@ class SparkConnector(BackendConnector):
     def await_stream_query(self):
         stream_query = self.con.to_kafka(
             self.view, 
+            auto_format=True,
             options={"kafka.bootstrap.servers": "localhost:9092", 
                      "topic": self.sink_topic,
                      "checkpointLocation": "/tmp/spark_checkpoint"}).start()
