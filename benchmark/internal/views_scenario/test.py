@@ -89,16 +89,19 @@ class TestViewsCustom:
     def test_scenarios_views_4_join(tables: list[Table]) -> Table:
         return (tables[0]
                 .join(tables[1], "customer_id")
-                .group_by(_.country, _.product)
-                .aggregate(mean_age=_.age.mean(), max_price=_.price.max()))
+                # changed these to keep support for spark which doesn't work with joins + aggregations
+                # .group_by(_.country, _.product)
+                # .agg_regate(mean_age=_.age.mean(), max_price=_.price.max()))
+                .filter((_.quantity + _.age) % 2 == 0)
+                .select(["name", "product", "age", "quantity"]))
     
     @staticmethod
     def test_scenarios_views_5_window(tables: list[Table]) -> Table:
-        w = ibis.window(group_by=[_.product], preceding=3, following=0)
+        # unsupported by spark
+        # pyspark.sql.utils.AnalysisException: Non-time-based windows are not supported on streaming DataFrames/Datasets;
         return (tables[0]
-                .group_by(_.product)
-                .aggregate(mean_price=_.price.mean())
-                .mutate(avg_price=_.mean_price.mean().over(w)))
+                .mutate(trailing_prod_price_mean=_.price.mean()
+                        .over(ibis.window(group_by=[_.product], preceding=3, following=0))))
 
 
 class TestViewsNexmark:
@@ -187,7 +190,6 @@ class TestViewsNexmark:
                 .filter(auction["category"] == 10)
                 .select(["name", "city", "state", "id"]))
 
-    # TODO: re-run nexmark queries for all scenarios due to q3 changes
     @staticmethod
     def test_nexmark_query_4(tables: list[Table]) -> Table:
         # unsupported by spark
@@ -209,6 +211,8 @@ class TestViewsNexmark:
         # unsupported by spark even after adding watermark to all tables and changing column types to timestamp
         # changed column types back to int64 because risingwave doesn't support timestamp instead, and it didn't work for spark anyway
         # pyspark.sql.utils.AnalysisException: Append output mode not supported when there are streaming aggregations on streaming DataFrames/DataSets without watermark;
+        # changed the await_stream_query to use "complete" output mode for queries containing aggregation but still unsupported, as joins are only supported in "append" mode
+        # pyspark.sql.utils.AnalysisException: Join between two streaming DataFrames/Datasets is not supported in Complete output mode, only in Append output mode;
         auction, bid = tables[0], tables[1]
         CURRENT_TIME = 2330277279926
         # CURRENT_TIME = ibis.literal(2330277279926).to_timestamp()

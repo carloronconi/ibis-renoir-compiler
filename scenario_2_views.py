@@ -91,8 +91,8 @@ class ViewsScenario:
 
     def main(self):
         backends = ["spark", "risingwave"]
-        test_classes = [TestViewsNexmark]
-        test_pattern = "4"
+        test_classes = [TestViewsNexmark, TestViewsCustom]
+        test_pattern = ""
         runs = 5
         warmup = 1
         self.dataset_size = 10000000
