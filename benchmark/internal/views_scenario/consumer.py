@@ -12,15 +12,21 @@ class Cons:
         }
         self.consumer = Consumer(config)
     
-    def consume(self, topic, start_attempts=6, timeout=10, max_messages=None, do_close=True):
+    def consume(self, topic, start_attempts=6, timeout=10, max_messages=None, do_close=True, stream_pipe=None):
         print(f"Consuming messages from topic {topic}")
         self.consumer.subscribe([topic])
         messages = []
         last_recv_time = None
+        exception = None
         while True:
             msg = self.consumer.poll(timeout)
             if msg is None:
                 if start_attempts == 0:
+                    break
+                # when a stream pipe variable is given, 
+                # early return when an exception is detected in subprocess
+                if stream_pipe and stream_pipe.poll():
+                    exception = stream_pipe.recv()
                     break
                 print(f"No messages in consumer after {timeout} seconds at attempt {start_attempts}")
                 start_attempts -= 1
@@ -38,4 +44,4 @@ class Cons:
                 break
         if do_close:
             self.consumer.close()
-        return messages, last_recv_time
+        return messages, last_recv_time, exception

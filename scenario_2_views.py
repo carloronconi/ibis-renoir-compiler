@@ -33,7 +33,7 @@ class ViewsScenario:
 
         # create consumer topic and consume message
         help_producer.produce(consumer_topic, amount=1)
-        result, _ = consumer.consume(consumer_topic, max_messages=1, do_close=False)
+        result, _, _ = consumer.consume(consumer_topic, max_messages=1, do_close=False)
         print(f"Created consumer topic and consumed message {result}")
         # create all producer topics without consuming messages 
         # (can't have more consumers for same topic partition)
@@ -41,11 +41,13 @@ class ViewsScenario:
             help_producer.produce(topic, amount=1)
         print("Created producer topics without consuming messages")
 
+        recv, send = mp.Pipe(duplex=False)
         stream_query_proc = mp.Process(target=create_stream_query, 
                                        args=(backend, 
                                              {t: stream.schema for t, stream in producer_topics.items()}, 
                                              consumer_topic, 
-                                             test_query))
+                                             test_query,
+                                             send))
         stream_query_proc.start()
         producer_pool = mp.Pool(len(producer_topics))
 
@@ -56,14 +58,18 @@ class ViewsScenario:
                                          self.dataset_size) 
                                          for topic, stream in producer_topics.items()])
         result.wait()
-        result, end_time = consumer.consume(consumer_topic)
+        result, end_time, exception = consumer.consume(consumer_topic, 
+                                                       stream_pipe=recv)
 
         if result:
             print(f"Successfully consumed {len(result)} messages in {end_time - start_time} seconds. Messages:\n{result}")
-            exception = None
         else:
-            print("Failed to consume any messages")
-            exception = "no_messages"  
+            end_time = -1
+            if not exception:
+                # no result and no exception
+                exception = "no_messages_consumed"
+            fmt = exception.replace("NEWLINE_ESCAPE", "\n").replace("COMMA_ESCAPE", ",")[-50:]
+            print(f"Failed to consume any messages with exception:\n{fmt}")
 
         self.logger.test_name = test_query.__name__
         self.logger.backend_name = backend
@@ -73,17 +79,25 @@ class ViewsScenario:
         self.logger.exception = exception
         self.logger.log()
 
+        if not result and self.raise_exceptions:
+            msg = exception.replace("NEWLINE_ESCAPE", "\n").replace("COMMA_ESCAPE", ",")
+            raise Exception(f"Captured exception from worker:\n{msg}")
+
         stream_query_proc.kill()
+
+        if not result: return False
+        return True
 
 
     def main(self):
         backends = ["spark", "risingwave"]
         test_classes = [TestViewsNexmark]
-        test_pattern = ""
+        test_pattern = "4"
         runs = 5
         warmup = 1
         self.dataset_size = 10000000
         dir = "scenario/banana"
+        self.raise_exceptions = False
 
         self.logger = Logger("", dir)
         for TestClass in test_classes:
@@ -92,9 +106,14 @@ class ViewsScenario:
                 for backend in backends:
                     print(f"Running {query.__name__} on {backend}")
                     for _ in range(warmup):
-                        self.run_once(backend, TestClass, query, -1)
+                        success = self.run_once(backend, TestClass, query, -1)
+                        if not success:
+                            break
+                    if not success:
+                        continue
                     for i in range(runs):
-                        self.run_once(backend, TestClass, query, i)
+                        if not self.run_once(backend, TestClass, query, i):
+                            break
 
 
 if __name__ == "__main__":
