@@ -19,7 +19,7 @@ class SparkConnector(BackendConnector):
             'org.apache.kafka:kafka-clients:3.2.1'
         ]
         session = SparkSession.builder\
-            .master("spark://local:7077")\
+            .master("spark://127.0.0.1:7077")\
             .appName("ibis")\
             .config("spark.jars.packages", ",".join(packages))\
             .getOrCreate()
