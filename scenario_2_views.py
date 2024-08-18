@@ -105,6 +105,7 @@ class ViewsScenario:
             for query in queries:
                 for backend in backends:
                     print(f"Running {query.__name__} on {backend}")
+                    success = True
                     for _ in range(warmup):
                         success = self.run_once(backend, TestClass, query, -1)
                         if not success:

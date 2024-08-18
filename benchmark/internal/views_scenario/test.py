@@ -21,27 +21,84 @@ class TestViewsCustom:
             ibis.schema({
                 "order_id": ibis.dtype("string"),
                 "product": ibis.dtype("string"),
-                "quantity": ibis.dtype("int64")}),
+                "price": ibis.dtype("int64"),
+                "discount": ibis.dtype("float64"),
+                "quantity": ibis.dtype("int64"),
+                "customer_id": ibis.dtype("string"),
+                # "date_time": ibis.dtype("timestamp")
+                }),
             lambda: TestViewsCustom.orders_generator()
+        ),
+        StreamTable(
+            "customers",
+            ibis.schema({
+                "customer_id": ibis.dtype("string"),
+                "name": ibis.dtype("string"),
+                "age": ibis.dtype("int64"),
+                "country": ibis.dtype("string"),
+                # "date_time": ibis.dtype("timestamp")
+                }),
+            lambda: TestViewsCustom.customers_generator()
         )]
 
     @staticmethod
     def orders_generator():
-        products = ["book", "shoes", "hat", "gloves", "scarf"]
+        products = {"book": 5, "shoes": 78, "hat": 12, "gloves": 9, "scarf": 32, 
+                    "glasses": 84, "watch": 143, "phone": 1199, "laptop": 1499, "tablet": 799}
         while True:
+            product, price = random.choice(list(products.items()))
             yield {"order_id": f"order_{random.randint(1, 1000)}",
-                   "product": random.choice(products),
-                   "quantity": random.randint(1, 100), }
+                   "product": product,
+                   "price": price,
+                   "discount": random.uniform(0, 0.5),
+                   "quantity": random.randint(1, 100), 
+                   "customer_id": f"customer_{random.randint(1, 100)}"}
+            
+    @staticmethod
+    def customers_generator():
+        countries = ["USA", "UK", "Germany", "France", "Italy", "Spain", "Japan", "China", "Russia", "Brazil"]
+        names = ["John", "Alice", "Bob", "Charlie", "David", "Eve", "Frank", "Grace", "Helen", "Ivy"]
+        surnames = ["Smith", "Johnson", "Williams", "Jones", "Brown", "Davis", "Miller", "Wilson", "Moore", "Taylor"]
+        while True:
+            id = random.randint(1, 100)
+            yield {"customer_id": f"customer_{id}",
+                   "name": f"{names[id % len(names)]}_{surnames[id % len(surnames)]}",
+                   "age": (id + 18) % 81,
+                   "country": countries[id % len(countries)]}
 
     @staticmethod
     def test_scenarios_views_1_filter(tables: list[Table]) -> Table:
-        return (tables[0]
-                .filter(_.quantity % 2 == 0))
+        table = tables[0]
+        return (table
+                .filter((table["quantity"] % 2 == 0) & (table["price"] > 20)))
 
     @staticmethod
     def test_scenarios_views_2_mutate(tables: list[Table]) -> Table:
         return (tables[0]
-                .mutate(price=_.quantity * 2))
+                .mutate(order_expense=_.quantity * _.price * (1 - _.discount))
+                .select(["order_id", "product", "order_expense"]))
+    
+    @staticmethod
+    def test_scenarios_views_3_aggregate(tables: list[Table]) -> Table:
+        return (tables[0]
+                .group_by(_.product)
+                .aggregate(mean_quantity=_.quantity.mean(), max_discount=_.discount.max())
+                .select(["product", "mean_quantity", "max_discount"]))
+    
+    @staticmethod
+    def test_scenarios_views_4_join(tables: list[Table]) -> Table:
+        return (tables[0]
+                .join(tables[1], "customer_id")
+                .group_by(_.country, _.product)
+                .aggregate(mean_age=_.age.mean(), max_price=_.price.max()))
+    
+    @staticmethod
+    def test_scenarios_views_5_window(tables: list[Table]) -> Table:
+        w = ibis.window(group_by=[_.product], preceding=3, following=0)
+        return (tables[0]
+                .group_by(_.product)
+                .aggregate(mean_price=_.price.mean())
+                .mutate(avg_price=_.mean_price.mean().over(w)))
 
 
 class TestViewsNexmark:
@@ -130,7 +187,6 @@ class TestViewsNexmark:
                 .filter(auction["category"] == 10)
                 .select(["name", "city", "state", "id"]))
 
-    # TODO: implement exception-capture for s2 like other harness
     # TODO: re-run nexmark queries for all scenarios due to q3 changes
     @staticmethod
     def test_nexmark_query_4(tables: list[Table]) -> Table:
