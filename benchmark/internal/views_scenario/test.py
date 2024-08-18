@@ -53,8 +53,8 @@ class TestViewsNexmark:
                          "description": ibis.dtype("string"),
                          "initial_bid": ibis.dtype("int64"),
                          "reserve": ibis.dtype("int64"),
-                         "date_time": ibis.dtype("int64"),
-                         "expires": ibis.dtype("int64"),
+                         "date_time": ibis.dtype("timestamp"),
+                         "expires": ibis.dtype("timestamp"),
                          "seller": ibis.dtype("int64"),
                          "category": ibis.dtype("int64"),
                          "extra": ibis.dtype("string")}),
@@ -67,7 +67,7 @@ class TestViewsNexmark:
                          "price": ibis.dtype("int64"),
                          "channel": ibis.dtype("string"),
                          "url": ibis.dtype("string"),
-                         "date_time": ibis.dtype("int64"),
+                         "date_time": ibis.dtype("timestamp"),
                          "extra": ibis.dtype("string")}),
             lambda: TestViewsNexmark.nexmark_generator("bid")
         ),
@@ -79,7 +79,7 @@ class TestViewsNexmark:
                          "credit_card": ibis.dtype("string"),
                          "city": ibis.dtype("string"),
                          "state": ibis.dtype("string"),
-                         "date_time": ibis.dtype("int64"),
+                         "date_time": ibis.dtype("timestamp"),
                          "extra": ibis.dtype("string")}),
             lambda: TestViewsNexmark.nexmark_generator("person")
         )
@@ -126,14 +126,15 @@ class TestViewsNexmark:
                 .filter(auction["category"] == 10)
                 .select(["name", "city", "state", "id"]))
 
-    # TODO: q4 and q6 don't work in spark for expressivity: either change how they're expressed or spark setup or leave like this
-    # q4: pyspark.sql.utils.AnalysisException: Multiple streaming aggregations are not supported with streaming DataFrames/Datasets;
-    # q6: pyspark.sql.utils.AnalysisException: Append output mode not supported when there are streaming aggregations on streaming DataFrames/DataSets without watermark;
     # TODO: implement exception-capture for s2 like other harness
+    # TODO: re-run nexmark queries for all scenarios due to q3 changes
     @staticmethod
     def test_nexmark_query_4(tables: list[Table]) -> Table:
+        # unsupported by spark
+        # pyspark.sql.utils.AnalysisException: Multiple streaming aggregations are not supported with streaming DataFrames/Datasets;
+        # double group-reduce is actually also what's in the original query, so makes no sense to change it for spark
         auction, bid = tables[0], tables[1]
-        CURRENT_TIME = 2330277279926
+        CURRENT_TIME = ibis.timestamp(2330277279926)
         return (auction
                 .join(bid, bid["auction"] == auction["id"])
                 .filter((_.date_time_right < _.expires) & (_.expires < CURRENT_TIME))
@@ -144,8 +145,10 @@ class TestViewsNexmark:
 
     @staticmethod
     def test_nexmark_query_6(tables: list[Table]) -> Table:
+        # unsupported by spark even after adding watermark to all tables
+        # pyspark.sql.utils.AnalysisException: Append output mode not supported when there are streaming aggregations on streaming DataFrames/DataSets without watermark;
         auction, bid = tables[0], tables[1]
-        CURRENT_TIME = 2330277279926
+        CURRENT_TIME = ibis.literal(2330277279926).to_timestamp()
         w = ibis.window(group_by=[_.seller], preceding=9, following=0)
         return (auction
                 .join(bid, bid["auction"] == auction["id"])

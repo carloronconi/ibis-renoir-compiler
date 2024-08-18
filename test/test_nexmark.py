@@ -136,7 +136,9 @@ class TestNexmark(TestCompiler):
         WHERE Q.category = C.id
         GROUP BY C.id;
         """
-
+        # it might look like a join is missing from this query's definition below, but actually it is not: after reading
+        # the nexmark paper, C (category) is supposed to be a static file with few entries, so it's fine to just keep the categories
+        # coming from the Q portion of the query without re-joining with C (renoir also does it in its implementation). 
         auction = self.tables["auction"]
         bid = self.tables["bid"]
         self.query = (auction

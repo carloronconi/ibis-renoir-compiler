@@ -34,6 +34,8 @@ class SparkConnector(BackendConnector):
                 table_name=topic,
                 auto_parse=True,
                 schema=schema,
+                # watermark is required by nexmark q6 but it still doesn't work when using it
+                # watermark=ibis.watermark("date_time", ibis.interval(seconds=10)),
                 options={
                     "kafka.bootstrap.servers": "localhost:9092",
                     "subscribe": topic,
