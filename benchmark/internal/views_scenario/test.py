@@ -52,7 +52,7 @@ class TestViewsCustom:
                    "price": price,
                    "discount": random.uniform(0, 0.5),
                    "quantity": random.randint(1, 100),
-                   "customer_id": f"customer_{random.randint(1, 100)}"}
+                   "customer_id": f"customer_{random.randint(1, 100000)}"}
 
     @staticmethod
     def customers_generator():
@@ -62,12 +62,13 @@ class TestViewsCustom:
                  "Eve", "Frank", "Grace", "Helen", "Ivy"]
         surnames = ["Smith", "Johnson", "Williams", "Jones",
                     "Brown", "Davis", "Miller", "Wilson", "Moore", "Taylor"]
+        id = -1
         while True:
-            id = random.randint(1, 100)
+            id += 1
             yield {"customer_id": f"customer_{id}",
-                   "name": f"{names[id % len(names)]}_{surnames[id % len(surnames)]}",
-                   "age": (id + 18) % 81,
-                   "country": countries[id % len(countries)]}
+                   "name": f"{random.choice(names)}_{random.choice(surnames)}",
+                   "age": random.randint(18, 80),
+                   "country": random.choice(countries)}
 
     @staticmethod
     def test_scenarios_views_1_filter(tables: list[Table]) -> Table:
