@@ -5,7 +5,7 @@ import string
 from benchmark.internal.views_scenario.producer import Prod
 from benchmark.internal.views_scenario.consumer import Cons
 from benchmark.internal.views_scenario.stream_query import create_stream_query
-from benchmark.internal.views_scenario.test import TestViewsCustom, TestViewsNexmark
+from benchmark.internal.views_scenario.test import TestViewsCustom, TestViewsNexmark, TestViewsTpcH
 from codegen import Benchmark as Logger
 
 
@@ -58,7 +58,8 @@ class ViewsScenario:
                                          self.dataset_size) 
                                          for topic, stream in producer_topics.items()])
         result.wait()
-        result, end_time, exception = consumer.consume(consumer_topic, 
+        result, end_time, exception = consumer.consume(consumer_topic,
+                                                       timeout=30, 
                                                        stream_pipe=recv)
 
         if result:
@@ -91,7 +92,7 @@ class ViewsScenario:
 
     def main(self):
         backends = ["spark", "risingwave"]
-        test_classes = [TestViewsNexmark, TestViewsCustom]
+        test_classes = [TestViewsNexmark, TestViewsTpcH, TestViewsCustom]
         test_pattern = ""
         runs = 5
         warmup = 1

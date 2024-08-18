@@ -26,7 +26,7 @@ class TestViewsCustom:
                 "quantity": ibis.dtype("int64"),
                 "customer_id": ibis.dtype("string"),
                 # "date_time": ibis.dtype("timestamp")
-                }),
+            }),
             lambda: TestViewsCustom.orders_generator()
         ),
         StreamTable(
@@ -37,13 +37,13 @@ class TestViewsCustom:
                 "age": ibis.dtype("int64"),
                 "country": ibis.dtype("string"),
                 # "date_time": ibis.dtype("timestamp")
-                }),
+            }),
             lambda: TestViewsCustom.customers_generator()
         )]
 
     @staticmethod
     def orders_generator():
-        products = {"book": 5, "shoes": 78, "hat": 12, "gloves": 9, "scarf": 32, 
+        products = {"book": 5, "shoes": 78, "hat": 12, "gloves": 9, "scarf": 32,
                     "glasses": 84, "watch": 143, "phone": 1199, "laptop": 1499, "tablet": 799}
         while True:
             product, price = random.choice(list(products.items()))
@@ -51,14 +51,17 @@ class TestViewsCustom:
                    "product": product,
                    "price": price,
                    "discount": random.uniform(0, 0.5),
-                   "quantity": random.randint(1, 100), 
+                   "quantity": random.randint(1, 100),
                    "customer_id": f"customer_{random.randint(1, 100)}"}
-            
+
     @staticmethod
     def customers_generator():
-        countries = ["USA", "UK", "Germany", "France", "Italy", "Spain", "Japan", "China", "Russia", "Brazil"]
-        names = ["John", "Alice", "Bob", "Charlie", "David", "Eve", "Frank", "Grace", "Helen", "Ivy"]
-        surnames = ["Smith", "Johnson", "Williams", "Jones", "Brown", "Davis", "Miller", "Wilson", "Moore", "Taylor"]
+        countries = ["USA", "UK", "Germany", "France", "Italy",
+                     "Spain", "Japan", "China", "Russia", "Brazil"]
+        names = ["John", "Alice", "Bob", "Charlie", "David",
+                 "Eve", "Frank", "Grace", "Helen", "Ivy"]
+        surnames = ["Smith", "Johnson", "Williams", "Jones",
+                    "Brown", "Davis", "Miller", "Wilson", "Moore", "Taylor"]
         while True:
             id = random.randint(1, 100)
             yield {"customer_id": f"customer_{id}",
@@ -77,14 +80,14 @@ class TestViewsCustom:
         return (tables[0]
                 .mutate(order_expense=_.quantity * _.price * (1 - _.discount))
                 .select(["order_id", "product", "order_expense"]))
-    
+
     @staticmethod
     def test_scenarios_views_3_aggregate(tables: list[Table]) -> Table:
         return (tables[0]
                 .group_by(_.product)
                 .aggregate(mean_quantity=_.quantity.mean(), max_discount=_.discount.max())
                 .select(["product", "mean_quantity", "max_discount"]))
-    
+
     @staticmethod
     def test_scenarios_views_4_join(tables: list[Table]) -> Table:
         return (tables[0]
@@ -94,7 +97,7 @@ class TestViewsCustom:
                 # .agg_regate(mean_age=_.age.mean(), max_price=_.price.max()))
                 .filter((_.quantity + _.age) % 2 == 0)
                 .select(["name", "product", "age", "quantity"]))
-    
+
     @staticmethod
     def test_scenarios_views_5_window(tables: list[Table]) -> Table:
         # unsupported by spark
@@ -223,3 +226,77 @@ class TestViewsNexmark:
                 .group_by([_.id, _.seller])
                 .aggregate(final_p=_.price.max())
                 .mutate(avg_final_p=_.final_p.mean().over(w)))
+
+
+class TestViewsTpcH:
+    streams = [
+        StreamTable(
+            "lineitem",
+            ibis.schema({"orderkey": ibis.dtype("int64"),
+                         "partkey": ibis.dtype("int64"),
+                         "suppkey": ibis.dtype("int64"),
+                         "linenumber": ibis.dtype("int64"),
+                         "quantity": ibis.dtype("float64"),
+                         "extendedprice": ibis.dtype("float64"),
+                         "discount": ibis.dtype("float64"),
+                         "tax": ibis.dtype("float64"),
+                         "returnflag": ibis.dtype("string"),
+                         "linestatus": ibis.dtype("string"),
+                         "shipdate": ibis.dtype("string"),
+                         "commitdate": ibis.dtype("string"),
+                         "receiptdate": ibis.dtype("string"),
+                         "shipinstruct": ibis.dtype("string"),
+                         "shipmode": ibis.dtype("string"),
+                         "comment": ibis.dtype("string")}),
+            lambda: TestViewsTpcH.tpch_generator("lineitem")
+        )]
+
+    @staticmethod
+    def tpch_generator(name: str):
+        while True:
+            with open(f"data/tpch/{name}_10000000.csv", "r") as csvfile:
+                reader = csv.DictReader(csvfile, quoting=csv.QUOTE_NONE)
+                for row in reader:
+                    for k, v in row.items():
+                        try:
+                            cast = int(v)
+                        except ValueError:
+                            try:
+                                cast = float(v)
+                            except ValueError:
+                                cast = v
+                        row[k] = cast
+                    yield row
+
+    @staticmethod
+    def test_tpch_query_1(tables: list[Table]) -> Table:
+        # TODO: check different potential aggregation semantics for spark vs risingwave
+        # which can affect results in aggregation-heavy queries such as this one, producing
+        # different amounts of rows
+        lineitem = tables[0]
+        return (lineitem
+                .filter(lineitem["shipdate"] <= "1998-11-01")
+                .group_by(["returnflag", "linestatus"])
+                .aggregate(
+                    sum_qty=lineitem["quantity"].sum(),
+                    sum_base_price=lineitem["extendedprice"].sum(),
+                    sum_disc_price=(
+                        lineitem["extendedprice"] * (1 - lineitem["discount"])).sum(),
+                    sum_charge=(
+                        lineitem["extendedprice"] * (1 - lineitem["discount"]) * (1 + lineitem["tax"])).sum(),
+                    avg_qty=lineitem["quantity"].mean(),
+                    avg_price=lineitem["extendedprice"].mean(),
+                    avg_disc=lineitem["discount"].mean(),
+                    # changed count star semantics for ibis 9.2.0
+                    count_order=_.quantity.count()))
+
+    @staticmethod
+    def test_tpch_query_6(tables: list[Table]) -> Table:
+        lineitem = tables[0]
+        return (lineitem
+                .filter((lineitem["shipdate"] >= "1994-01-01") &
+                        (lineitem["shipdate"] < "1995-01-01") &
+                        (lineitem["discount"] >= 0.05) &
+                        (lineitem["discount"] <= 0.07) &
+                        (lineitem["quantity"] < 24))
+                .aggregate(revenue=(_.extendedprice * _.discount).sum()))
