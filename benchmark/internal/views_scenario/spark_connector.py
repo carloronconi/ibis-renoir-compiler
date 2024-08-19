@@ -76,7 +76,6 @@ class SparkConnector(BackendConnector):
                 options={"kafka.bootstrap.servers": "localhost:9092", 
                          "topic": self.sink_topic,
                          "checkpointLocation": "spark_checkpoint"}).start()
-        # TODO: output mode exception doesn't happen here but in one of the above methods! change output mode there if possible
         print("Starting and awaiting stream query")
         stream_query.awaitTermination()
         print("Stream query terminated")
