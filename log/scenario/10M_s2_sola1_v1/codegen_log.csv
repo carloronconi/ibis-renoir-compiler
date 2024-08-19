@@ -94,7 +94,6 @@ INFO,2024-08-18 23:56:15.256,test_scenarios_views_2_mutate,spark,4,12.4115422423
 INFO,2024-08-19 08:33:24.228,test_scenarios_views_2_mutate,risingwave,-1,1.9072672231122851,-1,-1,-1,-1,Scenario2,None,-1,-1
 INFO,2024-08-19 08:34:04.473,test_scenarios_views_2_mutate,risingwave,0,2.0010934248566628,-1,-1,-1,-1,Scenario2,None,-1,-1
 INFO,2024-08-19 08:34:44.879,test_scenarios_views_2_mutate,risingwave,1,2.169751453679055,-1,-1,-1,-1,Scenario2,None,-1,-1
-INFO,2024-08-19 08:36:15.441,test_scenarios_views_2_mutate,risingwave,2,51.96718999790028,-1,-1,-1,-1,Scenario2,None,-1,-1
 INFO,2024-08-19 08:36:55.750,test_scenarios_views_2_mutate,risingwave,3,2.0414386917836964,-1,-1,-1,-1,Scenario2,None,-1,-1
 INFO,2024-08-19 08:37:36.076,test_scenarios_views_2_mutate,risingwave,4,2.062285090330988,-1,-1,-1,-1,Scenario2,None,-1,-1
 INFO,2024-08-18 23:57:44.434,test_scenarios_views_3_aggregate,spark,-1,12.487519015092403,-1,-1,-1,-1,Scenario2,None,-1,-1
