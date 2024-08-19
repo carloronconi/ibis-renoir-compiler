@@ -1,0 +1,25 @@
+level,timestamp,test_name,backend_name,run_count,total_time_s,renoir_compile_time_s,renoir_execute_time_s,ibis_time_s,max_memory_MiB,scenario,exception,pre_query_time_s,pre_query_memo_MiB
+INFO,2024-08-18 22:30:29.374,test_tpch_query_1,spark,-1,22.084237502887845,-1,-1,-1,-1,Scenario2,None,-1,-1
+INFO,2024-08-18 22:31:19.446,test_tpch_query_1,spark,0,14.041101966053247,-1,-1,-1,-1,Scenario2,None,-1,-1
+INFO,2024-08-18 22:32:09.362,test_tpch_query_1,spark,1,13.87809808878228,-1,-1,-1,-1,Scenario2,None,-1,-1
+INFO,2024-08-18 22:32:59.398,test_tpch_query_1,spark,2,14.003204548265785,-1,-1,-1,-1,Scenario2,None,-1,-1
+INFO,2024-08-18 22:33:49.483,test_tpch_query_1,spark,3,14.056992613244802,-1,-1,-1,-1,Scenario2,None,-1,-1
+INFO,2024-08-18 22:34:39.523,test_tpch_query_1,spark,4,14.01041712705046,-1,-1,-1,-1,Scenario2,None,-1,-1
+INFO,2024-08-18 22:35:18.312,test_tpch_query_1,risingwave,-1,2.7560138888657093,-1,-1,-1,-1,Scenario2,None,-1,-1
+INFO,2024-08-18 22:35:57.237,test_tpch_query_1,risingwave,0,2.8936594240367413,-1,-1,-1,-1,Scenario2,None,-1,-1
+INFO,2024-08-18 22:36:36.191,test_tpch_query_1,risingwave,1,2.9278071601875126,-1,-1,-1,-1,Scenario2,None,-1,-1
+INFO,2024-08-18 22:37:15.192,test_tpch_query_1,risingwave,2,2.9702195120044053,-1,-1,-1,-1,Scenario2,None,-1,-1
+INFO,2024-08-18 22:37:54.181,test_tpch_query_1,risingwave,3,2.961978514213115,-1,-1,-1,-1,Scenario2,None,-1,-1
+INFO,2024-08-18 22:38:33.221,test_tpch_query_1,risingwave,4,3.0143494880758226,-1,-1,-1,-1,Scenario2,None,-1,-1
+INFO,2024-08-18 22:39:21.194,test_tpch_query_6,spark,-1,11.95136522082612,-1,-1,-1,-1,Scenario2,None,-1,-1
+INFO,2024-08-18 22:40:09.317,test_tpch_query_6,spark,0,12.087928782682866,-1,-1,-1,-1,Scenario2,None,-1,-1
+INFO,2024-08-18 22:40:57.556,test_tpch_query_6,spark,1,12.184738845098764,-1,-1,-1,-1,Scenario2,None,-1,-1
+INFO,2024-08-18 22:41:45.608,test_tpch_query_6,spark,2,12.010343595407903,-1,-1,-1,-1,Scenario2,None,-1,-1
+INFO,2024-08-18 22:42:33.578,test_tpch_query_6,spark,3,11.92626393167302,-1,-1,-1,-1,Scenario2,None,-1,-1
+INFO,2024-08-18 22:43:21.644,test_tpch_query_6,spark,4,12.029732951894403,-1,-1,-1,-1,Scenario2,None,-1,-1
+INFO,2024-08-18 22:44:00.761,test_tpch_query_6,risingwave,-1,3.0832690969109535,-1,-1,-1,-1,Scenario2,None,-1,-1
+INFO,2024-08-18 22:44:39.793,test_tpch_query_6,risingwave,0,3.003013440873474,-1,-1,-1,-1,Scenario2,None,-1,-1
+INFO,2024-08-18 22:45:18.886,test_tpch_query_6,risingwave,1,3.06912959786132,-1,-1,-1,-1,Scenario2,None,-1,-1
+INFO,2024-08-18 22:45:57.950,test_tpch_query_6,risingwave,2,3.0464013312011957,-1,-1,-1,-1,Scenario2,None,-1,-1
+INFO,2024-08-18 22:46:37.113,test_tpch_query_6,risingwave,3,3.140839037951082,-1,-1,-1,-1,Scenario2,None,-1,-1
+INFO,2024-08-18 22:47:16.284,test_tpch_query_6,risingwave,4,3.138314301148057,-1,-1,-1,-1,Scenario2,None,-1,-1
