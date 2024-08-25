@@ -104,6 +104,10 @@ parallelism:
 # fs:
 #   default-scheme: hdfs://mynamenode:12345
 
+metrics.reporter.slf4j.class: org.apache.flink.metrics.slf4j.Slf4jReporter
+metrics.reporter.slf4j.interval: 5 SECONDS
+rest.profiling.enabled: true 
+
 #==============================================================================
 # High Availability
 #==============================================================================
