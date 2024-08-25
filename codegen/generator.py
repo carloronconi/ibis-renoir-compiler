@@ -54,14 +54,19 @@ def compile_ibis_to_noir(files_tables: list[tuple[str, PhysicalTable]],
         benchmark.renoir_compile_time_s = end_time - start_time
 
     if run_after_gen:
+        prefix = ""
         if benchmark:
             start_time = time.perf_counter()
+            if os.path.exists(utl.ROOT_DIR + "/out/memo.tmp"):
+                os.remove(utl.ROOT_DIR + "/out/memo.tmp")
+            prefix = f" /usr/bin/time -a -o ../out/memo.tmp -f '%M'"
         # add options to print renoir output: capture_output = True, text = True
-        if subprocess.run(f"cd {utl.ROOT_DIR}/noir_template && cargo run --release > /dev/null 2>&1", shell=True).returncode != 0:
+        if subprocess.run(f"cd {utl.ROOT_DIR}/noir_template &&{prefix} cargo run --release > /dev/null 2>&1", shell=True).returncode != 0:
             raise Exception("Noir code panicked!")
         if benchmark:
             end_time = time.perf_counter()
             benchmark.renoir_execute_time_s = end_time - start_time
+            benchmark.renoir_memo_MiB = int(open(utl.ROOT_DIR + "/out/memo.tmp").read()) / 1024
 
 
 def compile_preloaded_tables_evcxr(files_tables: list[tuple[str, PhysicalTable]]):

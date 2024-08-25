@@ -12,6 +12,7 @@ class Benchmark:
         self.total_time_s = -1
         self.renoir_compile_time_s = -1
         self.renoir_execute_time_s = -1
+        self.renoir_memo_MiB = -1
         self.ibis_time_s = -1
         self.max_memory_MiB = -1
         self.scenario = "None"
