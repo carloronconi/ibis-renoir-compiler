@@ -212,6 +212,11 @@ class TestViewsNexmark:
 
     @staticmethod
     def test_nexmark_query_6(tables: list[Table]) -> Table:
+        # unsupported by flink using the upsert-kafka connector, required for aggregations:
+        # pyflink.util.exceptions.TableException: org.apache.flink.table.api.TableException: StreamPhysicalOverAggregate doesn't support consuming update and delete changes which is produced
+        # by node Join(joinType=[InnerJoin], where=[((auction = id) AND (date_time < expires))], select=[id, expires, seller, auction, price, date_time], leftInputSpec=[JoinKeyContainsUnique
+        # Key], rightInputSpec=[JoinKeyContainsUniqueKey])
+        
         # unsupported by spark even after adding watermark to all tables and changing column types to timestamp
         # changed column types back to int64 because risingwave doesn't support timestamp instead, and it didn't work for spark anyway
         # pyspark.sql.utils.AnalysisException: Append output mode not supported when there are streaming aggregations on streaming DataFrames/DataSets without watermark;

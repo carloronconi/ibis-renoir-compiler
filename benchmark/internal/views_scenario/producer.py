@@ -28,7 +28,8 @@ class Prod:
         for i in range(amount):
             value = next(self.dict_generator)
             value = dumps(value).encode('utf-8')
-            self.producer.produce(topic, value=value, key=f"ID_{i}", callback=delivery_callback)
+            key = dumps({"ID": f"ID_{i}"}).encode('utf-8')
+            self.producer.produce(topic, value=value, key=key, callback=delivery_callback)
         # Block until the messages are sent or the timeout expires
         self.producer.poll(timeout_ms)
         self.producer.flush()

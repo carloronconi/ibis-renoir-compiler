@@ -20,25 +20,31 @@ class FlinkConnector(BackendConnector):
             self.tables.append(self.con.create_table(
                 name=topic,
                 schema=schema,
-                tbl_properties={"connector": "kafka",
+                primary_key=schema.names[0],
+                tbl_properties={"connector": "upsert-kafka",
                                 "topic": topic,
                                 "properties.bootstrap.servers": "localhost:9092",
                                 "properties.group.id": "test",
-                                "scan.startup.mode": "earliest-offset",
-                                "format": "json"}
+                                # "scan.startup.mode": "earliest-offset",
+                                # "format": "json",
+                                "key.format": "json",
+                                "value.format": "json"}
             ))
         
     def create_view(self, test_query: Callable[[list[Table]], Table]):
         # schema required for flink and test query used later
         # workflow here: https://ibis-project.org/posts/flink-announcement/
         self.query_result = test_query(self.tables)
+        schema = self.query_result.schema() 
         self.view = self.con.create_table(
             name=self.sink_topic,
-            schema=self.query_result.schema(),
-            tbl_properties={"connector": "kafka",
+            schema=schema,
+            primary_key=schema.names[0],
+            tbl_properties={"connector": "upsert-kafka",
                             "topic": self.sink_topic,
                             "properties.bootstrap.servers": "localhost:9092",
-                            "format": "json"}
+                            "key.format": "json",
+                            "value.format": "json"}
         )
         
     def await_stream_query(self):
