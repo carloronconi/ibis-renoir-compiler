@@ -91,7 +91,8 @@ class ViewsScenario:
 
 
     def main(self):
-        backends = ["spark", "risingwave"]
+        # spark 3.1.2 is incompatible with flink, so run them in separate venvs
+        backends = ["flink", "spark", "risingwave"]
         test_classes = [TestViewsNexmark, TestViewsTpcH, TestViewsCustom]
         test_patterns = [""]
         runs = 5

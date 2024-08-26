@@ -1,6 +1,7 @@
 import traceback
 from .spark_connector import SparkConnector
 from .risingwave_connector import RisingwaveConnector
+from .flink_connector import FlinkConnector
 from .test import TestViewsCustom
 from typing import Callable
 from ibis import Table, Schema
@@ -16,6 +17,8 @@ def create_stream_query(backend: str,
         connector = SparkConnector(source_topic_schemas, sink_topic)
     elif backend == "risingwave":
         connector = RisingwaveConnector(source_topic_schemas, sink_topic)
+    elif backend == "flink":
+        connector = FlinkConnector(source_topic_schemas, sink_topic)
     else:
         raise ValueError("Unknown backend!")
 
