@@ -18,6 +18,8 @@ if [[ $(hostname) == "sola1" ]]; then
     export PATH=$JAVA_HOME/bin:$PATH
 fi
 
+rm -rf spark-warehouse
+
 cd $dir
 ./sbin/start-master.sh -h 127.0.0.1
 

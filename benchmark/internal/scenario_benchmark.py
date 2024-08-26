@@ -212,10 +212,9 @@ class Scenario3(Scenario):
     # - table_origin: preload table and perform computationally intensive query
     # - data_destination: none
     def __init__(self, pipe):
-        # TODO: also measure: time of the first query + overall time doing as one-shot
         # TODO: no support for nexmark & tpc because requires successive queries, don't exist in specification
         self.test_patterns = ["test_scenarios_analytics"]
-        self.backend_names = ["duckdb", "polars", "risingwave", "renoir"]
+        self.backend_names = ["spark", "duckdb", "polars", "risingwave", "renoir"]
         super().__init__(pipe)
 
     def perform_setup(self, backend: bb.BackendBenchmark):
@@ -231,7 +230,7 @@ class Scenario3baseline(Scenario):
     # performs the two queries in one-shot, measuring time and memory
     def __init__(self, pipe):
         self.test_patterns = ["test_scenarios_analytics"]
-        self.backend_names = ["duckdb", "polars", "risingwave"]
+        self.backend_names = ["spark", "duckdb", "polars", "risingwave"]
         super().__init__(pipe)
 
     def perform_measure(self, backend: bb.BackendBenchmark) -> tuple[float, float]:
