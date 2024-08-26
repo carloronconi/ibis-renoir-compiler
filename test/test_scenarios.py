@@ -46,6 +46,13 @@ class TestScenarios(TestNullableOperators):
                       .select(["int1_agg"]))
         self.complete_test_tasks("ints_strings")
 
+    def test_scenarios_preprocess_6_aggregate(self):
+        # aggregate without grouping to have single output row
+        # tests flink's bottleneck of un-parallelizable sink
+        self.query = (self.tables["ints_strings"]
+                      .aggregate(row_count=self.tables["ints_strings"].count())
+                      .select(["row_count"]))
+        
     # analytics
 
     def test_scenarios_analytics_1_filter(self):
@@ -146,6 +153,13 @@ class TestScenarios(TestNullableOperators):
                       .filter((_.int4 + _.int3) % 2 == 0)
                       .select(["int4", "int3"]))
         self.complete_test_tasks()
+
+    def test_scenarios_exploration_6_aggregate(self):
+        # aggregate without grouping to have single output row
+        # tests flink's bottleneck of un-parallelizable sink
+        self.query = (self.tables["ints_strings"]
+                      .aggregate(row_count=self.tables["ints_strings"].count())
+                      .select(["row_count"]))
 
 
 class TestScenariosViews(TestCompiler):
