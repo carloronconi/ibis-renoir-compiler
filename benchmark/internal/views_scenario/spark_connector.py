@@ -5,25 +5,14 @@ from ibis import _
 import ibis
 import ibis.backends.pyspark
 from .backend_connector import BackendConnector
+from ..backend_benchmark import SparkBenchmark
 from ibis import Table, Schema
 from typing import Callable
 import inspect
 
 class SparkConnector(BackendConnector):
     def __init__(self, source_topic_schemas: dict[str, Schema], sink_topic: str) -> None:
-        scala_version = '2.12'
-        spark_version = '3.1.2'
-        # ensure match above values match the correct versions in pip
-        packages = [
-            f'org.apache.spark:spark-sql-kafka-0-10_{scala_version}:{spark_version}',
-            'org.apache.kafka:kafka-clients:3.2.1'
-        ]
-        session = SparkSession.builder\
-            .master("spark://127.0.0.1:7077")\
-            .appName("ibis")\
-            .config("spark.jars.packages", ",".join(packages))\
-            .getOrCreate()
-        self.con: ibis.backends.pyspark.Backend = ibis.pyspark.connect(session, mode="streaming")
+        self.con: ibis.backends.pyspark.Backend = SparkBenchmark.get_backend_con()
         self.source_topic_schemas = source_topic_schemas
         self.sink_topic = sink_topic
         self.tables = []

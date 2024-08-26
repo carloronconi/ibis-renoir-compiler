@@ -1,6 +1,8 @@
 import subprocess
 import time
 
+import ibis.backends.flink
+import ibis.backends.risingwave
 import pandas as pd
 import test
 import ibis
@@ -11,7 +13,6 @@ except ImportError:
     print("Skipped import of ibis-renoir-compiler because of wrong version of ibis: it only supports ibis 8.0.0")
 from ibis import _
 from . import internal_benchmark as ib
-from .kafka_io import Producer, Consumer
 try:
     from pyflink.java_gateway import get_gateway
     from pyflink.datastream import StreamExecutionEnvironment
@@ -224,6 +225,11 @@ class FlinkBenchmark(BackendBenchmark):
 
     def __init__(self, test_instance: test.TestCompiler, test_method) -> None:
         super().__init__(test_instance, test_method)
+        con = self.get_backend_con()
+        ibis.set_backend(con)
+
+    @staticmethod
+    def get_backend_con() -> ibis.backends.flink.Backend:
         # connecting to a standalone flink cluster instead of the built-in one
         # instead of re-starting flink instance, cancel all jobs to avoid stuck jobs after failure
         subprocess.run("./benchmark/cancel_flink_jobs.sh", shell=True)
@@ -235,24 +241,44 @@ class FlinkBenchmark(BackendBenchmark):
             "localhost", 
             8081, 
             string_array)
-        
         exec_env = StreamExecutionEnvironment(j_stream_execution_environment).set_parallelism(12)
-        
-        # configuration = Configuration()
-        # configuration.set_string("table.exec.resource.default-parallelism", "4")
         settings = (EnvironmentSettings.new_instance()
                     .in_streaming_mode()
-                    # .with_configuration(configuration)
                     .build())
-
         table_env = StreamTableEnvironment.create(
             exec_env,
             settings)
+        return ibis.flink.connect(table_env)
 
-        con = ibis.flink.connect(table_env)
+class SparkBenchmark(BackendBenchmark):
+    name = "spark"
+
+    @staticmethod
+    def get_backend_con() -> ibis.backends.pyspark.Backend:
+        scala_version = '2.12'
+        spark_version = '3.1.2'
+        # ensure match above values match the correct versions in pip
+        packages = [
+            f'org.apache.spark:spark-sql-kafka-0-10_{scala_version}:{spark_version}',
+            'org.apache.kafka:kafka-clients:3.2.1'
+        ]
+        session = SparkSession.builder\
+            .master("spark://127.0.0.1:7077")\
+            .appName("ibis")\
+            .config("spark.jars.packages", ",".join(packages))\
+            .getOrCreate()
+        try:
+            # depending on Ibis version: 9.2 accepts mode parameter
+            # while 8.0 doesn't
+            return ibis.pyspark.connect(session, mode="streaming")
+        except:
+            return ibis.pyspark.connect(session)
+    
+    def __init__(self, test_instance: test.TestCompiler, test_method) -> None:
+        super().__init__(test_instance, test_method)
+        con = self.get_backend_con()
         ibis.set_backend(con)
 
-        # table_env.get_config().get_configuration().set_string("table.exec.resource.default-parallelism", "4")
 
 class PolarsBenchmark(BackendBenchmark):
     name = "polars"
@@ -285,12 +311,17 @@ class RisingwaveBenchmark(BackendBenchmark):
 
     def __init__(self, test_instance: test.TestCompiler, test_method) -> None:
         super().__init__(test_instance, test_method)
-        ibis.set_backend(ibis.risingwave.connect(
+        con = self.get_backend_con()
+        ibis.set_backend(con)
+        
+    @staticmethod
+    def get_backend_con() -> ibis.backends.risingwave.Backend:
+        return ibis.risingwave.connect(
                 user="root",
                 host="localhost",
                 port=4566,
-                database="dev",))
-        
+                database="dev",)
+
     def preload_cached_query(self):
         return super().preload_cached_query_without_csv()
     
@@ -316,60 +347,6 @@ class RisingwaveBenchmark(BackendBenchmark):
                         encode_properties={"force_append_only": "true"})
         self.did_create_sink = True
         print("Created risingwave view and sink")
-
-
-class SparkBenchmark(BackendBenchmark):
-    name = "spark"
-
-    def __init__(self, test_instance: test.TestCompiler, test_method) -> None:
-        super().__init__(test_instance, test_method)
-        # before running this, cd to ./benchmark/compose-kafka and do `docker-compose up`
-        # if there are any errors in the Dockerfile an you need to rebuild, clean the everything
-        # first with `docker system prune` (it prunes everything unused so careful on server) and 
-        # then `docker-compose build --no-cache` and again `docker-compose up`
-        scala_version = '2.12'
-        spark_version = '3.1.2'
-        # ensure match above values match the correct versions in pip
-        packages = [
-            f'org.apache.spark:spark-sql-kafka-0-10_{scala_version}:{spark_version}',
-            'org.apache.kafka:kafka-clients:3.2.1'
-        ]
-        session = SparkSession.builder\
-            .master("local[*]")\
-            .config("spark.executor.memory", "16g")\
-            .config("spark.driver.memory", "16g")\
-            .appName("kafka-example")\
-            .config("spark.jars.packages", ",".join(packages))\
-            .getOrCreate()
-
-        con: ibis.backends.pyspark.Backend = ibis.pyspark.connect(session, mode="streaming")
-        ibis.set_backend(con)
-        self.do_stop = False
-
-    def create_view(self):
-        con = ibis.get_backend()
-        self.view = con.create_view(
-            "view_kafka", self.test_instance.query, overwrite=True)
-
-    def create_sink(self):
-        con: ibis.backends.pyspark.Backend = ibis.get_backend()
-        # notes:
-        # - create a checkpointLocation on the host of this script (not the kafka container!)
-        # - call .start() on .to_kafka(), docs are wrong and that actually returns a DataStreamWriter,
-        #   to get a StreamingQuery you need to call .start()
-        stream_query: StreamingQuery = con.to_kafka(self.view, 
-                                                    options={"kafka.bootstrap.servers": "localhost:9092",
-                                                                        "topic": "sink",
-                                                                        "checkpointLocation": "./spark_checkpoint"},
-                                                    auto_format=True
-                                                    ).start()
-        self.did_create_sink = True
-        # the query doesn't run in the background! If we don't await it here, pyspark will exit immediately
-        # kafka_io.Consumer will toggle self.stop as soon as it receives a message, so we can stop awaiting
-        print("Created spark view and sink, awaiting termination of stream query")
-        while stream_query.isActive and not self.do_stop:
-            stream_query.awaitTermination(1)
-        print("Stream query terminated")
 
 
 def measure_time_memo(runnable, args=(), kwargs={}):

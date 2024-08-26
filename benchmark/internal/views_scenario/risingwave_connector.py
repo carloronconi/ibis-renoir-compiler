@@ -1,17 +1,13 @@
 from ibis import _
-from ibis.backends.risingwave import Backend as RisingwaveBackend
 from .backend_connector import BackendConnector
+from ..backend_benchmark import RisingwaveBenchmark
 from ibis import Table, Schema
 from typing import Callable
 
 
 class RisingwaveConnector(BackendConnector):
     def __init__(self, source_topic_schemas: dict[str, Schema], sink_topic: str) -> None:
-        self.con: RisingwaveBackend = RisingwaveBackend().connect(
-                    user="root",
-                    host="localhost",
-                    port=4566,
-                    database="dev")
+        self.con = RisingwaveBenchmark.get_backend_con()
         self.source_topic_schemas = source_topic_schemas
         self.sink_topic = sink_topic
         self.tables = []

@@ -5,7 +5,6 @@ from test.test_operators import TestNullableOperators
 from test.test_base import TestCompiler
 from ibis import _
 import ibis
-from kafka import KafkaProducer
 
 
 class TestScenarios(TestNullableOperators):

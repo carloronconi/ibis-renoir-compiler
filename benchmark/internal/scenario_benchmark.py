@@ -174,7 +174,9 @@ class Scenario1(Scenario):
     # - data_destination: write to file
     def __init__(self, pipe):
         self.test_patterns = ["test_scenarios_preprocess", "test_nexmark", "test_tpc"]
-        self.backend_names = ["duckdb", "polars", "flink", "renoir"]
+        # spark 3.1.2 (required for standalone spark) incompatible with any flink version, so run spark
+        # in separate .venv
+        self.backend_names = ["spark", "duckdb", "polars", "flink", "renoir"]
         super().__init__(pipe)
 
     def perform_measure(self, backend: bb.BackendBenchmark) -> tuple[float, float]:
@@ -244,7 +246,7 @@ class Scenario4(Scenario):
     # - data_destination: none
     def __init__(self, pipe):
         self.test_patterns = ["test_scenarios_exploration", "test_nexmark", "test_tpc"]
-        self.backend_names = ["duckdb", "polars", "flink", "renoir"]
+        self.backend_names = ["spark", "duckdb", "polars", "flink", "renoir"]
         super().__init__(pipe)
 
     def perform_measure(self, backend: bb.BackendBenchmark) -> tuple[float, float]:
