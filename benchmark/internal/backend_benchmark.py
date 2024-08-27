@@ -266,6 +266,10 @@ class SparkBenchmark(BackendBenchmark):
             .master("spark://127.0.0.1:7077")\
             .appName("ibis")\
             .config("spark.jars.packages", ",".join(packages))\
+            .config("spark.executor.memory", "18g") \
+            .config("spark.executor.cores", "4") \
+            .config("spark.executor.instances", "3") \
+            .config("spark.driver.memory", "4g") \
             .getOrCreate()
         try:
             # depending on Ibis version: 9.2 accepts mode parameter
