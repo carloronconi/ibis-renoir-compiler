@@ -9,7 +9,7 @@ from ..backend_benchmark import FlinkBenchmark
 class FlinkConnector(BackendConnector):
     def __init__(self, source_topic_schemas: dict[str, Schema], sink_topic: str) -> None:
         self.con: ibis.backends.flink.Backend = FlinkBenchmark.get_backend_con()
-        self.con.raw_sql("ADD JAR 'flink-sql-connector-kafka-3.2.0-1.18.jar'")
+        self.con.raw_sql("ADD JAR 'flink-sql-connector-kafka-3.2.0-1.19.jar'")
         self.source_topic_schemas = source_topic_schemas
         self.sink_topic = sink_topic
         self.tables = []
