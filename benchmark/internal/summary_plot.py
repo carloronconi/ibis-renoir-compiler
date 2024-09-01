@@ -6,12 +6,13 @@ from plotly.subplots import make_subplots
 def main():
     parser = argparse.ArgumentParser(description='Plot summary of internal benchmark run.')
     parser.add_argument('dir', type=str, help='The directory containing the internal benchmark results')
+    parser.add_argument('--time-only', action='store_true', help='Only draw the time part of the plot')
+    parser.add_argument('--backends', type=str, help='Comma-separated list of backend names to include in the plot')
     args = parser.parse_args()
 
     dataset_size = args.dir.split('/')[-1].split('_')[0]
     file = args.dir + "/codegen_log.csv"
     df = pd.read_csv(file, dtype={'exception': 'str'}, na_values=['None'])
-
 
     # remove warmup runs, but keep those that failed
     agg = df[(df['run_count'] != -1) | df['exception'].notna()].groupby(['test_name', 'backend_name', 'scenario']).agg({
@@ -38,35 +39,63 @@ def main():
     agg_reset.loc[(agg_reset['exception_first'] == 'raise'), 'total_time_s_mean'] = -10
     agg_reset.loc[(agg_reset['max_memory_MiB_mean'] < 0), 'max_memory_MiB_mean'] = None
 
-    fig = make_subplots(rows=2, cols=1,
-                        vertical_spacing=0.01, horizontal_spacing=0.01,
-                        shared_xaxes='all', shared_yaxes='rows')
+    # Define a color mapping for backends
+    backend_colors = {
+        'renoir': '#AC80A0',
+        'duckdb': '#FFD166',
+        'polars': '#118AB2',
+        'flink': '#EF476F',
+        'spark': '#F78C6B',
+        'risingwave': '#073B4C'
+    }
 
-    time = px.scatter(agg_reset, x='test_name', y='total_time_s_mean', color='backend_name',
-                     facet_col='scenario',
-                     labels={'test_name': 'Test Name', 'total_time_s_mean': 'Mean Total Time (s)', 'backend_name': 'Backend'},
-                     title='Mean Total Time per Test by Table Origin and Backend',
-                     error_y='total_time_s_std')
-    
-    memo = px.scatter(agg_reset, x='test_name', y='max_memory_MiB_mean', color='backend_name',
-                     facet_col='scenario',
-                     labels={'test_name': 'Test Name', 'max_memory_MiB_mean': 'Mean Max Memory (MiB)', 'backend_name': 'Backend'},
-                     title='Mean Max Memory per Test by Table Origin and Backend',
-                     error_y='max_memory_MiB_std')
-    
+    # Filter backends if the --backends argument is provided
+    if args.backends:
+        selected_backends = args.backends.split(',')
+        agg_reset = agg_reset[agg_reset['backend_name'].isin(selected_backends)]
+
+    # Sort by test_name alphabetically
+    agg_reset = agg_reset.sort_values(by='test_name')
+
+    if args.time_only:
+        fig = make_subplots(rows=1, cols=1, vertical_spacing=0.01, horizontal_spacing=0.01)
+        opt_title = ""
+    else:
+        fig = make_subplots(rows=2, cols=1, vertical_spacing=0.01, horizontal_spacing=0.01, shared_xaxes='all', shared_yaxes='rows')
+        opt_title = " and memory usage"
+
+    time = px.bar(agg_reset, x='test_name', y='total_time_s_mean', color='backend_name', barmode='group',
+                  labels={'test_name': 'Test Name', 'total_time_s_mean': 'Mean Total Time (s)', 'backend_name': 'Backend'},
+                  title='Mean Total Time per Test by Table Origin and Backend',
+                  error_y='total_time_s_std',
+                  color_discrete_map=backend_colors)
+
+    if not args.time_only:
+        memo = px.bar(agg_reset, x='test_name', y='max_memory_MiB_mean', color='backend_name', barmode='group',
+                      labels={'test_name': 'Test Name', 'max_memory_MiB_mean': 'Mean Max Memory (MiB)', 'backend_name': 'Backend'},
+                      title='Mean Max Memory per Test by Table Origin and Backend',
+                      error_y='max_memory_MiB_std',
+                      color_discrete_map=backend_colors)
+
     for trace in time.data:
         fig.add_trace(trace, row=1, col=1)
-    for trace in memo.data:
-        fig.add_trace(trace, row=2, col=1)
+    if not args.time_only:
+        for trace in memo.data:
+            fig.add_trace(trace, row=2, col=1)
 
-    # fig.update_layout(height=1000)
-    # fig.update_xaxes(title_text="Test Name", row=2, col=1)
-    # fig.update_xaxes(title_text="Test Name", row=2, col=2)
-    fig.update_xaxes(showticklabels=False, row=1, col=1)
-    fig.update_xaxes(showticklabels=False, row=1, col=2)
+    fig.update_xaxes(showticklabels=True, row=1, col=1)
+    if not args.time_only:
+        fig.update_xaxes(showticklabels=True, row=2, col=1)
+        fig.update_yaxes(title_text="Max Memory (MiB)", row=2, col=1)
     fig.update_yaxes(title_text="Total Time (s)", row=1, col=1)
-    fig.update_yaxes(title_text="Max Memory (MiB)", row=2, col=1)
-    fig.update_layout(margin=dict(l = 20, r = 20, t = 100, b = 10), title_text=f"<b>Backends comparison over tests: total time and max memory over {dataset_size} dataset and {test_runs} runs<b>")
+    fig.update_layout(
+        margin=dict(l=20, r=20, t=100, b=10), 
+        title_text=f"<b>Total time{opt_title}<br>{dataset_size} dataset over {test_runs} runs<b>",
+        title_font=dict(size=26),
+        xaxis_title_font=dict(size=20),
+        yaxis_title_font=dict(size=20),
+        font=dict(size=18),
+        )
 
     fig.show()
 
