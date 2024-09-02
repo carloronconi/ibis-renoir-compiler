@@ -8,6 +8,7 @@ def main():
     parser.add_argument('dir', type=str, help='The directory containing the internal benchmark results')
     parser.add_argument('--time-only', action='store_true', help='Only draw the time part of the plot')
     parser.add_argument('--backends', type=str, help='Comma-separated list of backend names to include in the plot')
+    parser.add_argument('--test-patterns', type=str, help='Comma-separated list of test pattern strings to filter test names')
     args = parser.parse_args()
 
     dataset_size = args.dir.split('/')[-1].split('_')[0]
@@ -53,6 +54,11 @@ def main():
     if args.backends:
         selected_backends = args.backends.split(',')
         agg_reset = agg_reset[agg_reset['backend_name'].isin(selected_backends)]
+
+    # Filter test names if the --test-patterns argument is provided
+    if args.test_patterns:
+        patterns = args.test_patterns.split(',')
+        agg_reset = agg_reset[agg_reset['test_name'].apply(lambda x: any(pat in x for pat in patterns))]
 
     # Sort by test_name alphabetically
     agg_reset = agg_reset.sort_values(by='test_name')
