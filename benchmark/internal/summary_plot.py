@@ -19,6 +19,7 @@ def main():
     # if sum-pre is selected, add pre_query_time_s to total_time_s for tests that have a positive pre_query_time_s
     if args.sum_pre:
         df.loc[df['pre_query_time_s'] > 0, 'total_time_s'] += df['pre_query_time_s']
+        df.loc[df['pre_query_time_s'] > 0, 'max_memory_MiB'] += df['pre_query_memo_MiB']
 
     # remove warmup runs, but keep those that failed
     agg = df[(df['run_count'] != -1) | df['exception'].notna()].groupby(['test_name', 'backend_name', 'scenario']).agg({
