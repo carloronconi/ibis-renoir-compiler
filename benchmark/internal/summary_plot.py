@@ -7,6 +7,7 @@ def main():
     parser = argparse.ArgumentParser(description='Plot summary of internal benchmark run.')
     parser.add_argument('dir', type=str, help='The directory containing the internal benchmark results')
     parser.add_argument('--time-only', action='store_true', help='Only draw the time part of the plot')
+    parser.add_argument('--sum-pre', action='store_true', help='Add pre-query time to the post-query time')
     parser.add_argument('--backends', type=str, help='Comma-separated list of backend names to include in the plot')
     parser.add_argument('--test-patterns', type=str, help='Comma-separated list of test pattern strings to filter test names')
     args = parser.parse_args()
@@ -14,6 +15,10 @@ def main():
     dataset_size = args.dir.split('/')[-1].split('_')[0]
     file = args.dir + "/codegen_log.csv"
     df = pd.read_csv(file, dtype={'exception': 'str'}, na_values=['None'])
+
+    # if sum-pre is selected, add pre_query_time_s to total_time_s for tests that have a positive pre_query_time_s
+    if args.sum_pre:
+        df.loc[df['pre_query_time_s'] > 0, 'total_time_s'] += df['pre_query_time_s']
 
     # remove warmup runs, but keep those that failed
     agg = df[(df['run_count'] != -1) | df['exception'].notna()].groupby(['test_name', 'backend_name', 'scenario']).agg({
@@ -33,7 +38,12 @@ def main():
     agg_reset.loc[agg_reset['exception_first'].str.startswith('Traceback', na=False), 'exception_first'] = 'raise'
 
     # rename test names adding the scenario as prefix so two scenarios running the same test result in different items plotted
-    agg_reset['test_name'] = agg_reset['scenario'] + ': ' + agg_reset['test_name']
+    for idx, row in agg_reset.iterrows():
+        if row['scenario'] == 'Scenario3baseline':
+            agg_reset.at[idx, 'test_name'] = 'Scenario3: ' + row['test_name']
+            agg_reset.at[idx, 'backend_name'] = row['backend_name'] + '-os'
+        else:
+            agg_reset.at[idx, 'test_name'] = row['scenario'] + ': ' + row['test_name']
 
     # Remove invalid times so that they're not shown in the plot
     agg_reset.loc[(agg_reset['exception_first'] == 'timeout'), 'total_time_s_mean'] = -20
@@ -42,18 +52,24 @@ def main():
 
     # Define a color mapping for backends
     backend_colors = {
-        'renoir': '#AC80A0',
-        'duckdb': '#FFD166',
-        'polars': '#118AB2',
-        'flink': '#EF476F',
-        'spark': '#F78C6B',
-        'risingwave': '#073B4C'
+        'renoir': 'rgb(172, 128, 160)',
+        'renoir-os': 'rgba(172, 128, 160, 0.6)',
+        'duckdb': 'rgb(255, 209, 102)',
+        'duckdb-os': 'rgba(255, 209, 102, 0.6)',
+        'polars': 'rgb(17, 138, 178)',
+        'polars-os': 'rgba(17, 138, 178, 0.6)',
+        'flink': 'rgb(239, 71, 111)',
+        'flink-os': 'rgba(239, 71, 111, 0.6)',
+        'spark': 'rgb(247, 140, 107)',
+        'spark-os': 'rgba(247, 140, 107, 0.6)',
+        'risingwave': 'rgb(7, 59, 76)',
+        'risingwave-os': 'rgba(7, 59, 76, 0.6)',
     }
 
     # Filter backends if the --backends argument is provided
     if args.backends:
         selected_backends = args.backends.split(',')
-        agg_reset = agg_reset[agg_reset['backend_name'].isin(selected_backends)]
+        agg_reset = agg_reset[agg_reset['backend_name'].apply(lambda x: any(bac in x for bac in selected_backends))]
 
     # Filter test names if the --test-patterns argument is provided
     if args.test_patterns:
