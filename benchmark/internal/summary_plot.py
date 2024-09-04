@@ -7,6 +7,7 @@ def main():
     parser = argparse.ArgumentParser(description='Plot summary of internal benchmark run.')
     parser.add_argument('dir', type=str, help='The directory containing the internal benchmark results')
     parser.add_argument('--time-only', action='store_true', help='Only draw the time part of the plot')
+    parser.add_argument('--no-text', action='store_true', help='Do not show text on the bars')
     # parser.add_argument('--sum-pre', action='store_true', help='Add pre-query time to the post-query time')
     parser.add_argument('--backends', type=str, help='Comma-separated list of backend names to include in the plot')
     parser.add_argument('--test-patterns', type=str, help='Comma-separated list of test pattern strings to filter test names')
@@ -97,10 +98,8 @@ def main():
 
     if args.time_only:
         fig = make_subplots(rows=1, cols=1, vertical_spacing=0.01, horizontal_spacing=0.01)
-        opt_title = ""
     else:
         fig = make_subplots(rows=2, cols=1, vertical_spacing=0.01, horizontal_spacing=0.01, shared_xaxes='all', shared_yaxes='rows')
-        opt_title = " and memory usage"
 
     time = px.bar(agg_reset, x='test_name', y='total_time_s_mean', color='backend_name', barmode='group',
                   labels={'test_name': 'Test Name', 'total_time_s_mean': 'Mean Total Time (s)', 'backend_name': 'Backend'},
@@ -109,10 +108,11 @@ def main():
                   color_discrete_map=backend_colors,
                   pattern_shape='backend_name',
                   pattern_shape_map=backend_styles,
-                  text='total_time_s_mean'
+                  text=None if args.no_text else  'total_time_s_mean'
                   )
 
-    time.update_traces(texttemplate='                  %{text:.3f}', textposition='outside')
+    if not args.no_text:
+        time.update_traces(texttemplate='                  %{text:.3f}', textposition='outside')
 
     if not args.time_only:
         memo = px.bar(agg_reset, x='test_name', y='max_memory_MiB_mean', color='backend_name', barmode='group',
@@ -122,10 +122,10 @@ def main():
                       color_discrete_map=backend_colors,
                       pattern_shape='backend_name',
                       pattern_shape_map=backend_styles,
-                      text='max_memory_MiB_mean',
+                      text=None if args.no_text else 'max_memory_MiB_mean',
                       )
-
-        memo.update_traces(texttemplate='                  %{text:.0f}', textposition='outside')
+        if not args.no_text:
+            memo.update_traces(texttemplate='                  %{text:.0f}', textposition='outside')
 
     for trace in time.data:
         fig.add_trace(trace, row=1, col=1)
