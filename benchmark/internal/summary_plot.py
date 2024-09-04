@@ -140,11 +140,11 @@ def main():
         fig.update_yaxes(title_text="Max Memory (MiB)", row=2, col=1)
     fig.update_yaxes(title_text="Total Time (s)", row=1, col=1)
     fig.update_layout(
-        margin=dict(l=20, r=20, t=100, b=10), 
-        title_text=f"<b>Total time{opt_title}<br>{dataset_size} dataset over {test_runs} runs<b>",
-        title_font=dict(size=26),
-        xaxis_title_font=dict(size=20),
-        yaxis_title_font=dict(size=20),
+        margin=dict(l=20, r=20, t=40, b=10), 
+        # title_text=f"<b>Total time{opt_title}<br>{dataset_size} dataset over {test_runs} runs<b>",
+        # title_font=dict(size=26),
+        # xaxis_title_font=dict(size=20),
+        # yaxis_title_font=dict(size=20),
         font=dict(size=18),
         )
 
