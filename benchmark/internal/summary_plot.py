@@ -7,7 +7,7 @@ def main():
     parser = argparse.ArgumentParser(description='Plot summary of internal benchmark run.')
     parser.add_argument('dir', type=str, help='The directory containing the internal benchmark results')
     parser.add_argument('--time-only', action='store_true', help='Only draw the time part of the plot')
-    parser.add_argument('--sum-pre', action='store_true', help='Add pre-query time to the post-query time')
+    # parser.add_argument('--sum-pre', action='store_true', help='Add pre-query time to the post-query time')
     parser.add_argument('--backends', type=str, help='Comma-separated list of backend names to include in the plot')
     parser.add_argument('--test-patterns', type=str, help='Comma-separated list of test pattern strings to filter test names')
     args = parser.parse_args()
@@ -16,10 +16,11 @@ def main():
     file = args.dir + "/codegen_log.csv"
     df = pd.read_csv(file, dtype={'exception': 'str'}, na_values=['None'])
 
-    # if sum-pre is selected, add pre_query_time_s to total_time_s for tests that have a positive pre_query_time_s
-    if args.sum_pre:
-        df.loc[df['pre_query_time_s'] > 0, 'total_time_s'] += df['pre_query_time_s']
-        df.loc[df['pre_query_time_s'] > 0, 'max_memory_MiB'] += df['pre_query_memo_MiB']
+    # fill the pre-query time for the baseline scenario from scenario3: not ideal implementation as requires ordering of rows of tests to be the same
+    df.loc[df['scenario'] == 'Scenario3baseline', 'pre_query_time_s'] = df.loc[df['scenario'] == 'Scenario3', 'pre_query_time_s'].values
+    # add pre_query_time_s to total_time_s for tests that have a positive pre_query_time_s (Scenario3 and Scenario3baseline)
+    df.loc[df['pre_query_time_s'] > 0, 'total_time_s'] += df['pre_query_time_s']
+    df.loc[df['pre_query_time_s'] > 0, 'max_memory_MiB'] += df['pre_query_memo_MiB']
 
     # remove warmup runs, but keep those that failed
     agg = df[(df['run_count'] != -1) | df['exception'].notna()].groupby(['test_name', 'backend_name', 'scenario']).agg({
@@ -54,17 +55,31 @@ def main():
     # Define a color mapping for backends
     backend_colors = {
         'renoir': 'rgb(172, 128, 160)',
-        'renoir-os': 'rgba(172, 128, 160, 0.6)',
+        'renoir-os': 'rgb(172, 128, 160)',
         'duckdb': 'rgb(255, 209, 102)',
-        'duckdb-os': 'rgba(255, 209, 102, 0.6)',
+        'duckdb-os': 'rgb(255, 209, 102)',
         'polars': 'rgb(17, 138, 178)',
-        'polars-os': 'rgba(17, 138, 178, 0.6)',
+        'polars-os': 'rgb(17, 138, 178)',
         'flink': 'rgb(239, 71, 111)',
-        'flink-os': 'rgba(239, 71, 111, 0.6)',
+        'flink-os': 'rgb(239, 71, 111)',
         'spark': 'rgb(247, 140, 107)',
-        'spark-os': 'rgba(247, 140, 107, 0.6)',
+        'spark-os': 'rgb(247, 140, 107)',
         'risingwave': 'rgb(7, 59, 76)',
-        'risingwave-os': 'rgba(7, 59, 76, 0.6)',
+        'risingwave-os': 'rgb(7, 59, 76)',
+    }
+    backend_styles = {
+        'renoir': '',
+        'renoir-os': 'x',
+        'duckdb': '',
+        'duckdb-os': 'x',
+        'polars': '',
+        'polars-os': 'x',
+        'flink': '',
+        'flink-os': 'x',
+        'spark': '',
+        'spark-os': 'x',
+        'risingwave': '',
+        'risingwave-os': 'x',
     }
 
     # Filter backends if the --backends argument is provided
@@ -91,14 +106,26 @@ def main():
                   labels={'test_name': 'Test Name', 'total_time_s_mean': 'Mean Total Time (s)', 'backend_name': 'Backend'},
                   title='Mean Total Time per Test by Table Origin and Backend',
                   error_y='total_time_s_std',
-                  color_discrete_map=backend_colors)
+                  color_discrete_map=backend_colors,
+                  pattern_shape='backend_name',
+                  pattern_shape_map=backend_styles,
+                  text='total_time_s_mean'
+                  )
+
+    time.update_traces(texttemplate='                  %{text:.3f}', textposition='outside')
 
     if not args.time_only:
         memo = px.bar(agg_reset, x='test_name', y='max_memory_MiB_mean', color='backend_name', barmode='group',
                       labels={'test_name': 'Test Name', 'max_memory_MiB_mean': 'Mean Max Memory (MiB)', 'backend_name': 'Backend'},
                       title='Mean Max Memory per Test by Table Origin and Backend',
                       error_y='max_memory_MiB_std',
-                      color_discrete_map=backend_colors)
+                      color_discrete_map=backend_colors,
+                      pattern_shape='backend_name',
+                      pattern_shape_map=backend_styles,
+                      text='max_memory_MiB_mean',
+                      )
+
+        memo.update_traces(texttemplate='                  %{text:.0f}', textposition='outside')
 
     for trace in time.data:
         fig.add_trace(trace, row=1, col=1)
