@@ -18,10 +18,11 @@ def main():
     df = pd.read_csv(file, dtype={'exception': 'str'}, na_values=['None'])
 
     # fill the pre-query time for the baseline scenario from scenario3: not ideal implementation as requires ordering of rows of tests to be the same
-    df.loc[df['scenario'] == 'Scenario3baseline', 'pre_query_time_s'] = df.loc[df['scenario'] == 'Scenario3', 'pre_query_time_s'].values
-    # add pre_query_time_s to total_time_s for tests that have a positive pre_query_time_s (Scenario3 and Scenario3baseline)
-    df.loc[df['pre_query_time_s'] > 0, 'total_time_s'] += df['pre_query_time_s']
-    df.loc[df['pre_query_time_s'] > 0, 'max_memory_MiB'] += df['pre_query_memo_MiB']
+    if 'Scenario3baseline' in df['scenario'].values:
+        df.loc[df['scenario'] == 'Scenario3baseline', 'pre_query_time_s'] = df.loc[df['scenario'] == 'Scenario3', 'pre_query_time_s'].values
+        # add pre_query_time_s to total_time_s for tests that have a positive pre_query_time_s (Scenario3 and Scenario3baseline)
+        df.loc[df['pre_query_time_s'] > 0, 'total_time_s'] += df['pre_query_time_s']
+        df.loc[df['pre_query_time_s'] > 0, 'max_memory_MiB'] += df['pre_query_memo_MiB']
 
     # remove warmup runs, but keep those that failed
     agg = df[(df['run_count'] != -1) | df['exception'].notna()].groupby(['test_name', 'backend_name', 'scenario']).agg({
