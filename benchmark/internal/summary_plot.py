@@ -8,9 +8,9 @@ def main():
     parser.add_argument('dir', type=str, help='The directory containing the internal benchmark results')
     parser.add_argument('--time-only', action='store_true', help='Only draw the time part of the plot')
     parser.add_argument('--no-text', action='store_true', help='Do not show text on the bars')
-    # parser.add_argument('--sum-pre', action='store_true', help='Add pre-query time to the post-query time')
     parser.add_argument('--backends', type=str, help='Comma-separated list of backend names to include in the plot')
     parser.add_argument('--test-patterns', type=str, help='Comma-separated list of test pattern strings to filter test names')
+    parser.add_argument('--throughput', type=int, help='Number of rows for throughput calculation')
     args = parser.parse_args()
 
     dataset_size = args.dir.split('/')[-1].split('_')[0]
@@ -97,23 +97,41 @@ def main():
     # Sort by test_name alphabetically
     agg_reset = agg_reset.sort_values(by='test_name')
 
+    # Determine whether to plot time or throughput
+    if args.throughput:
+        agg_reset['throughput'] = args.throughput / agg_reset['total_time_s_mean']
+        # Use error propagation formula for division
+        agg_reset['throughput_std'] = args.throughput * agg_reset['total_time_s_std'] / (agg_reset['total_time_s_mean'] ** 2)
+        y_value = 'throughput'
+        y_label = 'Throughput (rows/s)'
+        y_error = 'throughput_std'
+        title = 'Throughput per Test by Table Origin and Backend'
+        template = '                  %{text:.0f}'
+    else:
+        y_value = 'total_time_s_mean'
+        y_label = 'Total Time (s)'
+        y_error = 'total_time_s_std'
+        title = 'Mean Total Time per Test by Table Origin and Backend'
+        template = '                  %{text:.3f}'
+
+    # Create the plots
     if args.time_only:
         fig = make_subplots(rows=1, cols=1, vertical_spacing=0.01, horizontal_spacing=0.01)
     else:
         fig = make_subplots(rows=2, cols=1, vertical_spacing=0.01, horizontal_spacing=0.01, shared_xaxes='all', shared_yaxes='rows')
 
-    time = px.bar(agg_reset, x='test_name', y='total_time_s_mean', color='backend_name', barmode='group',
-                  labels={'test_name': 'Test Name', 'total_time_s_mean': 'Mean Total Time (s)', 'backend_name': 'Backend'},
-                  title='Mean Total Time per Test by Table Origin and Backend',
-                  error_y='total_time_s_std',
+    time = px.bar(agg_reset, x='test_name', y=y_value, color='backend_name', barmode='group',
+                  labels={'test_name': 'Test Name', y_value: y_label, 'backend_name': 'Backend'},
+                  title=title,
+                  error_y=y_error,
                   color_discrete_map=backend_colors,
                   pattern_shape='backend_name',
                   pattern_shape_map=backend_styles,
-                  text=None if args.no_text else  'total_time_s_mean'
+                  text=None if args.no_text else y_value
                   )
 
     if not args.no_text:
-        time.update_traces(texttemplate='                  %{text:.3f}', textposition='outside')
+        time.update_traces(texttemplate=template, textposition='outside')
 
     if not args.time_only:
         memo = px.bar(agg_reset, x='test_name', y='max_memory_MiB_mean', color='backend_name', barmode='group',
@@ -139,13 +157,9 @@ def main():
     if not args.time_only:
         fig.update_xaxes(showticklabels=True, row=2, col=1)
         fig.update_yaxes(title_text="Max Memory (MiB)", row=2, col=1)
-    fig.update_yaxes(title_text="Total Time (s)", row=1, col=1)
+    fig.update_yaxes(title_text=y_label, row=1, col=1)
     fig.update_layout(
         margin=dict(l=20, r=20, t=40, b=10), 
-        # title_text=f"<b>Total time{opt_title}<br>{dataset_size} dataset over {test_runs} runs<b>",
-        # title_font=dict(size=26),
-        # xaxis_title_font=dict(size=20),
-        # yaxis_title_font=dict(size=20),
         font=dict(size=18),
         )
 
