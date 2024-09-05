@@ -45,7 +45,7 @@ class SparkConnector(BackendConnector):
         shutil.rmtree("spark_checkpoint", ignore_errors=True)
         os.makedirs("spark_checkpoint")
         if self.query_contains_aggregation:
-            # in this case, wee need to set the output mode to complete
+            # in this case, wee need to set the output mode to update
             # as it's not supported by ibis, we need this workaround to access the spark dataframe
             sql_query = self.view.compile()
             spark_df = self.con.raw_sql(sql_query)
@@ -56,7 +56,7 @@ class SparkConnector(BackendConnector):
                 .option("kafka.bootstrap.servers", "localhost:9092")
                 .option("topic", self.sink_topic)
                 .option("checkpointLocation", "spark_checkpoint")
-                .outputMode("complete")
+                .outputMode("update")
                 .start())
         else:
             stream_query = self.con.to_kafka(
