@@ -2,14 +2,20 @@ import argparse
 import pandas as pd
 import plotly.express as px
 from plotly.subplots import make_subplots
+import time as tm
 
 def main():
     parser = argparse.ArgumentParser(description='Plot summary of internal benchmark run - renoir compile + execute breakdown.')
     parser.add_argument('dir', type=str, help='The directory containing the internal benchmark results')
+    parser.add_argument('--scenario', type=str, help='Scenario to plot')
     args = parser.parse_args()
 
     file = args.dir + "/codegen_log.csv"
     df = pd.read_csv(file, dtype={'exception': 'str'}, na_values=['None'])
+
+    # filter scenario if provided
+    if args.scenario:
+        df = df[df['scenario'] == args.scenario]
 
     # remove warmup runs, but keep those that failed
     agg = df[(df['run_count'] != -1) | df['exception'].notna()].groupby(['test_name', 'backend_name', 'scenario']).agg({
@@ -82,7 +88,11 @@ def main():
         barmode='stack'
         )
 
-    fig.show()
+    # bug in plotly requires writing twice to get rid of watermark
+    fig.write_image(f'temp.pdf')
+    tm.sleep(2)
+    fig.write_image(f'graphs/{args.dir.replace("/", "_")}-{args.scenario}-renoir-10M-breakdown.pdf',
+                    width=1800, height=1200)
 
 if __name__ == "__main__":
     main()

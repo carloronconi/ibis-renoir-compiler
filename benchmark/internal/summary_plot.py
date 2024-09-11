@@ -2,6 +2,7 @@ import argparse
 import pandas as pd
 import plotly.express as px
 from plotly.subplots import make_subplots
+import time as tm
 
 def main():
     parser = argparse.ArgumentParser(description='Plot summary of internal benchmark run.')
@@ -11,11 +12,21 @@ def main():
     parser.add_argument('--backends', type=str, help='Comma-separated list of backend names to include in the plot')
     parser.add_argument('--test-patterns', type=str, help='Comma-separated list of test pattern strings to filter test names')
     parser.add_argument('--throughput', type=int, help='Number of rows for throughput calculation')
+    parser.add_argument('--scenario', type=str, help='Scenario to plot')
     args = parser.parse_args()
 
     dataset_size = args.dir.split('/')[-1].split('_')[0]
     file = args.dir + "/codegen_log.csv"
     df = pd.read_csv(file, dtype={'exception': 'str'}, na_values=['None'])
+
+    # filter scenario if provided
+    if args.scenario:
+        df = df[df['scenario'] == args.scenario]
+
+    # filter preprocess_6_aggregate
+    df = df[~df['test_name'].str.contains('preprocess_6_aggregate')]
+    df = df[~df['test_name'].str.contains('exploration_6_aggregate')]
+
 
     # fill the pre-query time for the baseline scenario from scenario3: not ideal implementation as requires ordering of rows of tests to be the same
     if 'Scenario3baseline' in df['scenario'].values:
@@ -51,7 +62,7 @@ def main():
 
     # Remove invalid times so that they're not shown in the plot
     agg_reset.loc[(agg_reset['exception_first'] == 'timeout'), 'total_time_s_mean'] = -20
-    agg_reset.loc[(agg_reset['exception_first'] == 'raise'), 'total_time_s_mean'] = -10
+    agg_reset.loc[(agg_reset['exception_first'] == 'raise'), 'total_time_s_mean'] = -1
     agg_reset.loc[(agg_reset['max_memory_MiB_mean'] < 0), 'max_memory_MiB_mean'] = None
 
     # Define a color mapping for backends
@@ -163,7 +174,22 @@ def main():
         font=dict(size=18),
         )
 
-    fig.show()
+    # if no graphs directory, create it
+    import os
+    if not os.path.exists('graphs'):
+        os.makedirs('graphs')
+    # bug in plotly requires writing twice to get rid of watermark
+    fig.write_image(f'temp.pdf')
+    tm.sleep(2)
+    fig.write_image(f'graphs/{args.dir.replace("/", "_")}-{args.scenario}-{args.backends}-{dataset_size}.pdf',
+                    width=1800, height=1200)
+
+    # measure the max percentage of standard deviation for total_time_s_mean
+    # for idx, row in agg_reset.iterrows():
+    #     percentage = (row['total_time_s_std'] / row['total_time_s_mean']) * 100
+    #     test_name = row['test_name']
+    #     backend_name = row['backend_name']
+    #     print(f"Percentage of standard deviation for row {idx}, {test_name}, {backend_name}: {percentage}%")
 
 if __name__ == "__main__":
     main()

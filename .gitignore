@@ -37,3 +37,5 @@ flink-*
 /spark*
 /kafka*
 /risingwave_state_dir
+temp.pdf
+graphs/
