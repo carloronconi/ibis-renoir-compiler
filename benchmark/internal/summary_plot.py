@@ -27,10 +27,10 @@ def main():
     df = df[~df['test_name'].str.contains('preprocess_6_aggregate')]
     df = df[~df['test_name'].str.contains('exploration_6_aggregate')]
 
-
     # fill the pre-query time for the baseline scenario from scenario3: not ideal implementation as requires ordering of rows of tests to be the same
     if 'Scenario3baseline' in df['scenario'].values:
-        df.loc[df['scenario'] == 'Scenario3baseline', 'pre_query_time_s'] = df.loc[df['scenario'] == 'Scenario3', 'pre_query_time_s'].values
+        # actually, don't do it anymore with updated scenario3baseline, which also performs pre-query, without caching it
+        # df.loc[df['scenario'] == 'Scenario3baseline', 'pre_query_time_s'] = df.loc[df['scenario'] == 'Scenario3', 'pre_query_time_s'].values
         # add pre_query_time_s to total_time_s for tests that have a positive pre_query_time_s (Scenario3 and Scenario3baseline)
         df.loc[df['pre_query_time_s'] > 0, 'total_time_s'] += df['pre_query_time_s']
         df.loc[df['pre_query_time_s'] > 0, 'max_memory_MiB'] += df['pre_query_memo_MiB']

@@ -10,13 +10,13 @@ from . import backend_benchmark as bb
 from signal import SIGKILL
 
 
-SCENARIO_PATTERNS = [""]
+SCENARIO_PATTERNS = ["3"]
 RAISE_EXCEPTIONS = False
 
-RUNS = 5
+RUNS = 1
 WARMUP = 1
-DATASET_SIZE = 1000000
-DIR = "scenario/banana"
+DATASET_SIZE = 10000
+DIR = "scenario/banana_cached9"
 TIMEOUT = 60 * 5 # 5 minutes
 
 
@@ -214,7 +214,7 @@ class Scenario3(Scenario):
     def __init__(self, pipe):
         # TODO: no support for nexmark & tpc because requires successive queries, don't exist in specification
         self.test_patterns = ["test_scenarios_analytics"]
-        self.backend_names = ["spark", "duckdb", "polars", "risingwave", "renoir"]
+        self.backend_names = ["spark"]
         super().__init__(pipe)
 
     def perform_setup(self, backend: bb.BackendBenchmark):
@@ -222,7 +222,11 @@ class Scenario3(Scenario):
         return backend.preload_cached_query()
 
     def perform_measure(self, backend: bb.BackendBenchmark) -> tuple[float, float]:
-        return backend.perform_measure_cached_to_none()
+        result_t_m = (0, -1)
+        for _ in range(10):
+            t, m = backend.perform_measure_cached_to_none()
+            result_t_m = (result_t_m[0] + t, max(result_t_m[1], m))
+        return result_t_m
 
 
 class Scenario3baseline(Scenario):
@@ -230,11 +234,20 @@ class Scenario3baseline(Scenario):
     # performs the two queries in one-shot, measuring time and memory
     def __init__(self, pipe):
         self.test_patterns = ["test_scenarios_analytics"]
-        self.backend_names = ["spark", "duckdb", "polars", "risingwave"]
+        self.backend_names = ["spark"]
         super().__init__(pipe)
 
+    def perform_setup(self, backend: bb.BackendBenchmark):
+        super().perform_setup(backend)
+        return backend.preload_cached_query(cache=False)
+
     def perform_measure(self, backend: bb.BackendBenchmark) -> tuple[float, float]:
-        return backend.perform_measure_cached_one_shot_to_none()
+        result_t_m = (0, -1)
+        for _ in range(10):
+            t, m = backend.perform_measure_cached_one_shot_to_none()
+            # print(f"partials\tt: {t}\tm: {m}")
+            result_t_m = (result_t_m[0] + t, max(result_t_m[1], m))
+        return result_t_m
     
 
 class Scenario4(Scenario):

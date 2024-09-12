@@ -56,7 +56,7 @@ fn main() -> eyre::Result<()> {
         let seed = [0; 32];
         let mut rng_loop = StdRng::from_seed(seed);
         let mut rng_string = StdRng::from_seed(seed);
-        let range = args.size / 4;
+        let range = args.size / 100;
 
         // generate `range` unique strings
         let mut unique_strings = Vec::new();

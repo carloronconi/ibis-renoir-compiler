@@ -98,25 +98,29 @@ class BackendBenchmark():
             tables[name] = con.create_table(name, table, overwrite=True)
         self.test_instance.tables = tables
     
-    def preload_cached_query_from_tables(self):
+    def preload_cached_query_from_tables(self, cache=True):
         con = ibis.get_backend()
         def run():
             name = "ints_strings"
             table = self.test_instance.tables[name]
             # new modified table in place of previous one in tables (with old name) so transparent to next timed query
             # but with new name in db so we preserve standard dataset for slow loading backends
-            self.test_instance.tables[name] = con.create_table(name + "_cached", self.cached_pre_query(table), overwrite=True)
+            # actually, with same name also in db: see if new name was problem in polars: just slightly
+            if cache:
+                self.test_instance.tables[name] = con.create_table(name, self.cached_pre_query(table), overwrite=True)
+            else:
+                self.cached_pre_query(table).execute()
             # alternative version for s3: using ibis-provided cache, unsupported by risingwave
             # self.test_instance.tables[name] = self.cached_pre_query(table).cache()
         return measure_time_memo(run)
     
-    def preload_cached_query(self):
+    def preload_cached_query(self, cache=True):
         self.preload_tables()
-        return self.preload_cached_query_from_tables()
+        return self.preload_cached_query_from_tables(cache)
     
-    def preload_cached_query_without_csv(self):
+    def preload_cached_query_without_csv(self, cache=True):
         self.preload_tables_without_csv()
-        return self.preload_cached_query_from_tables()
+        return self.preload_cached_query_from_tables(cache)
     
     def perform_measure_cached_one_shot_to_none_from_tables(self) -> tuple[float, float]:
         def run():
@@ -129,11 +133,9 @@ class BackendBenchmark():
         return measure_time_memo(run)
     
     def perform_measure_cached_one_shot_to_none(self) -> tuple[float, float]:
-        self.preload_tables()
         return self.perform_measure_cached_one_shot_to_none_from_tables()
     
     def perform_measure_cached_one_shot_to_none_without_csv(self) -> tuple[float, float]:
-        self.preload_tables_without_csv()
         return self.perform_measure_cached_one_shot_to_none_from_tables()
 
     def perform_measure_to_kafka(self) -> tuple[float, float]:
@@ -266,10 +268,10 @@ class SparkBenchmark(BackendBenchmark):
             .master("spark://127.0.0.1:7077")\
             .appName("ibis")\
             .config("spark.jars.packages", ",".join(packages))\
-            .config("spark.executor.memory", "18g") \
-            .config("spark.executor.cores", "4") \
+            .config("spark.executor.memory", "3g") \
+            .config("spark.executor.cores", "2") \
             .config("spark.executor.instances", "3") \
-            .config("spark.driver.memory", "4g") \
+            .config("spark.driver.memory", "2g") \
             .getOrCreate()
         try:
             # depending on Ibis version: 9.2 accepts mode parameter
