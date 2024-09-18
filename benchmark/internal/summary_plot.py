@@ -61,7 +61,7 @@ def main():
             agg_reset.at[idx, 'test_name'] = row['scenario'] + ': ' + row['test_name']
 
     # Remove invalid times so that they're not shown in the plot
-    agg_reset.loc[(agg_reset['exception_first'] == 'timeout'), 'total_time_s_mean'] = -20
+    agg_reset.loc[(agg_reset['exception_first'] == 'timeout'), 'total_time_s_mean'] = -2
     agg_reset.loc[(agg_reset['exception_first'] == 'raise'), 'total_time_s_mean'] = -1
     agg_reset.loc[(agg_reset['max_memory_MiB_mean'] < 0), 'max_memory_MiB_mean'] = None
 
