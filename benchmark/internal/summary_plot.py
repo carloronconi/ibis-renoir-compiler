@@ -30,7 +30,7 @@ def main():
     # fill the pre-query time for the baseline scenario from scenario3: not ideal implementation as requires ordering of rows of tests to be the same
     if 'Scenario3baseline' in df['scenario'].values:
         # actually, don't do it anymore with updated scenario3baseline, which also performs pre-query, without caching it
-        # df.loc[df['scenario'] == 'Scenario3baseline', 'pre_query_time_s'] = df.loc[df['scenario'] == 'Scenario3', 'pre_query_time_s'].values
+        df.loc[df['scenario'] == 'Scenario3baseline', 'pre_query_time_s'] = df.loc[df['scenario'] == 'Scenario3', 'pre_query_time_s'].values
         # add pre_query_time_s to total_time_s for tests that have a positive pre_query_time_s (Scenario3 and Scenario3baseline)
         df.loc[df['pre_query_time_s'] > 0, 'total_time_s'] += df['pre_query_time_s']
         df.loc[df['pre_query_time_s'] > 0, 'max_memory_MiB'] += df['pre_query_memo_MiB']
@@ -164,14 +164,14 @@ def main():
             trace.showlegend = False
             fig.add_trace(trace, row=2, col=1)
 
-    fig.update_xaxes(showticklabels=True if args.time_only else False, row=1, col=1, showgrid=True)
+    fig.update_xaxes(showticklabels=True if args.time_only else False, row=1, col=1, showgrid=True, tickangle=10)
     if not args.time_only:
         fig.update_xaxes(showticklabels=True, row=2, col=1)
         fig.update_yaxes(title_text="Max Memory (MiB)", row=2, col=1)
     fig.update_yaxes(title_text=y_label, row=1, col=1)
     fig.update_layout(
-        margin=dict(l=20, r=20, t=40, b=10), 
-        font=dict(size=18),
+        margin=dict(l=20, r=20, t=10, b=10),
+        font=dict(size=22),
         )
 
     # if no graphs directory, create it
@@ -181,8 +181,8 @@ def main():
     # bug in plotly requires writing twice to get rid of watermark
     fig.write_image(f'temp.pdf')
     tm.sleep(2)
-    fig.write_image(f'graphs/{args.dir.replace("/", "_")}-{args.scenario}-{args.backends}-{dataset_size}.pdf',
-                    width=1800, height=1200)
+    fig.write_image(f'graphs/{args.dir.replace("/", "_")}-{args.scenario}-{args.backends}-{dataset_size}.svg',
+                    width=2000, height=562)
 
     # measure the max percentage of standard deviation for total_time_s_mean
     # for idx, row in agg_reset.iterrows():
